@@ -19,7 +19,7 @@ dialoguer = "0.10.4"
 env_logger = "0.10.0"
 ethers = { version = "=2.0.7" } # https://github.com/gakonst/ethers-rs/releases
 ethers-core = { version = "=2.0.7", features = ["eip712"] } # https://github.com/gakonst/ethers-rs/releases
-ethers-signers = { version = "=2.0.7" } # https://github.com/gakonst/ethers-rs/releases
+ethers-signers = { version = "=2.0.9" } # https://github.com/gakonst/ethers-rs/releases
 log = "0.4.20"
 primitive-types = { version = "0.12.1", features = ["impl-serde"] } # https://crates.io/crates/primitive-types
 prometheus-manager = "0.0.30"
