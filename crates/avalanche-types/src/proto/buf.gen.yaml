@@ -1,0 +1,24 @@
+version: v1
+plugins:
+  - name: prost
+    out: pb
+    opt:
+      - bytes=.
+      # https://docs.rs/prost-build/latest/prost_build/struct.Config.html#method.compile_well_known_types
+      - compile_well_known_types
+      # https://github.com/neoeinstein/protoc-gen-prost/blob/main/protoc-gen-prost/README.md#protoc-gen-prost
+      - file_descriptor_set
+
+  - name: tonic
+    out: pb
+    opt:
+      # https://docs.rs/prost-build/latest/prost_build/struct.Config.html#method.compile_well_known_types
+      - compile_well_known_types
+
+  - name: prost-crate
+    out: pb
+    strategy: all
+    opt:
+      # https://docs.rs/protoc-gen-prost-crate/latest/protoc_gen_prost_crate/#options
+      - include_file=mod.rs
+      - no_features=true

@@ -1,0 +1,448 @@
+syntax = "proto3";
+
+option go_package = "github.com/ava-labs/avalanche-rs/avalanchego-conformance;rpcpb";
+
+package rpcpb;
+
+service MessageService {
+  rpc AcceptedFrontier(AcceptedFrontierRequest) returns (AcceptedFrontierResponse) {
+  }
+
+  rpc AcceptedStateSummary(AcceptedStateSummaryRequest) returns (AcceptedStateSummaryResponse) {
+  }
+
+  rpc Accepted(AcceptedRequest) returns (AcceptedResponse) {
+  }
+
+  rpc Ancestors(AncestorsRequest) returns (AncestorsResponse) {
+  }
+
+  rpc AppGossip(AppGossipRequest) returns (AppGossipResponse) {
+  }
+
+  rpc AppRequest(AppRequestRequest) returns (AppRequestResponse) {
+  }
+
+  rpc AppResponse(AppResponseRequest) returns (AppResponseResponse) {
+  }
+
+  rpc Chits(ChitsRequest) returns (ChitsResponse) {
+  }
+
+  rpc GetAcceptedFrontier(GetAcceptedFrontierRequest) returns (GetAcceptedFrontierResponse) {
+  }
+
+  rpc GetAcceptedStateSummary(GetAcceptedStateSummaryRequest) returns (GetAcceptedStateSummaryResponse) {
+  }
+
+  rpc GetAccepted(GetAcceptedRequest) returns (GetAcceptedResponse) {
+  }
+
+  rpc GetAncestors(GetAncestorsRequest) returns (GetAncestorsResponse) {
+  }
+
+  rpc GetStateSummaryFrontier(GetStateSummaryFrontierRequest) returns (GetStateSummaryFrontierResponse) {
+  }
+
+  rpc Get(GetRequest) returns (GetResponse) {
+  }
+
+  rpc Peerlist(PeerlistRequest) returns (PeerlistResponse) {
+  }
+
+  rpc Ping(PingRequest) returns (PingResponse) {
+  }
+
+  rpc Pong(PongRequest) returns (PongResponse) {
+  }
+
+  rpc PullQuery(PullQueryRequest) returns (PullQueryResponse) {
+  }
+
+  rpc PushQuery(PushQueryRequest) returns (PushQueryResponse) {
+  }
+
+  rpc Put(PutRequest) returns (PutResponse) {
+  }
+
+  rpc StateSummaryFrontier(StateSummaryFrontierRequest) returns (StateSummaryFrontierResponse) {
+  }
+
+  rpc Version(VersionRequest) returns (VersionResponse) {
+  }
+}
+
+/////////////////////////////////////////////////////
+
+message AcceptedFrontierRequest {
+  bytes chain_id = 1;
+  uint32 request_id = 2;
+  repeated bytes container_ids = 3;
+
+  bytes serialized_msg = 4;
+}
+
+message AcceptedFrontierResponse {
+  bytes expected_serialized_msg = 1;
+  string message = 2;
+  bool success = 3;
+}
+
+/////////////////////////////////////////////////////
+
+message AcceptedStateSummaryRequest {
+  bytes chain_id = 1;
+  uint32 request_id = 2;
+  repeated bytes summary_ids = 3;
+
+  bool gzip_compressed = 4;
+  bytes serialized_msg = 5;
+}
+
+message AcceptedStateSummaryResponse {
+  bytes expected_serialized_msg = 1;
+  string message = 2;
+  bool success = 3;
+}
+
+/////////////////////////////////////////////////////
+
+message AcceptedRequest {
+  bytes chain_id = 1;
+  uint32 request_id = 2;
+  repeated bytes container_ids = 3;
+
+  bytes serialized_msg = 4;
+}
+
+message AcceptedResponse {
+  bytes expected_serialized_msg = 1;
+  string message = 2;
+  bool success = 3;
+}
+
+/////////////////////////////////////////////////////
+
+message AncestorsRequest {
+  bytes chain_id = 1;
+  uint32 request_id = 2;
+  repeated bytes containers = 3;
+
+  bool gzip_compressed = 4;
+  bytes serialized_msg = 5;
+}
+
+message AncestorsResponse {
+  bytes expected_serialized_msg = 1;
+  string message = 2;
+  bool success = 3;
+}
+
+/////////////////////////////////////////////////////
+
+message AppGossipRequest {
+  bytes chain_id = 1;
+  bytes app_bytes = 2;
+
+  bool gzip_compressed = 3;
+  bytes serialized_msg = 4;
+}
+
+message AppGossipResponse {
+  bytes expected_serialized_msg = 1;
+  string message = 2;
+  bool success = 3;
+}
+
+/////////////////////////////////////////////////////
+
+message AppRequestRequest {
+  bytes chain_id = 1;
+  uint32 request_id = 2;
+  uint64 deadline = 3;
+  bytes app_bytes = 4;
+
+  bool gzip_compressed = 5;
+  bytes serialized_msg = 6;
+}
+
+message AppRequestResponse {
+  bytes expected_serialized_msg = 1;
+  string message = 2;
+  bool success = 3;
+}
+
+/////////////////////////////////////////////////////
+
+message AppResponseRequest {
+  bytes chain_id = 1;
+  uint32 request_id = 2;
+  bytes app_bytes = 3;
+
+  bool gzip_compressed = 4;
+  bytes serialized_msg = 5;
+}
+
+message AppResponseResponse {
+  bytes expected_serialized_msg = 1;
+  string message = 2;
+  bool success = 3;
+}
+
+/////////////////////////////////////////////////////
+
+message ChitsRequest {
+  bytes chain_id               = 1;
+  uint32 request_id            = 2;
+  repeated bytes container_ids = 3;
+
+  bytes serialized_msg = 4;
+}
+
+message ChitsResponse {
+  bytes expected_serialized_msg = 1;
+  string message = 2;
+  bool success = 3;
+}
+
+/////////////////////////////////////////////////////
+
+message GetAcceptedFrontierRequest {
+  bytes chain_id     = 1;
+  uint32 request_id  = 2;
+  uint64 deadline    = 3;
+
+  bytes serialized_msg = 4;
+}
+
+message GetAcceptedFrontierResponse {
+  bytes expected_serialized_msg = 1;
+  string message = 2;
+  bool success = 3;
+}
+
+/////////////////////////////////////////////////////
+
+message GetAcceptedStateSummaryRequest {
+  bytes chain_id = 1;
+  uint32 request_id = 2;
+  uint64 deadline = 3;
+  repeated uint64 heights = 4;
+
+  bool gzip_compressed = 5;
+  bytes serialized_msg = 6;
+}
+
+message GetAcceptedStateSummaryResponse {
+  bytes expected_serialized_msg = 1;
+  string message = 2;
+  bool success = 3;
+}
+
+/////////////////////////////////////////////////////
+
+message GetAcceptedRequest {
+  bytes chain_id = 1;
+  uint32 request_id = 2;
+  uint64 deadline = 3;
+  repeated bytes container_ids = 4;
+
+  bytes serialized_msg = 5;
+}
+
+message GetAcceptedResponse {
+  bytes expected_serialized_msg = 1;
+  string message = 2;
+  bool success = 3;
+}
+
+/////////////////////////////////////////////////////
+
+message GetAncestorsRequest {
+  bytes chain_id = 1;
+  uint32 request_id = 2;
+  uint64 deadline = 3;
+  bytes container_id = 4;
+
+  bytes serialized_msg = 5;
+}
+
+message GetAncestorsResponse {
+  bytes expected_serialized_msg = 1;
+  string message = 2;
+  bool success = 3;
+}
+
+/////////////////////////////////////////////////////
+
+message GetStateSummaryFrontierRequest {
+  bytes chain_id = 1;
+  uint32 request_id = 2;
+  uint64 deadline = 3;
+
+  bytes serialized_msg = 4;
+}
+
+message GetStateSummaryFrontierResponse {
+  bytes expected_serialized_msg = 1;
+  string message = 2;
+  bool success = 3;
+}
+
+/////////////////////////////////////////////////////
+
+message GetRequest {
+  bytes chain_id = 1;
+  uint32 request_id = 2;
+  uint64 deadline = 3;
+  bytes container_id = 4;
+
+  bytes serialized_msg = 5;
+}
+
+message GetResponse {
+  bytes expected_serialized_msg = 1;
+  string message = 2;
+  bool success = 3;
+}
+
+/////////////////////////////////////////////////////
+
+message PeerlistRequest {
+  repeated Peer peers = 1;
+
+  bool gzip_compressed = 2;
+  bytes serialized_msg = 3;
+}
+
+message Peer {
+  bytes certificate = 1;
+  bytes ip_addr = 2;
+  uint32 ip_port = 3;
+  uint64 timestamp = 4;
+  bytes sig = 5;
+}
+
+message PeerlistResponse {
+  bytes expected_serialized_msg = 1;
+  string message = 2;
+  bool success = 3;
+}
+
+/////////////////////////////////////////////////////
+
+message PingRequest {
+  bytes serialized_msg = 1;
+}
+
+message PingResponse {
+  bytes expected_serialized_msg = 1;
+  string message = 2;
+  bool success = 3;
+}
+
+/////////////////////////////////////////////////////
+
+message PongRequest {
+  uint32 uptime_pct = 1;
+
+  bytes serialized_msg = 2;
+}
+
+message PongResponse {
+  bytes expected_serialized_msg = 1;
+  string message = 2;
+  bool success = 3;
+}
+
+/////////////////////////////////////////////////////
+
+message PullQueryRequest {
+  bytes chain_id        = 1;
+  uint32 request_id     = 2;
+  uint64 deadline       = 3;
+  bytes container_id    = 4;
+
+  bytes serialized_msg = 5;
+}
+
+message PullQueryResponse {
+  bytes expected_serialized_msg = 1;
+  string message = 2;
+  bool success = 3;
+}
+
+/////////////////////////////////////////////////////
+
+message PushQueryRequest {
+  bytes chain_id        = 1;
+  uint32 request_id     = 2;
+  uint64 deadline       = 3;
+  bytes container_bytes = 5;
+
+  bool gzip_compressed = 6;
+  bytes serialized_msg = 7;
+}
+
+message PushQueryResponse {
+  bytes expected_serialized_msg = 1;
+  string message = 2;
+  bool success = 3;
+}
+
+/////////////////////////////////////////////////////
+
+message PutRequest {
+  bytes chain_id        = 1;
+  uint32 request_id     = 2;
+  bytes container_bytes = 4;
+
+  bool gzip_compressed = 5;
+  bytes serialized_msg = 6;
+}
+
+message PutResponse {
+  bytes expected_serialized_msg = 1;
+  string message = 2;
+  bool success = 3;
+}
+
+/////////////////////////////////////////////////////
+
+message StateSummaryFrontierRequest {
+  bytes chain_id = 1;
+  uint32 request_id = 2;
+  bytes summary = 3;
+
+  bool gzip_compressed = 5;
+  bytes serialized_msg = 6;
+}
+
+message StateSummaryFrontierResponse {
+  bytes expected_serialized_msg = 1;
+  string message = 2;
+  bool success = 3;
+}
+
+/////////////////////////////////////////////////////
+
+message VersionRequest {
+  uint32 network_id = 1;
+  uint64 my_time = 2;
+  bytes ip_addr = 3;
+  uint32 ip_port = 4;
+  string my_version = 5;
+  uint64 my_version_time = 6;
+  bytes sig = 7;
+  repeated bytes tracked_subnets = 8;
+
+  bytes serialized_msg = 9;
+}
+
+message VersionResponse {
+  bytes expected_serialized_msg = 1;
+  string message = 2;
+  bool success = 3;
+}
+
+/////////////////////////////////////////////////////

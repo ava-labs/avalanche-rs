@@ -1,0 +1,5 @@
+version: v1
+directories:
+  # temporary directory created by scripts/protobuf_codegen.sh
+  - protos/avalanche
+  - protos/static

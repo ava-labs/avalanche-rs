@@ -1,0 +1,35 @@
+[package]
+name = "avalanche-e2e"
+version = "0.0.0"
+edition = "2021"
+rust-version = "1.70" # use "rustup override set stable" to overwrite current toolchain
+publish = false
+description = "e2e tests for Avalanche"
+license-file = "LICENSE"
+homepage = "https://avax.network"
+
+[dependencies]
+avalanche-installer = "0.0.77"
+avalanche-network-runner-sdk = "0.3.3" # https://crates.io/crates/avalanche-network-runner-sdk
+avalanche-types = { path = "../../crates/avalanche-types", features = ["jsonrpc_client", "wallet", "wallet_evm", "kms_aws"] } # https://crates.io/crates/avalanche-types
+aws-manager = { version = "0.30.2", features = ["kms"] } # https://github.com/gyuho/aws-manager/tags
+clap = { version = "4.3.19", features = ["cargo", "derive"] } # https://github.com/clap-rs/clap/releases
+crossterm = "0.27.0"
+dialoguer = "0.10.4"
+env_logger = "0.10.0"
+ethers = { version = "=2.0.7" } # https://github.com/gakonst/ethers-rs/releases
+ethers-core = { version = "=2.0.7", features = ["eip712"] } # https://github.com/gakonst/ethers-rs/releases
+ethers-signers = { version = "=2.0.7" } # https://github.com/gakonst/ethers-rs/releases
+log = "0.4.20"
+primitive-types = { version = "0.12.1", features = ["impl-serde"] } # https://crates.io/crates/primitive-types
+prometheus-manager = "0.0.30"
+rand = "0.8.5"
+random-manager = "0.0.5"
+reqwest = "0.11.20"
+serde = { version = "1.0.186", features = ["derive"] }
+serde_json = "1.0.105" # https://github.com/serde-rs/json/releases
+serde_yaml = "0.9.25" # https://github.com/dtolnay/serde-yaml/releases
+tokio = { version = "1.32.0", features = [] } # https://github.com/tokio-rs/tokio/releases
+
+[dev-dependencies]
+tempfile = "3.5.0"

@@ -1,0 +1,83 @@
+syntax = "proto3";
+
+option go_package = "github.com/ava-labs/avalanche-rs/avalanchego-conformance;rpcpb";
+
+package rpcpb;
+
+service KeyService {
+  rpc CertificateToNodeId(CertificateToNodeIdRequest) returns (CertificateToNodeIdResponse) {
+  }
+
+  rpc Secp256k1RecoverHashPublicKey(Secp256k1RecoverHashPublicKeyRequest) returns (Secp256k1RecoverHashPublicKeyResponse) {
+  }
+
+  rpc Secp256k1Info(Secp256k1InfoRequest) returns (Secp256k1InfoResponse) {
+  }
+
+  rpc BlsSignature(BlsSignatureRequest) returns (BlsSignatureResponse) {
+  }
+}
+
+message CertificateToNodeIdRequest {
+  bytes certificate = 1;
+  bytes node_id = 2;
+}
+
+message CertificateToNodeIdResponse {
+  bytes expected_node_id = 1;
+  string message = 2;
+  bool success = 3;
+}
+
+message Secp256k1RecoverHashPublicKeyRequest {
+  bytes message = 1;
+  bytes signature = 2;
+  string public_key_short_id_cb58 = 3;
+}
+
+message Secp256k1RecoverHashPublicKeyResponse {
+  string expected_public_key_short_id_cb58 = 1;
+  string message = 2;
+  bool success = 3;
+}
+
+message Secp256k1InfoRequest {
+  Secp256k1Info secp256k1_info = 1;
+}
+
+message Secp256k1InfoResponse {
+  Secp256k1Info expected_secp256k1_info = 1;
+  string message = 2;
+  bool success   = 3;
+}
+
+message Secp256k1Info {
+  string key_type = 1;
+
+  string private_key_cb58 = 2;
+  string private_key_hex = 3;
+
+  // Map from network ID to its chain addresses.
+  map<uint32, ChainAddresses> chain_addresses = 4;
+
+  string short_address = 5;
+  string eth_address = 6;
+}
+
+message ChainAddresses {
+  string x = 1;
+  string p = 2;
+}
+
+message BlsSignatureRequest {
+  bytes private_key = 1;
+  bytes public_key = 2;
+  bytes message = 3;
+  bytes signature = 4;
+  bytes signature_proof_of_possession = 5;
+}
+
+message BlsSignatureResponse {
+  string message = 1;
+  bool success = 2;
+}

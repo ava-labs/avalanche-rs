@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+option go_package = "github.com/ava-labs/avalanche-rs/avalanchego-conformance;rpcpb";
+
+package rpcpb;
+
+service PackerService {
+  rpc BuildVertex(BuildVertexRequest) returns (BuildVertexResponse) {
+  }
+}
+
+message BuildVertexRequest {
+  uint32 codec_version = 1;
+  bytes chain_id = 2;
+  uint64 height = 3;
+  uint32 epoch = 4;
+  repeated bytes parent_ids = 5;
+  repeated bytes txs = 6;
+
+  bytes vtx_bytes = 7;
+}
+
+message BuildVertexResponse {
+  bytes expected_bytes = 1;
+  string message       = 2;
+  bool success         = 3;
+}

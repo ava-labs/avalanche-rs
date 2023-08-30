@@ -1,0 +1,18 @@
+[package]
+name = "server"
+version = "0.0.1"
+edition = "2021"
+rust-version = "1.70" # use "rustup override set stable" to overwrite current toolchain
+publish = false
+description = "avalanche-rs server"
+license-file = "LICENSE"
+homepage = "https://avax.network"
+repository = "https://github.com/ava-labs/avalanche-rs/tree/main/core/server"
+readme = "README.md"
+
+[dependencies]
+futures = "0.3.28"
+http = "0.2.9"
+hyper = { version = "0.14.25", features = ["full"] }
+log = "0.4.20"
+tokio = { version = "1.32.0", features = ["full"] } # https://github.com/tokio-rs/tokio/releases

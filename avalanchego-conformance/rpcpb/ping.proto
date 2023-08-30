@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+option go_package = "github.com/ava-labs/avalanche-rs/avalanchego-conformance;rpcpb";
+
+package rpcpb;
+
+service PingService {
+  rpc PingService(PingServiceRequest) returns (PingServiceResponse) {
+  }
+}
+
+message PingServiceRequest {}
+
+message PingServiceResponse {
+  int32 pid = 1;
+}
