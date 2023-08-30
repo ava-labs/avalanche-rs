@@ -77,7 +77,7 @@ futures = { version = "0.3.28", optional = true }
 http = { version = "0.2.9", optional = true }
 jsonrpc-core = { version = "18.0.0", optional = true }
 jsonrpc-http-server = { version = "18.0.0", optional = true }
-num-derive = { version = "0.3.3", optional = true }
+num-derive = { version = "0.4.0", optional = true }
 num-traits = { version = "0.2.15", optional = true }
 prost = { version = "0.11.9", optional = true } # prost-build requires "cmake", https://github.com/tokio-rs/prost/releases
 semver = { version = "1.0.17", optional = true }
