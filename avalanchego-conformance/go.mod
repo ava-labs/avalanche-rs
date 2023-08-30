@@ -40,7 +40,7 @@ require (
 	github.com/prometheus/procfs v0.9.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/testify v1.8.1 // indirect
-	github.com/supranational/blst v0.3.11-0.20220920110316-f72618070295 // indirect
+	github.com/supranational/blst v0.3.11 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20220614013038-64ee5596c38a // indirect
 	go.opentelemetry.io/otel v1.11.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/internal/retry v1.11.0 // indirect
