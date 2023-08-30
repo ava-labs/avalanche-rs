@@ -68,7 +68,7 @@ tokio = { version = "1.32.0", features = ["full"], optional = true } # https://g
 rlp = { version = "0.5.2", default-features = false, features = ["std"], optional = true }
 
 # [OPTIONAL] for "wallet_evm"
-ethers = { version = "=2.0.7", features = ["eip712"], optional = true } # https://github.com/gakonst/ethers-rs/releases
+ethers = { version = "=2.0.9", features = ["eip712"], optional = true } # https://github.com/gakonst/ethers-rs/releases
 ethers-providers = { version = "=2.0.7", optional = true } # https://github.com/gakonst/ethers-rs/releases
 ethers-signers = { version = "=2.0.7", optional = true } # https://github.com/gakonst/ethers-rs/releases
 

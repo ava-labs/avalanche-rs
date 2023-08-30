@@ -17,7 +17,7 @@ clap = { version = "4.3.19", features = ["cargo", "derive"] } # https://github.c
 crossterm = "0.27.0"
 dialoguer = "0.10.4"
 env_logger = "0.10.0"
-ethers = { version = "=2.0.7" } # https://github.com/gakonst/ethers-rs/releases
+ethers = { version = "=2.0.9" } # https://github.com/gakonst/ethers-rs/releases
 ethers-core = { version = "=2.0.7", features = ["eip712"] } # https://github.com/gakonst/ethers-rs/releases
 ethers-signers = { version = "=2.0.7" } # https://github.com/gakonst/ethers-rs/releases
 log = "0.4.20"
