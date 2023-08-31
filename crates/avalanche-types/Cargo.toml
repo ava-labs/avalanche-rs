@@ -1,6 +1,6 @@
 [package]
 name = "avalanche-types"
-version = "0.1.0" # https://crates.io/crates/avalanche-types
+version = "0.1.1" # https://crates.io/crates/avalanche-types
 edition = "2021"
 rust-version = "1.70" # use "rustup override set stable" to overwrite current toolchain
 publish = true

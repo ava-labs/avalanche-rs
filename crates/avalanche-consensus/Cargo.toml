@@ -1,7 +1,7 @@
 [package]
 # https://crates.io/crates/avalanche-consensus/versions
 name = "avalanche-consensus"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 rust-version = "1.70" # use "rustup override set stable" to overwrite current toolchain
 publish = true
@@ -11,7 +11,7 @@ homepage = "https://avax.network"
 repository = "https://github.com/ava-labs/avalanche-rs/tree/main/crates/avalanche-consensus"
 
 [dependencies]
-avalanche-types = { path = "../../crates/avalanche-types", features = [] } # https://crates.io/crates/avalanche-types
+avalanche-types = { version = "0.1.1", path = "../../crates/avalanche-types", features = [] } # https://crates.io/crates/avalanche-types
 bytes = "1.4.0"
 log = "0.4.20"
 serde = { version = "1.0.186", features = ["derive"] } # https://github.com/serde-rs/serde/releases
