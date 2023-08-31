@@ -15,7 +15,7 @@ default-members = ["crates/avalanche-types", "crates/avalanche-consensus"]
 workspace.resolver = "1"
 
 [workspace.package]
-version = "0.1.0"
+version = "0.1.1"
 authors = ["gyuho", "hexfusion", "exdx", "richardpringle"]
 description = "A collection of Avalanche-specific Rust crates"
 license-file = "LICENSE"
