@@ -43,7 +43,7 @@ spki = "0.7.2" # https://github.com/RustCrypto/formats/tree/master/spki
 strum = "0.24.1"
 thiserror = "1.0.47"
 url = "2.4.0" # for "codec::serde::ip_port", "utils"
-zerocopy = "0.6.3"
+zerocopy = "0.7.1"
 zeroize = "1.6.0" # for "BLS
 
 # [OPTIONAL] for "libsecp256k1"
