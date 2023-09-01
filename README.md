@@ -5,7 +5,7 @@
 
 > :warning: avalanche-rs is alpha-level software and is not ready for production
 > use. Do not use avalanche-rs to run production workloads. See the
-> [license](./LICENSE.md) for more information regarding usage.
+> [license](./LICENSE) for more information regarding usage.
 
 avalanche-rs is a collection of crates that provides all the necessary abstractions to develop Rust-based applications and VMs in the Avalanche ecosystem. It provides the canonical type definitions of all of the various Avalanche APIs, on par with those in [avalanchego](https://github.com/ava-labs/avalanchego), but for Rust developers. 
 
