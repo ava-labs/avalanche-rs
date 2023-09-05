@@ -1,6 +1,6 @@
 version: v1
 plugins:
-  - name: prost
+  - plugin: buf.build/community/neoeinstein-prost:v0.2.3
     out: pb
     opt:
       - bytes=.
@@ -9,13 +9,13 @@ plugins:
       # https://github.com/neoeinstein/protoc-gen-prost/blob/main/protoc-gen-prost/README.md#protoc-gen-prost
       - file_descriptor_set
 
-  - name: tonic
+  - plugin: buf.build/community/neoeinstein-tonic:v0.3.0
     out: pb
     opt:
       # https://docs.rs/prost-build/latest/prost_build/struct.Config.html#method.compile_well_known_types
       - compile_well_known_types
 
-  - name: prost-crate
+  - name: prost-crate # remote plugin not supported yet
     out: pb
     strategy: all
     opt:
