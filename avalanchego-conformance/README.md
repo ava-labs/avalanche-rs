@@ -15,6 +15,8 @@ avalanchego-conformance server \
 --grpc-gateway-port 9091
 ```
 
+Use a client-side tool like `grpc-curl` or `curl` to send the server requests.
+
 The following gRPC messages are implemented by the gRPC server:
 
 Keys 
