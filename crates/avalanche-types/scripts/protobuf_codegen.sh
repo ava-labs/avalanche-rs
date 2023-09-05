@@ -20,6 +20,12 @@ if [[ $(buf --version | cut -f2 -d' ') != "${BUF_VERSION}" ]]; then
   exit 255
 fi
 
+# protoc-gen-prost and protoc-gen-tonic are now community modules hosted by buf
+# and not required by this script.
+#
+# ref. https://buf.build/community/neoeinstein-tonic
+# ref. https://buf.build/community/neoeinstein-prost
+
 # protoc plugin "protoc-gen-prost-crate" is required
 #
 # e.g.,
