@@ -1,6 +1,7 @@
 use std::io::{self, Error, ErrorKind};
 
 use crate::{ids, message, proto::pb::p2p};
+use prost::bytes::Bytes;
 use prost::Message as ProstMessage;
 
 #[derive(Debug, PartialEq, Clone)]
@@ -19,10 +20,10 @@ impl Message {
     pub fn default() -> Self {
         Message {
             msg: p2p::Chits {
-                chain_id: prost::bytes::Bytes::new(),
+                chain_id: Bytes::new(),
                 request_id: 0,
-                preferred_container_ids: Vec::new(),
-                accepted_container_ids: Vec::new(),
+                preferred_id: Bytes::new(),
+                accepted_id: Bytes::new(),
             },
             gzip_compress: false,
         }
@@ -30,7 +31,7 @@ impl Message {
 
     #[must_use]
     pub fn chain_id(mut self, chain_id: ids::Id) -> Self {
-        self.msg.chain_id = prost::bytes::Bytes::from(chain_id.to_vec());
+        self.msg.chain_id = Bytes::from(chain_id.to_vec());
         self
     }
 
@@ -41,13 +42,8 @@ impl Message {
     }
 
     #[must_use]
-    pub fn container_ids(mut self, container_ids: Vec<ids::Id>) -> Self {
-        let mut container_ids_bytes: Vec<prost::bytes::Bytes> =
-            Vec::with_capacity(container_ids.len());
-        for id in container_ids.iter() {
-            container_ids_bytes.push(prost::bytes::Bytes::from(id.to_vec()));
-        }
-        self.msg.preferred_container_ids = container_ids_bytes;
+    pub fn container_id(mut self, id: ids::Id) -> Self {
+        self.msg.preferred_id = Bytes::from(id.to_vec());
         self
     }
 
@@ -69,9 +65,9 @@ impl Message {
         let uncompressed_len = encoded.len();
         let compressed = message::compress::pack_gzip(&encoded)?;
         let msg = p2p::Message {
-            message: Some(p2p::message::Message::CompressedGzip(
-                prost::bytes::Bytes::from(compressed),
-            )),
+            message: Some(p2p::message::Message::CompressedGzip(Bytes::from(
+                compressed,
+            ))),
         };
 
         let compressed_len = msg.encoded_len();
@@ -110,7 +106,7 @@ impl Message {
             p2p::message::Message::CompressedGzip(msg) => {
                 let decompressed = message::compress::unpack_gzip(msg.as_ref())?;
                 let decompressed_msg: p2p::Message =
-                    ProstMessage::decode(prost::bytes::Bytes::from(decompressed)).map_err(|e| {
+                    ProstMessage::decode(Bytes::from(decompressed)).map_err(|e| {
                         Error::new(
                             ErrorKind::InvalidData,
                             format!("failed prost::Message::decode '{}'", e),
@@ -147,20 +143,9 @@ fn test_message() {
             &random_manager::secure_bytes(32).unwrap(),
         ))
         .request_id(random_manager::u32())
-        .container_ids(vec![
-            ids::Id::empty(),
-            ids::Id::empty(),
-            ids::Id::empty(),
-            ids::Id::empty(),
-            ids::Id::empty(),
-            ids::Id::empty(),
-            ids::Id::empty(),
-            ids::Id::empty(),
-            ids::Id::empty(),
-            ids::Id::empty(),
-            ids::Id::from_slice(&random_manager::secure_bytes(32).unwrap()),
-            ids::Id::from_slice(&random_manager::secure_bytes(32).unwrap()),
-        ]);
+        .container_id(ids::Id::from_slice(
+            &random_manager::secure_bytes(32).unwrap(),
+        ));
 
     let data1 = msg1_with_no_compression.serialize().unwrap();
     let msg1_with_no_compression_deserialized = Message::deserialize(&data1).unwrap();
