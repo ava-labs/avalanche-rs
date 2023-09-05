@@ -23,9 +23,9 @@ fi
 # protoc plugin "protoc-gen-prost" is required
 #
 # e.g.,
-# cargo install protoc-gen-prost --version 0.2.2
+# cargo install protoc-gen-prost --version 0.2.3
 # ref. https://crates.io/crates/protoc-gen-prost
-PROTOC_GEN_PROST_VERSION=0.2.2
+PROTOC_GEN_PROST_VERSION=0.2.3
 if [[ $(protoc-gen-prost --version | cut -f2 -d' ') != "${PROTOC_GEN_PROST_VERSION}" ]]; then
   echo "could not find protoc-gen-prost version ${PROTOC_GEN_PROST_VERSION} is it installed + in PATH?"
   exit 255
