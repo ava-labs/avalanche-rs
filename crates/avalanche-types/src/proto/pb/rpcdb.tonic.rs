@@ -12,7 +12,7 @@ pub mod database_client {
         /// Attempt to create a new client by connecting to a given endpoint.
         pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
         where
-            D: std::convert::TryInto<tonic::transport::Endpoint>,
+            D: TryInto<tonic::transport::Endpoint>,
             D::Error: Into<StdError>,
         {
             let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
@@ -68,10 +68,26 @@ pub mod database_client {
             self.inner = self.inner.accept_compressed(encoding);
             self
         }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_decoding_message_size(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_encoding_message_size(limit);
+            self
+        }
         pub async fn has(
             &mut self,
             request: impl tonic::IntoRequest<super::HasRequest>,
-        ) -> Result<tonic::Response<super::HasResponse>, tonic::Status> {
+        ) -> std::result::Result<tonic::Response<super::HasResponse>, tonic::Status> {
             self.inner
                 .ready()
                 .await
@@ -83,12 +99,14 @@ pub mod database_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static("/rpcdb.Database/Has");
-            self.inner.unary(request.into_request(), path, codec).await
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new("rpcdb.Database", "Has"));
+            self.inner.unary(req, path, codec).await
         }
         pub async fn get(
             &mut self,
             request: impl tonic::IntoRequest<super::GetRequest>,
-        ) -> Result<tonic::Response<super::GetResponse>, tonic::Status> {
+        ) -> std::result::Result<tonic::Response<super::GetResponse>, tonic::Status> {
             self.inner
                 .ready()
                 .await
@@ -100,12 +118,14 @@ pub mod database_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static("/rpcdb.Database/Get");
-            self.inner.unary(request.into_request(), path, codec).await
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new("rpcdb.Database", "Get"));
+            self.inner.unary(req, path, codec).await
         }
         pub async fn put(
             &mut self,
             request: impl tonic::IntoRequest<super::PutRequest>,
-        ) -> Result<tonic::Response<super::PutResponse>, tonic::Status> {
+        ) -> std::result::Result<tonic::Response<super::PutResponse>, tonic::Status> {
             self.inner
                 .ready()
                 .await
@@ -117,12 +137,14 @@ pub mod database_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static("/rpcdb.Database/Put");
-            self.inner.unary(request.into_request(), path, codec).await
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new("rpcdb.Database", "Put"));
+            self.inner.unary(req, path, codec).await
         }
         pub async fn delete(
             &mut self,
             request: impl tonic::IntoRequest<super::DeleteRequest>,
-        ) -> Result<tonic::Response<super::DeleteResponse>, tonic::Status> {
+        ) -> std::result::Result<tonic::Response<super::DeleteResponse>, tonic::Status> {
             self.inner
                 .ready()
                 .await
@@ -134,12 +156,17 @@ pub mod database_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static("/rpcdb.Database/Delete");
-            self.inner.unary(request.into_request(), path, codec).await
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new("rpcdb.Database", "Delete"));
+            self.inner.unary(req, path, codec).await
         }
         pub async fn compact(
             &mut self,
             request: impl tonic::IntoRequest<super::CompactRequest>,
-        ) -> Result<tonic::Response<super::CompactResponse>, tonic::Status> {
+        ) -> std::result::Result<
+            tonic::Response<super::CompactResponse>,
+            tonic::Status,
+        > {
             self.inner
                 .ready()
                 .await
@@ -151,12 +178,14 @@ pub mod database_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static("/rpcdb.Database/Compact");
-            self.inner.unary(request.into_request(), path, codec).await
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new("rpcdb.Database", "Compact"));
+            self.inner.unary(req, path, codec).await
         }
         pub async fn close(
             &mut self,
             request: impl tonic::IntoRequest<super::CloseRequest>,
-        ) -> Result<tonic::Response<super::CloseResponse>, tonic::Status> {
+        ) -> std::result::Result<tonic::Response<super::CloseResponse>, tonic::Status> {
             self.inner
                 .ready()
                 .await
@@ -168,12 +197,17 @@ pub mod database_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static("/rpcdb.Database/Close");
-            self.inner.unary(request.into_request(), path, codec).await
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new("rpcdb.Database", "Close"));
+            self.inner.unary(req, path, codec).await
         }
         pub async fn health_check(
             &mut self,
             request: impl tonic::IntoRequest<super::super::google::protobuf::Empty>,
-        ) -> Result<tonic::Response<super::HealthCheckResponse>, tonic::Status> {
+        ) -> std::result::Result<
+            tonic::Response<super::HealthCheckResponse>,
+            tonic::Status,
+        > {
             self.inner
                 .ready()
                 .await
@@ -187,12 +221,18 @@ pub mod database_client {
             let path = http::uri::PathAndQuery::from_static(
                 "/rpcdb.Database/HealthCheck",
             );
-            self.inner.unary(request.into_request(), path, codec).await
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("rpcdb.Database", "HealthCheck"));
+            self.inner.unary(req, path, codec).await
         }
         pub async fn write_batch(
             &mut self,
             request: impl tonic::IntoRequest<super::WriteBatchRequest>,
-        ) -> Result<tonic::Response<super::WriteBatchResponse>, tonic::Status> {
+        ) -> std::result::Result<
+            tonic::Response<super::WriteBatchResponse>,
+            tonic::Status,
+        > {
             self.inner
                 .ready()
                 .await
@@ -206,12 +246,14 @@ pub mod database_client {
             let path = http::uri::PathAndQuery::from_static(
                 "/rpcdb.Database/WriteBatch",
             );
-            self.inner.unary(request.into_request(), path, codec).await
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new("rpcdb.Database", "WriteBatch"));
+            self.inner.unary(req, path, codec).await
         }
         pub async fn new_iterator_with_start_and_prefix(
             &mut self,
             request: impl tonic::IntoRequest<super::NewIteratorWithStartAndPrefixRequest>,
-        ) -> Result<
+        ) -> std::result::Result<
             tonic::Response<super::NewIteratorWithStartAndPrefixResponse>,
             tonic::Status,
         > {
@@ -228,12 +270,20 @@ pub mod database_client {
             let path = http::uri::PathAndQuery::from_static(
                 "/rpcdb.Database/NewIteratorWithStartAndPrefix",
             );
-            self.inner.unary(request.into_request(), path, codec).await
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("rpcdb.Database", "NewIteratorWithStartAndPrefix"),
+                );
+            self.inner.unary(req, path, codec).await
         }
         pub async fn iterator_next(
             &mut self,
             request: impl tonic::IntoRequest<super::IteratorNextRequest>,
-        ) -> Result<tonic::Response<super::IteratorNextResponse>, tonic::Status> {
+        ) -> std::result::Result<
+            tonic::Response<super::IteratorNextResponse>,
+            tonic::Status,
+        > {
             self.inner
                 .ready()
                 .await
@@ -247,12 +297,18 @@ pub mod database_client {
             let path = http::uri::PathAndQuery::from_static(
                 "/rpcdb.Database/IteratorNext",
             );
-            self.inner.unary(request.into_request(), path, codec).await
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("rpcdb.Database", "IteratorNext"));
+            self.inner.unary(req, path, codec).await
         }
         pub async fn iterator_error(
             &mut self,
             request: impl tonic::IntoRequest<super::IteratorErrorRequest>,
-        ) -> Result<tonic::Response<super::IteratorErrorResponse>, tonic::Status> {
+        ) -> std::result::Result<
+            tonic::Response<super::IteratorErrorResponse>,
+            tonic::Status,
+        > {
             self.inner
                 .ready()
                 .await
@@ -266,12 +322,18 @@ pub mod database_client {
             let path = http::uri::PathAndQuery::from_static(
                 "/rpcdb.Database/IteratorError",
             );
-            self.inner.unary(request.into_request(), path, codec).await
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("rpcdb.Database", "IteratorError"));
+            self.inner.unary(req, path, codec).await
         }
         pub async fn iterator_release(
             &mut self,
             request: impl tonic::IntoRequest<super::IteratorReleaseRequest>,
-        ) -> Result<tonic::Response<super::IteratorReleaseResponse>, tonic::Status> {
+        ) -> std::result::Result<
+            tonic::Response<super::IteratorReleaseResponse>,
+            tonic::Status,
+        > {
             self.inner
                 .ready()
                 .await
@@ -285,7 +347,10 @@ pub mod database_client {
             let path = http::uri::PathAndQuery::from_static(
                 "/rpcdb.Database/IteratorRelease",
             );
-            self.inner.unary(request.into_request(), path, codec).await
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("rpcdb.Database", "IteratorRelease"));
+            self.inner.unary(req, path, codec).await
         }
     }
 }
@@ -299,60 +364,77 @@ pub mod database_server {
         async fn has(
             &self,
             request: tonic::Request<super::HasRequest>,
-        ) -> Result<tonic::Response<super::HasResponse>, tonic::Status>;
+        ) -> std::result::Result<tonic::Response<super::HasResponse>, tonic::Status>;
         async fn get(
             &self,
             request: tonic::Request<super::GetRequest>,
-        ) -> Result<tonic::Response<super::GetResponse>, tonic::Status>;
+        ) -> std::result::Result<tonic::Response<super::GetResponse>, tonic::Status>;
         async fn put(
             &self,
             request: tonic::Request<super::PutRequest>,
-        ) -> Result<tonic::Response<super::PutResponse>, tonic::Status>;
+        ) -> std::result::Result<tonic::Response<super::PutResponse>, tonic::Status>;
         async fn delete(
             &self,
             request: tonic::Request<super::DeleteRequest>,
-        ) -> Result<tonic::Response<super::DeleteResponse>, tonic::Status>;
+        ) -> std::result::Result<tonic::Response<super::DeleteResponse>, tonic::Status>;
         async fn compact(
             &self,
             request: tonic::Request<super::CompactRequest>,
-        ) -> Result<tonic::Response<super::CompactResponse>, tonic::Status>;
+        ) -> std::result::Result<tonic::Response<super::CompactResponse>, tonic::Status>;
         async fn close(
             &self,
             request: tonic::Request<super::CloseRequest>,
-        ) -> Result<tonic::Response<super::CloseResponse>, tonic::Status>;
+        ) -> std::result::Result<tonic::Response<super::CloseResponse>, tonic::Status>;
         async fn health_check(
             &self,
             request: tonic::Request<super::super::google::protobuf::Empty>,
-        ) -> Result<tonic::Response<super::HealthCheckResponse>, tonic::Status>;
+        ) -> std::result::Result<
+            tonic::Response<super::HealthCheckResponse>,
+            tonic::Status,
+        >;
         async fn write_batch(
             &self,
             request: tonic::Request<super::WriteBatchRequest>,
-        ) -> Result<tonic::Response<super::WriteBatchResponse>, tonic::Status>;
+        ) -> std::result::Result<
+            tonic::Response<super::WriteBatchResponse>,
+            tonic::Status,
+        >;
         async fn new_iterator_with_start_and_prefix(
             &self,
             request: tonic::Request<super::NewIteratorWithStartAndPrefixRequest>,
-        ) -> Result<
+        ) -> std::result::Result<
             tonic::Response<super::NewIteratorWithStartAndPrefixResponse>,
             tonic::Status,
         >;
         async fn iterator_next(
             &self,
             request: tonic::Request<super::IteratorNextRequest>,
-        ) -> Result<tonic::Response<super::IteratorNextResponse>, tonic::Status>;
+        ) -> std::result::Result<
+            tonic::Response<super::IteratorNextResponse>,
+            tonic::Status,
+        >;
         async fn iterator_error(
             &self,
             request: tonic::Request<super::IteratorErrorRequest>,
-        ) -> Result<tonic::Response<super::IteratorErrorResponse>, tonic::Status>;
+        ) -> std::result::Result<
+            tonic::Response<super::IteratorErrorResponse>,
+            tonic::Status,
+        >;
         async fn iterator_release(
             &self,
             request: tonic::Request<super::IteratorReleaseRequest>,
-        ) -> Result<tonic::Response<super::IteratorReleaseResponse>, tonic::Status>;
+        ) -> std::result::Result<
+            tonic::Response<super::IteratorReleaseResponse>,
+            tonic::Status,
+        >;
     }
     #[derive(Debug)]
     pub struct DatabaseServer<T: Database> {
         inner: _Inner<T>,
         accept_compression_encodings: EnabledCompressionEncodings,
         send_compression_encodings: EnabledCompressionEncodings,
+        max_decoding_message_size: Option<usize>,
+        max_encoding_message_size: Option<usize>,
     }
     struct _Inner<T>(Arc<T>);
     impl<T: Database> DatabaseServer<T> {
@@ -365,6 +447,8 @@ pub mod database_server {
                 inner,
                 accept_compression_encodings: Default::default(),
                 send_compression_encodings: Default::default(),
+                max_decoding_message_size: None,
+                max_encoding_message_size: None,
             }
         }
         pub fn with_interceptor<F>(
@@ -388,6 +472,22 @@ pub mod database_server {
             self.send_compression_encodings.enable(encoding);
             self
         }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.max_decoding_message_size = Some(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.max_encoding_message_size = Some(limit);
+            self
+        }
     }
     impl<T, B> tonic::codegen::Service<http::Request<B>> for DatabaseServer<T>
     where
@@ -401,7 +501,7 @@ pub mod database_server {
         fn poll_ready(
             &mut self,
             _cx: &mut Context<'_>,
-        ) -> Poll<Result<(), Self::Error>> {
+        ) -> Poll<std::result::Result<(), Self::Error>> {
             Poll::Ready(Ok(()))
         }
         fn call(&mut self, req: http::Request<B>) -> Self::Future {
@@ -421,13 +521,15 @@ pub mod database_server {
                             &mut self,
                             request: tonic::Request<super::HasRequest>,
                         ) -> Self::Future {
-                            let inner = self.0.clone();
+                            let inner = Arc::clone(&self.0);
                             let fut = async move { (*inner).has(request).await };
                             Box::pin(fut)
                         }
                     }
                     let accept_compression_encodings = self.accept_compression_encodings;
                     let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
                         let inner = inner.0;
@@ -437,6 +539,10 @@ pub mod database_server {
                             .apply_compression_config(
                                 accept_compression_encodings,
                                 send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
                             );
                         let res = grpc.unary(method, req).await;
                         Ok(res)
@@ -457,13 +563,15 @@ pub mod database_server {
                             &mut self,
                             request: tonic::Request<super::GetRequest>,
                         ) -> Self::Future {
-                            let inner = self.0.clone();
+                            let inner = Arc::clone(&self.0);
                             let fut = async move { (*inner).get(request).await };
                             Box::pin(fut)
                         }
                     }
                     let accept_compression_encodings = self.accept_compression_encodings;
                     let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
                         let inner = inner.0;
@@ -473,6 +581,10 @@ pub mod database_server {
                             .apply_compression_config(
                                 accept_compression_encodings,
                                 send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
                             );
                         let res = grpc.unary(method, req).await;
                         Ok(res)
@@ -493,13 +605,15 @@ pub mod database_server {
                             &mut self,
                             request: tonic::Request<super::PutRequest>,
                         ) -> Self::Future {
-                            let inner = self.0.clone();
+                            let inner = Arc::clone(&self.0);
                             let fut = async move { (*inner).put(request).await };
                             Box::pin(fut)
                         }
                     }
                     let accept_compression_encodings = self.accept_compression_encodings;
                     let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
                         let inner = inner.0;
@@ -509,6 +623,10 @@ pub mod database_server {
                             .apply_compression_config(
                                 accept_compression_encodings,
                                 send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
                             );
                         let res = grpc.unary(method, req).await;
                         Ok(res)
@@ -529,13 +647,15 @@ pub mod database_server {
                             &mut self,
                             request: tonic::Request<super::DeleteRequest>,
                         ) -> Self::Future {
-                            let inner = self.0.clone();
+                            let inner = Arc::clone(&self.0);
                             let fut = async move { (*inner).delete(request).await };
                             Box::pin(fut)
                         }
                     }
                     let accept_compression_encodings = self.accept_compression_encodings;
                     let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
                         let inner = inner.0;
@@ -545,6 +665,10 @@ pub mod database_server {
                             .apply_compression_config(
                                 accept_compression_encodings,
                                 send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
                             );
                         let res = grpc.unary(method, req).await;
                         Ok(res)
@@ -565,13 +689,15 @@ pub mod database_server {
                             &mut self,
                             request: tonic::Request<super::CompactRequest>,
                         ) -> Self::Future {
-                            let inner = self.0.clone();
+                            let inner = Arc::clone(&self.0);
                             let fut = async move { (*inner).compact(request).await };
                             Box::pin(fut)
                         }
                     }
                     let accept_compression_encodings = self.accept_compression_encodings;
                     let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
                         let inner = inner.0;
@@ -581,6 +707,10 @@ pub mod database_server {
                             .apply_compression_config(
                                 accept_compression_encodings,
                                 send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
                             );
                         let res = grpc.unary(method, req).await;
                         Ok(res)
@@ -601,13 +731,15 @@ pub mod database_server {
                             &mut self,
                             request: tonic::Request<super::CloseRequest>,
                         ) -> Self::Future {
-                            let inner = self.0.clone();
+                            let inner = Arc::clone(&self.0);
                             let fut = async move { (*inner).close(request).await };
                             Box::pin(fut)
                         }
                     }
                     let accept_compression_encodings = self.accept_compression_encodings;
                     let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
                         let inner = inner.0;
@@ -617,6 +749,10 @@ pub mod database_server {
                             .apply_compression_config(
                                 accept_compression_encodings,
                                 send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
                             );
                         let res = grpc.unary(method, req).await;
                         Ok(res)
@@ -641,7 +777,7 @@ pub mod database_server {
                                 super::super::google::protobuf::Empty,
                             >,
                         ) -> Self::Future {
-                            let inner = self.0.clone();
+                            let inner = Arc::clone(&self.0);
                             let fut = async move {
                                 (*inner).health_check(request).await
                             };
@@ -650,6 +786,8 @@ pub mod database_server {
                     }
                     let accept_compression_encodings = self.accept_compression_encodings;
                     let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
                         let inner = inner.0;
@@ -659,6 +797,10 @@ pub mod database_server {
                             .apply_compression_config(
                                 accept_compression_encodings,
                                 send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
                             );
                         let res = grpc.unary(method, req).await;
                         Ok(res)
@@ -681,13 +823,15 @@ pub mod database_server {
                             &mut self,
                             request: tonic::Request<super::WriteBatchRequest>,
                         ) -> Self::Future {
-                            let inner = self.0.clone();
+                            let inner = Arc::clone(&self.0);
                             let fut = async move { (*inner).write_batch(request).await };
                             Box::pin(fut)
                         }
                     }
                     let accept_compression_encodings = self.accept_compression_encodings;
                     let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
                         let inner = inner.0;
@@ -697,6 +841,10 @@ pub mod database_server {
                             .apply_compression_config(
                                 accept_compression_encodings,
                                 send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
                             );
                         let res = grpc.unary(method, req).await;
                         Ok(res)
@@ -722,7 +870,7 @@ pub mod database_server {
                                 super::NewIteratorWithStartAndPrefixRequest,
                             >,
                         ) -> Self::Future {
-                            let inner = self.0.clone();
+                            let inner = Arc::clone(&self.0);
                             let fut = async move {
                                 (*inner).new_iterator_with_start_and_prefix(request).await
                             };
@@ -731,6 +879,8 @@ pub mod database_server {
                     }
                     let accept_compression_encodings = self.accept_compression_encodings;
                     let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
                         let inner = inner.0;
@@ -740,6 +890,10 @@ pub mod database_server {
                             .apply_compression_config(
                                 accept_compression_encodings,
                                 send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
                             );
                         let res = grpc.unary(method, req).await;
                         Ok(res)
@@ -762,7 +916,7 @@ pub mod database_server {
                             &mut self,
                             request: tonic::Request<super::IteratorNextRequest>,
                         ) -> Self::Future {
-                            let inner = self.0.clone();
+                            let inner = Arc::clone(&self.0);
                             let fut = async move {
                                 (*inner).iterator_next(request).await
                             };
@@ -771,6 +925,8 @@ pub mod database_server {
                     }
                     let accept_compression_encodings = self.accept_compression_encodings;
                     let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
                         let inner = inner.0;
@@ -780,6 +936,10 @@ pub mod database_server {
                             .apply_compression_config(
                                 accept_compression_encodings,
                                 send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
                             );
                         let res = grpc.unary(method, req).await;
                         Ok(res)
@@ -802,7 +962,7 @@ pub mod database_server {
                             &mut self,
                             request: tonic::Request<super::IteratorErrorRequest>,
                         ) -> Self::Future {
-                            let inner = self.0.clone();
+                            let inner = Arc::clone(&self.0);
                             let fut = async move {
                                 (*inner).iterator_error(request).await
                             };
@@ -811,6 +971,8 @@ pub mod database_server {
                     }
                     let accept_compression_encodings = self.accept_compression_encodings;
                     let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
                         let inner = inner.0;
@@ -820,6 +982,10 @@ pub mod database_server {
                             .apply_compression_config(
                                 accept_compression_encodings,
                                 send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
                             );
                         let res = grpc.unary(method, req).await;
                         Ok(res)
@@ -842,7 +1008,7 @@ pub mod database_server {
                             &mut self,
                             request: tonic::Request<super::IteratorReleaseRequest>,
                         ) -> Self::Future {
-                            let inner = self.0.clone();
+                            let inner = Arc::clone(&self.0);
                             let fut = async move {
                                 (*inner).iterator_release(request).await
                             };
@@ -851,6 +1017,8 @@ pub mod database_server {
                     }
                     let accept_compression_encodings = self.accept_compression_encodings;
                     let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
                         let inner = inner.0;
@@ -860,6 +1028,10 @@ pub mod database_server {
                             .apply_compression_config(
                                 accept_compression_encodings,
                                 send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
                             );
                         let res = grpc.unary(method, req).await;
                         Ok(res)
@@ -888,12 +1060,14 @@ pub mod database_server {
                 inner,
                 accept_compression_encodings: self.accept_compression_encodings,
                 send_compression_encodings: self.send_compression_encodings,
+                max_decoding_message_size: self.max_decoding_message_size,
+                max_encoding_message_size: self.max_encoding_message_size,
             }
         }
     }
     impl<T: Database> Clone for _Inner<T> {
         fn clone(&self) -> Self {
-            Self(self.0.clone())
+            Self(Arc::clone(&self.0))
         }
     }
     impl<T: std::fmt::Debug> std::fmt::Debug for _Inner<T> {
