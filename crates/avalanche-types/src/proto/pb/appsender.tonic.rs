@@ -12,7 +12,7 @@ pub mod app_sender_client {
         /// Attempt to create a new client by connecting to a given endpoint.
         pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
         where
-            D: std::convert::TryInto<tonic::transport::Endpoint>,
+            D: TryInto<tonic::transport::Endpoint>,
             D::Error: Into<StdError>,
         {
             let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
@@ -68,10 +68,26 @@ pub mod app_sender_client {
             self.inner = self.inner.accept_compressed(encoding);
             self
         }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_decoding_message_size(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_encoding_message_size(limit);
+            self
+        }
         pub async fn send_app_request(
             &mut self,
             request: impl tonic::IntoRequest<super::SendAppRequestMsg>,
-        ) -> Result<
+        ) -> std::result::Result<
             tonic::Response<super::super::google::protobuf::Empty>,
             tonic::Status,
         > {
@@ -88,12 +104,15 @@ pub mod app_sender_client {
             let path = http::uri::PathAndQuery::from_static(
                 "/appsender.AppSender/SendAppRequest",
             );
-            self.inner.unary(request.into_request(), path, codec).await
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("appsender.AppSender", "SendAppRequest"));
+            self.inner.unary(req, path, codec).await
         }
         pub async fn send_app_response(
             &mut self,
             request: impl tonic::IntoRequest<super::SendAppResponseMsg>,
-        ) -> Result<
+        ) -> std::result::Result<
             tonic::Response<super::super::google::protobuf::Empty>,
             tonic::Status,
         > {
@@ -110,12 +129,15 @@ pub mod app_sender_client {
             let path = http::uri::PathAndQuery::from_static(
                 "/appsender.AppSender/SendAppResponse",
             );
-            self.inner.unary(request.into_request(), path, codec).await
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("appsender.AppSender", "SendAppResponse"));
+            self.inner.unary(req, path, codec).await
         }
         pub async fn send_app_gossip(
             &mut self,
             request: impl tonic::IntoRequest<super::SendAppGossipMsg>,
-        ) -> Result<
+        ) -> std::result::Result<
             tonic::Response<super::super::google::protobuf::Empty>,
             tonic::Status,
         > {
@@ -132,12 +154,15 @@ pub mod app_sender_client {
             let path = http::uri::PathAndQuery::from_static(
                 "/appsender.AppSender/SendAppGossip",
             );
-            self.inner.unary(request.into_request(), path, codec).await
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("appsender.AppSender", "SendAppGossip"));
+            self.inner.unary(req, path, codec).await
         }
         pub async fn send_app_gossip_specific(
             &mut self,
             request: impl tonic::IntoRequest<super::SendAppGossipSpecificMsg>,
-        ) -> Result<
+        ) -> std::result::Result<
             tonic::Response<super::super::google::protobuf::Empty>,
             tonic::Status,
         > {
@@ -154,12 +179,15 @@ pub mod app_sender_client {
             let path = http::uri::PathAndQuery::from_static(
                 "/appsender.AppSender/SendAppGossipSpecific",
             );
-            self.inner.unary(request.into_request(), path, codec).await
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("appsender.AppSender", "SendAppGossipSpecific"));
+            self.inner.unary(req, path, codec).await
         }
         pub async fn send_cross_chain_app_request(
             &mut self,
             request: impl tonic::IntoRequest<super::SendCrossChainAppRequestMsg>,
-        ) -> Result<
+        ) -> std::result::Result<
             tonic::Response<super::super::google::protobuf::Empty>,
             tonic::Status,
         > {
@@ -176,12 +204,17 @@ pub mod app_sender_client {
             let path = http::uri::PathAndQuery::from_static(
                 "/appsender.AppSender/SendCrossChainAppRequest",
             );
-            self.inner.unary(request.into_request(), path, codec).await
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("appsender.AppSender", "SendCrossChainAppRequest"),
+                );
+            self.inner.unary(req, path, codec).await
         }
         pub async fn send_cross_chain_app_response(
             &mut self,
             request: impl tonic::IntoRequest<super::SendCrossChainAppResponseMsg>,
-        ) -> Result<
+        ) -> std::result::Result<
             tonic::Response<super::super::google::protobuf::Empty>,
             tonic::Status,
         > {
@@ -198,7 +231,12 @@ pub mod app_sender_client {
             let path = http::uri::PathAndQuery::from_static(
                 "/appsender.AppSender/SendCrossChainAppResponse",
             );
-            self.inner.unary(request.into_request(), path, codec).await
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("appsender.AppSender", "SendCrossChainAppResponse"),
+                );
+            self.inner.unary(req, path, codec).await
         }
     }
 }
@@ -212,42 +250,42 @@ pub mod app_sender_server {
         async fn send_app_request(
             &self,
             request: tonic::Request<super::SendAppRequestMsg>,
-        ) -> Result<
+        ) -> std::result::Result<
             tonic::Response<super::super::google::protobuf::Empty>,
             tonic::Status,
         >;
         async fn send_app_response(
             &self,
             request: tonic::Request<super::SendAppResponseMsg>,
-        ) -> Result<
+        ) -> std::result::Result<
             tonic::Response<super::super::google::protobuf::Empty>,
             tonic::Status,
         >;
         async fn send_app_gossip(
             &self,
             request: tonic::Request<super::SendAppGossipMsg>,
-        ) -> Result<
+        ) -> std::result::Result<
             tonic::Response<super::super::google::protobuf::Empty>,
             tonic::Status,
         >;
         async fn send_app_gossip_specific(
             &self,
             request: tonic::Request<super::SendAppGossipSpecificMsg>,
-        ) -> Result<
+        ) -> std::result::Result<
             tonic::Response<super::super::google::protobuf::Empty>,
             tonic::Status,
         >;
         async fn send_cross_chain_app_request(
             &self,
             request: tonic::Request<super::SendCrossChainAppRequestMsg>,
-        ) -> Result<
+        ) -> std::result::Result<
             tonic::Response<super::super::google::protobuf::Empty>,
             tonic::Status,
         >;
         async fn send_cross_chain_app_response(
             &self,
             request: tonic::Request<super::SendCrossChainAppResponseMsg>,
-        ) -> Result<
+        ) -> std::result::Result<
             tonic::Response<super::super::google::protobuf::Empty>,
             tonic::Status,
         >;
@@ -257,6 +295,8 @@ pub mod app_sender_server {
         inner: _Inner<T>,
         accept_compression_encodings: EnabledCompressionEncodings,
         send_compression_encodings: EnabledCompressionEncodings,
+        max_decoding_message_size: Option<usize>,
+        max_encoding_message_size: Option<usize>,
     }
     struct _Inner<T>(Arc<T>);
     impl<T: AppSender> AppSenderServer<T> {
@@ -269,6 +309,8 @@ pub mod app_sender_server {
                 inner,
                 accept_compression_encodings: Default::default(),
                 send_compression_encodings: Default::default(),
+                max_decoding_message_size: None,
+                max_encoding_message_size: None,
             }
         }
         pub fn with_interceptor<F>(
@@ -292,6 +334,22 @@ pub mod app_sender_server {
             self.send_compression_encodings.enable(encoding);
             self
         }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.max_decoding_message_size = Some(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.max_encoding_message_size = Some(limit);
+            self
+        }
     }
     impl<T, B> tonic::codegen::Service<http::Request<B>> for AppSenderServer<T>
     where
@@ -305,7 +363,7 @@ pub mod app_sender_server {
         fn poll_ready(
             &mut self,
             _cx: &mut Context<'_>,
-        ) -> Poll<Result<(), Self::Error>> {
+        ) -> Poll<std::result::Result<(), Self::Error>> {
             Poll::Ready(Ok(()))
         }
         fn call(&mut self, req: http::Request<B>) -> Self::Future {
@@ -327,7 +385,7 @@ pub mod app_sender_server {
                             &mut self,
                             request: tonic::Request<super::SendAppRequestMsg>,
                         ) -> Self::Future {
-                            let inner = self.0.clone();
+                            let inner = Arc::clone(&self.0);
                             let fut = async move {
                                 (*inner).send_app_request(request).await
                             };
@@ -336,6 +394,8 @@ pub mod app_sender_server {
                     }
                     let accept_compression_encodings = self.accept_compression_encodings;
                     let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
                         let inner = inner.0;
@@ -345,6 +405,10 @@ pub mod app_sender_server {
                             .apply_compression_config(
                                 accept_compression_encodings,
                                 send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
                             );
                         let res = grpc.unary(method, req).await;
                         Ok(res)
@@ -367,7 +431,7 @@ pub mod app_sender_server {
                             &mut self,
                             request: tonic::Request<super::SendAppResponseMsg>,
                         ) -> Self::Future {
-                            let inner = self.0.clone();
+                            let inner = Arc::clone(&self.0);
                             let fut = async move {
                                 (*inner).send_app_response(request).await
                             };
@@ -376,6 +440,8 @@ pub mod app_sender_server {
                     }
                     let accept_compression_encodings = self.accept_compression_encodings;
                     let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
                         let inner = inner.0;
@@ -385,6 +451,10 @@ pub mod app_sender_server {
                             .apply_compression_config(
                                 accept_compression_encodings,
                                 send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
                             );
                         let res = grpc.unary(method, req).await;
                         Ok(res)
@@ -407,7 +477,7 @@ pub mod app_sender_server {
                             &mut self,
                             request: tonic::Request<super::SendAppGossipMsg>,
                         ) -> Self::Future {
-                            let inner = self.0.clone();
+                            let inner = Arc::clone(&self.0);
                             let fut = async move {
                                 (*inner).send_app_gossip(request).await
                             };
@@ -416,6 +486,8 @@ pub mod app_sender_server {
                     }
                     let accept_compression_encodings = self.accept_compression_encodings;
                     let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
                         let inner = inner.0;
@@ -425,6 +497,10 @@ pub mod app_sender_server {
                             .apply_compression_config(
                                 accept_compression_encodings,
                                 send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
                             );
                         let res = grpc.unary(method, req).await;
                         Ok(res)
@@ -447,7 +523,7 @@ pub mod app_sender_server {
                             &mut self,
                             request: tonic::Request<super::SendAppGossipSpecificMsg>,
                         ) -> Self::Future {
-                            let inner = self.0.clone();
+                            let inner = Arc::clone(&self.0);
                             let fut = async move {
                                 (*inner).send_app_gossip_specific(request).await
                             };
@@ -456,6 +532,8 @@ pub mod app_sender_server {
                     }
                     let accept_compression_encodings = self.accept_compression_encodings;
                     let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
                         let inner = inner.0;
@@ -465,6 +543,10 @@ pub mod app_sender_server {
                             .apply_compression_config(
                                 accept_compression_encodings,
                                 send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
                             );
                         let res = grpc.unary(method, req).await;
                         Ok(res)
@@ -487,7 +569,7 @@ pub mod app_sender_server {
                             &mut self,
                             request: tonic::Request<super::SendCrossChainAppRequestMsg>,
                         ) -> Self::Future {
-                            let inner = self.0.clone();
+                            let inner = Arc::clone(&self.0);
                             let fut = async move {
                                 (*inner).send_cross_chain_app_request(request).await
                             };
@@ -496,6 +578,8 @@ pub mod app_sender_server {
                     }
                     let accept_compression_encodings = self.accept_compression_encodings;
                     let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
                         let inner = inner.0;
@@ -505,6 +589,10 @@ pub mod app_sender_server {
                             .apply_compression_config(
                                 accept_compression_encodings,
                                 send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
                             );
                         let res = grpc.unary(method, req).await;
                         Ok(res)
@@ -527,7 +615,7 @@ pub mod app_sender_server {
                             &mut self,
                             request: tonic::Request<super::SendCrossChainAppResponseMsg>,
                         ) -> Self::Future {
-                            let inner = self.0.clone();
+                            let inner = Arc::clone(&self.0);
                             let fut = async move {
                                 (*inner).send_cross_chain_app_response(request).await
                             };
@@ -536,6 +624,8 @@ pub mod app_sender_server {
                     }
                     let accept_compression_encodings = self.accept_compression_encodings;
                     let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
                         let inner = inner.0;
@@ -545,6 +635,10 @@ pub mod app_sender_server {
                             .apply_compression_config(
                                 accept_compression_encodings,
                                 send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
                             );
                         let res = grpc.unary(method, req).await;
                         Ok(res)
@@ -573,12 +667,14 @@ pub mod app_sender_server {
                 inner,
                 accept_compression_encodings: self.accept_compression_encodings,
                 send_compression_encodings: self.send_compression_encodings,
+                max_decoding_message_size: self.max_decoding_message_size,
+                max_encoding_message_size: self.max_encoding_message_size,
             }
         }
     }
     impl<T: AppSender> Clone for _Inner<T> {
         fn clone(&self) -> Self {
-            Self(self.0.clone())
+            Self(Arc::clone(&self.0))
         }
     }
     impl<T: std::fmt::Debug> std::fmt::Debug for _Inner<T> {

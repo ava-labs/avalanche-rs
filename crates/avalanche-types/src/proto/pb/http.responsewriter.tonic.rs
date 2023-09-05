@@ -12,7 +12,7 @@ pub mod writer_client {
         /// Attempt to create a new client by connecting to a given endpoint.
         pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
         where
-            D: std::convert::TryInto<tonic::transport::Endpoint>,
+            D: TryInto<tonic::transport::Endpoint>,
             D::Error: Into<StdError>,
         {
             let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
@@ -68,10 +68,26 @@ pub mod writer_client {
             self.inner = self.inner.accept_compressed(encoding);
             self
         }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_decoding_message_size(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_encoding_message_size(limit);
+            self
+        }
         pub async fn write(
             &mut self,
             request: impl tonic::IntoRequest<super::WriteRequest>,
-        ) -> Result<tonic::Response<super::WriteResponse>, tonic::Status> {
+        ) -> std::result::Result<tonic::Response<super::WriteResponse>, tonic::Status> {
             self.inner
                 .ready()
                 .await
@@ -85,12 +101,15 @@ pub mod writer_client {
             let path = http::uri::PathAndQuery::from_static(
                 "/http.responsewriter.Writer/Write",
             );
-            self.inner.unary(request.into_request(), path, codec).await
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("http.responsewriter.Writer", "Write"));
+            self.inner.unary(req, path, codec).await
         }
         pub async fn write_header(
             &mut self,
             request: impl tonic::IntoRequest<super::WriteHeaderRequest>,
-        ) -> Result<
+        ) -> std::result::Result<
             tonic::Response<super::super::super::google::protobuf::Empty>,
             tonic::Status,
         > {
@@ -107,14 +126,17 @@ pub mod writer_client {
             let path = http::uri::PathAndQuery::from_static(
                 "/http.responsewriter.Writer/WriteHeader",
             );
-            self.inner.unary(request.into_request(), path, codec).await
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("http.responsewriter.Writer", "WriteHeader"));
+            self.inner.unary(req, path, codec).await
         }
         pub async fn flush(
             &mut self,
             request: impl tonic::IntoRequest<
                 super::super::super::google::protobuf::Empty,
             >,
-        ) -> Result<
+        ) -> std::result::Result<
             tonic::Response<super::super::super::google::protobuf::Empty>,
             tonic::Status,
         > {
@@ -131,14 +153,17 @@ pub mod writer_client {
             let path = http::uri::PathAndQuery::from_static(
                 "/http.responsewriter.Writer/Flush",
             );
-            self.inner.unary(request.into_request(), path, codec).await
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("http.responsewriter.Writer", "Flush"));
+            self.inner.unary(req, path, codec).await
         }
         pub async fn hijack(
             &mut self,
             request: impl tonic::IntoRequest<
                 super::super::super::google::protobuf::Empty,
             >,
-        ) -> Result<tonic::Response<super::HijackResponse>, tonic::Status> {
+        ) -> std::result::Result<tonic::Response<super::HijackResponse>, tonic::Status> {
             self.inner
                 .ready()
                 .await
@@ -152,7 +177,10 @@ pub mod writer_client {
             let path = http::uri::PathAndQuery::from_static(
                 "/http.responsewriter.Writer/Hijack",
             );
-            self.inner.unary(request.into_request(), path, codec).await
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("http.responsewriter.Writer", "Hijack"));
+            self.inner.unary(req, path, codec).await
         }
     }
 }
@@ -166,31 +194,33 @@ pub mod writer_server {
         async fn write(
             &self,
             request: tonic::Request<super::WriteRequest>,
-        ) -> Result<tonic::Response<super::WriteResponse>, tonic::Status>;
+        ) -> std::result::Result<tonic::Response<super::WriteResponse>, tonic::Status>;
         async fn write_header(
             &self,
             request: tonic::Request<super::WriteHeaderRequest>,
-        ) -> Result<
+        ) -> std::result::Result<
             tonic::Response<super::super::super::google::protobuf::Empty>,
             tonic::Status,
         >;
         async fn flush(
             &self,
             request: tonic::Request<super::super::super::google::protobuf::Empty>,
-        ) -> Result<
+        ) -> std::result::Result<
             tonic::Response<super::super::super::google::protobuf::Empty>,
             tonic::Status,
         >;
         async fn hijack(
             &self,
             request: tonic::Request<super::super::super::google::protobuf::Empty>,
-        ) -> Result<tonic::Response<super::HijackResponse>, tonic::Status>;
+        ) -> std::result::Result<tonic::Response<super::HijackResponse>, tonic::Status>;
     }
     #[derive(Debug)]
     pub struct WriterServer<T: Writer> {
         inner: _Inner<T>,
         accept_compression_encodings: EnabledCompressionEncodings,
         send_compression_encodings: EnabledCompressionEncodings,
+        max_decoding_message_size: Option<usize>,
+        max_encoding_message_size: Option<usize>,
     }
     struct _Inner<T>(Arc<T>);
     impl<T: Writer> WriterServer<T> {
@@ -203,6 +233,8 @@ pub mod writer_server {
                 inner,
                 accept_compression_encodings: Default::default(),
                 send_compression_encodings: Default::default(),
+                max_decoding_message_size: None,
+                max_encoding_message_size: None,
             }
         }
         pub fn with_interceptor<F>(
@@ -226,6 +258,22 @@ pub mod writer_server {
             self.send_compression_encodings.enable(encoding);
             self
         }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.max_decoding_message_size = Some(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.max_encoding_message_size = Some(limit);
+            self
+        }
     }
     impl<T, B> tonic::codegen::Service<http::Request<B>> for WriterServer<T>
     where
@@ -239,7 +287,7 @@ pub mod writer_server {
         fn poll_ready(
             &mut self,
             _cx: &mut Context<'_>,
-        ) -> Poll<Result<(), Self::Error>> {
+        ) -> Poll<std::result::Result<(), Self::Error>> {
             Poll::Ready(Ok(()))
         }
         fn call(&mut self, req: http::Request<B>) -> Self::Future {
@@ -259,13 +307,15 @@ pub mod writer_server {
                             &mut self,
                             request: tonic::Request<super::WriteRequest>,
                         ) -> Self::Future {
-                            let inner = self.0.clone();
+                            let inner = Arc::clone(&self.0);
                             let fut = async move { (*inner).write(request).await };
                             Box::pin(fut)
                         }
                     }
                     let accept_compression_encodings = self.accept_compression_encodings;
                     let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
                         let inner = inner.0;
@@ -275,6 +325,10 @@ pub mod writer_server {
                             .apply_compression_config(
                                 accept_compression_encodings,
                                 send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
                             );
                         let res = grpc.unary(method, req).await;
                         Ok(res)
@@ -297,7 +351,7 @@ pub mod writer_server {
                             &mut self,
                             request: tonic::Request<super::WriteHeaderRequest>,
                         ) -> Self::Future {
-                            let inner = self.0.clone();
+                            let inner = Arc::clone(&self.0);
                             let fut = async move {
                                 (*inner).write_header(request).await
                             };
@@ -306,6 +360,8 @@ pub mod writer_server {
                     }
                     let accept_compression_encodings = self.accept_compression_encodings;
                     let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
                         let inner = inner.0;
@@ -315,6 +371,10 @@ pub mod writer_server {
                             .apply_compression_config(
                                 accept_compression_encodings,
                                 send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
                             );
                         let res = grpc.unary(method, req).await;
                         Ok(res)
@@ -340,13 +400,15 @@ pub mod writer_server {
                                 super::super::super::google::protobuf::Empty,
                             >,
                         ) -> Self::Future {
-                            let inner = self.0.clone();
+                            let inner = Arc::clone(&self.0);
                             let fut = async move { (*inner).flush(request).await };
                             Box::pin(fut)
                         }
                     }
                     let accept_compression_encodings = self.accept_compression_encodings;
                     let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
                         let inner = inner.0;
@@ -356,6 +418,10 @@ pub mod writer_server {
                             .apply_compression_config(
                                 accept_compression_encodings,
                                 send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
                             );
                         let res = grpc.unary(method, req).await;
                         Ok(res)
@@ -381,13 +447,15 @@ pub mod writer_server {
                                 super::super::super::google::protobuf::Empty,
                             >,
                         ) -> Self::Future {
-                            let inner = self.0.clone();
+                            let inner = Arc::clone(&self.0);
                             let fut = async move { (*inner).hijack(request).await };
                             Box::pin(fut)
                         }
                     }
                     let accept_compression_encodings = self.accept_compression_encodings;
                     let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
                         let inner = inner.0;
@@ -397,6 +465,10 @@ pub mod writer_server {
                             .apply_compression_config(
                                 accept_compression_encodings,
                                 send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
                             );
                         let res = grpc.unary(method, req).await;
                         Ok(res)
@@ -425,12 +497,14 @@ pub mod writer_server {
                 inner,
                 accept_compression_encodings: self.accept_compression_encodings,
                 send_compression_encodings: self.send_compression_encodings,
+                max_decoding_message_size: self.max_decoding_message_size,
+                max_encoding_message_size: self.max_encoding_message_size,
             }
         }
     }
     impl<T: Writer> Clone for _Inner<T> {
         fn clone(&self) -> Self {
-            Self(self.0.clone())
+            Self(Arc::clone(&self.0))
         }
     }
     impl<T: std::fmt::Debug> std::fmt::Debug for _Inner<T> {

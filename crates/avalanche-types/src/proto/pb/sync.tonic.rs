@@ -1,14 +1,14 @@
 // @generated
 /// Generated client implementations.
-pub mod conn_client {
+pub mod db_client {
     #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
     use tonic::codegen::*;
     use tonic::codegen::http::Uri;
     #[derive(Debug, Clone)]
-    pub struct ConnClient<T> {
+    pub struct DbClient<T> {
         inner: tonic::client::Grpc<T>,
     }
-    impl ConnClient<tonic::transport::Channel> {
+    impl DbClient<tonic::transport::Channel> {
         /// Attempt to create a new client by connecting to a given endpoint.
         pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
         where
@@ -19,7 +19,7 @@ pub mod conn_client {
             Ok(Self::new(conn))
         }
     }
-    impl<T> ConnClient<T>
+    impl<T> DbClient<T>
     where
         T: tonic::client::GrpcService<tonic::body::BoxBody>,
         T::Error: Into<StdError>,
@@ -37,7 +37,7 @@ pub mod conn_client {
         pub fn with_interceptor<F>(
             inner: T,
             interceptor: F,
-        ) -> ConnClient<InterceptedService<T, F>>
+        ) -> DbClient<InterceptedService<T, F>>
         where
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
@@ -51,7 +51,7 @@ pub mod conn_client {
                 http::Request<tonic::body::BoxBody>,
             >>::Error: Into<StdError> + Send + Sync,
         {
-            ConnClient::new(InterceptedService::new(inner, interceptor))
+            DbClient::new(InterceptedService::new(inner, interceptor))
         }
         /// Compress requests with the given encoding.
         ///
@@ -84,51 +84,11 @@ pub mod conn_client {
             self.inner = self.inner.max_encoding_message_size(limit);
             self
         }
-        pub async fn read(
+        pub async fn get_merkle_root(
             &mut self,
-            request: impl tonic::IntoRequest<super::ReadRequest>,
-        ) -> std::result::Result<tonic::Response<super::ReadResponse>, tonic::Status> {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/net.conn.Conn/Read");
-            let mut req = request.into_request();
-            req.extensions_mut().insert(GrpcMethod::new("net.conn.Conn", "Read"));
-            self.inner.unary(req, path, codec).await
-        }
-        pub async fn write(
-            &mut self,
-            request: impl tonic::IntoRequest<super::WriteRequest>,
-        ) -> std::result::Result<tonic::Response<super::WriteResponse>, tonic::Status> {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/net.conn.Conn/Write");
-            let mut req = request.into_request();
-            req.extensions_mut().insert(GrpcMethod::new("net.conn.Conn", "Write"));
-            self.inner.unary(req, path, codec).await
-        }
-        pub async fn close(
-            &mut self,
-            request: impl tonic::IntoRequest<
-                super::super::super::google::protobuf::Empty,
-            >,
+            request: impl tonic::IntoRequest<super::super::google::protobuf::Empty>,
         ) -> std::result::Result<
-            tonic::Response<super::super::super::google::protobuf::Empty>,
+            tonic::Response<super::GetMerkleRootResponse>,
             tonic::Status,
         > {
             self.inner
@@ -141,16 +101,16 @@ pub mod conn_client {
                     )
                 })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/net.conn.Conn/Close");
+            let path = http::uri::PathAndQuery::from_static("/sync.DB/GetMerkleRoot");
             let mut req = request.into_request();
-            req.extensions_mut().insert(GrpcMethod::new("net.conn.Conn", "Close"));
+            req.extensions_mut().insert(GrpcMethod::new("sync.DB", "GetMerkleRoot"));
             self.inner.unary(req, path, codec).await
         }
-        pub async fn set_deadline(
+        pub async fn get_proof(
             &mut self,
-            request: impl tonic::IntoRequest<super::SetDeadlineRequest>,
+            request: impl tonic::IntoRequest<super::GetProofRequest>,
         ) -> std::result::Result<
-            tonic::Response<super::super::super::google::protobuf::Empty>,
+            tonic::Response<super::GetProofResponse>,
             tonic::Status,
         > {
             self.inner
@@ -163,18 +123,38 @@ pub mod conn_client {
                     )
                 })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/net.conn.Conn/SetDeadline",
-            );
+            let path = http::uri::PathAndQuery::from_static("/sync.DB/GetProof");
             let mut req = request.into_request();
-            req.extensions_mut().insert(GrpcMethod::new("net.conn.Conn", "SetDeadline"));
+            req.extensions_mut().insert(GrpcMethod::new("sync.DB", "GetProof"));
             self.inner.unary(req, path, codec).await
         }
-        pub async fn set_read_deadline(
+        pub async fn get_change_proof(
             &mut self,
-            request: impl tonic::IntoRequest<super::SetDeadlineRequest>,
+            request: impl tonic::IntoRequest<super::GetChangeProofRequest>,
         ) -> std::result::Result<
-            tonic::Response<super::super::super::google::protobuf::Empty>,
+            tonic::Response<super::GetChangeProofResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static("/sync.DB/GetChangeProof");
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new("sync.DB", "GetChangeProof"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn verify_change_proof(
+            &mut self,
+            request: impl tonic::IntoRequest<super::VerifyChangeProofRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::VerifyChangeProofResponse>,
             tonic::Status,
         > {
             self.inner
@@ -188,18 +168,17 @@ pub mod conn_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/net.conn.Conn/SetReadDeadline",
+                "/sync.DB/VerifyChangeProof",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("net.conn.Conn", "SetReadDeadline"));
+            req.extensions_mut().insert(GrpcMethod::new("sync.DB", "VerifyChangeProof"));
             self.inner.unary(req, path, codec).await
         }
-        pub async fn set_write_deadline(
+        pub async fn commit_change_proof(
             &mut self,
-            request: impl tonic::IntoRequest<super::SetDeadlineRequest>,
+            request: impl tonic::IntoRequest<super::CommitChangeProofRequest>,
         ) -> std::result::Result<
-            tonic::Response<super::super::super::google::protobuf::Empty>,
+            tonic::Response<super::super::google::protobuf::Empty>,
             tonic::Status,
         > {
             self.inner
@@ -213,61 +192,117 @@ pub mod conn_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/net.conn.Conn/SetWriteDeadline",
+                "/sync.DB/CommitChangeProof",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("net.conn.Conn", "SetWriteDeadline"));
+            req.extensions_mut().insert(GrpcMethod::new("sync.DB", "CommitChangeProof"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn get_range_proof(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetRangeProofRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetRangeProofResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static("/sync.DB/GetRangeProof");
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new("sync.DB", "GetRangeProof"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn commit_range_proof(
+            &mut self,
+            request: impl tonic::IntoRequest<super::CommitRangeProofRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::google::protobuf::Empty>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static("/sync.DB/CommitRangeProof");
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new("sync.DB", "CommitRangeProof"));
             self.inner.unary(req, path, codec).await
         }
     }
 }
 /// Generated server implementations.
-pub mod conn_server {
+pub mod db_server {
     #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
     use tonic::codegen::*;
-    /// Generated trait containing gRPC methods that should be implemented for use with ConnServer.
+    /// Generated trait containing gRPC methods that should be implemented for use with DbServer.
     #[async_trait]
-    pub trait Conn: Send + Sync + 'static {
-        async fn read(
+    pub trait Db: Send + Sync + 'static {
+        async fn get_merkle_root(
             &self,
-            request: tonic::Request<super::ReadRequest>,
-        ) -> std::result::Result<tonic::Response<super::ReadResponse>, tonic::Status>;
-        async fn write(
-            &self,
-            request: tonic::Request<super::WriteRequest>,
-        ) -> std::result::Result<tonic::Response<super::WriteResponse>, tonic::Status>;
-        async fn close(
-            &self,
-            request: tonic::Request<super::super::super::google::protobuf::Empty>,
+            request: tonic::Request<super::super::google::protobuf::Empty>,
         ) -> std::result::Result<
-            tonic::Response<super::super::super::google::protobuf::Empty>,
+            tonic::Response<super::GetMerkleRootResponse>,
             tonic::Status,
         >;
-        async fn set_deadline(
+        async fn get_proof(
             &self,
-            request: tonic::Request<super::SetDeadlineRequest>,
+            request: tonic::Request<super::GetProofRequest>,
         ) -> std::result::Result<
-            tonic::Response<super::super::super::google::protobuf::Empty>,
+            tonic::Response<super::GetProofResponse>,
             tonic::Status,
         >;
-        async fn set_read_deadline(
+        async fn get_change_proof(
             &self,
-            request: tonic::Request<super::SetDeadlineRequest>,
+            request: tonic::Request<super::GetChangeProofRequest>,
         ) -> std::result::Result<
-            tonic::Response<super::super::super::google::protobuf::Empty>,
+            tonic::Response<super::GetChangeProofResponse>,
             tonic::Status,
         >;
-        async fn set_write_deadline(
+        async fn verify_change_proof(
             &self,
-            request: tonic::Request<super::SetDeadlineRequest>,
+            request: tonic::Request<super::VerifyChangeProofRequest>,
         ) -> std::result::Result<
-            tonic::Response<super::super::super::google::protobuf::Empty>,
+            tonic::Response<super::VerifyChangeProofResponse>,
+            tonic::Status,
+        >;
+        async fn commit_change_proof(
+            &self,
+            request: tonic::Request<super::CommitChangeProofRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::google::protobuf::Empty>,
+            tonic::Status,
+        >;
+        async fn get_range_proof(
+            &self,
+            request: tonic::Request<super::GetRangeProofRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetRangeProofResponse>,
+            tonic::Status,
+        >;
+        async fn commit_range_proof(
+            &self,
+            request: tonic::Request<super::CommitRangeProofRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::super::google::protobuf::Empty>,
             tonic::Status,
         >;
     }
     #[derive(Debug)]
-    pub struct ConnServer<T: Conn> {
+    pub struct DbServer<T: Db> {
         inner: _Inner<T>,
         accept_compression_encodings: EnabledCompressionEncodings,
         send_compression_encodings: EnabledCompressionEncodings,
@@ -275,7 +310,7 @@ pub mod conn_server {
         max_encoding_message_size: Option<usize>,
     }
     struct _Inner<T>(Arc<T>);
-    impl<T: Conn> ConnServer<T> {
+    impl<T: Db> DbServer<T> {
         pub fn new(inner: T) -> Self {
             Self::from_arc(Arc::new(inner))
         }
@@ -327,9 +362,9 @@ pub mod conn_server {
             self
         }
     }
-    impl<T, B> tonic::codegen::Service<http::Request<B>> for ConnServer<T>
+    impl<T, B> tonic::codegen::Service<http::Request<B>> for DbServer<T>
     where
-        T: Conn,
+        T: Db,
         B: Body + Send + 'static,
         B::Error: Into<StdError> + Send + 'static,
     {
@@ -345,99 +380,14 @@ pub mod conn_server {
         fn call(&mut self, req: http::Request<B>) -> Self::Future {
             let inner = self.inner.clone();
             match req.uri().path() {
-                "/net.conn.Conn/Read" => {
+                "/sync.DB/GetMerkleRoot" => {
                     #[allow(non_camel_case_types)]
-                    struct ReadSvc<T: Conn>(pub Arc<T>);
-                    impl<T: Conn> tonic::server::UnaryService<super::ReadRequest>
-                    for ReadSvc<T> {
-                        type Response = super::ReadResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
-                        fn call(
-                            &mut self,
-                            request: tonic::Request<super::ReadRequest>,
-                        ) -> Self::Future {
-                            let inner = Arc::clone(&self.0);
-                            let fut = async move { (*inner).read(request).await };
-                            Box::pin(fut)
-                        }
-                    }
-                    let accept_compression_encodings = self.accept_compression_encodings;
-                    let send_compression_encodings = self.send_compression_encodings;
-                    let max_decoding_message_size = self.max_decoding_message_size;
-                    let max_encoding_message_size = self.max_encoding_message_size;
-                    let inner = self.inner.clone();
-                    let fut = async move {
-                        let inner = inner.0;
-                        let method = ReadSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
-                        let mut grpc = tonic::server::Grpc::new(codec)
-                            .apply_compression_config(
-                                accept_compression_encodings,
-                                send_compression_encodings,
-                            )
-                            .apply_max_message_size_config(
-                                max_decoding_message_size,
-                                max_encoding_message_size,
-                            );
-                        let res = grpc.unary(method, req).await;
-                        Ok(res)
-                    };
-                    Box::pin(fut)
-                }
-                "/net.conn.Conn/Write" => {
-                    #[allow(non_camel_case_types)]
-                    struct WriteSvc<T: Conn>(pub Arc<T>);
-                    impl<T: Conn> tonic::server::UnaryService<super::WriteRequest>
-                    for WriteSvc<T> {
-                        type Response = super::WriteResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
-                        fn call(
-                            &mut self,
-                            request: tonic::Request<super::WriteRequest>,
-                        ) -> Self::Future {
-                            let inner = Arc::clone(&self.0);
-                            let fut = async move { (*inner).write(request).await };
-                            Box::pin(fut)
-                        }
-                    }
-                    let accept_compression_encodings = self.accept_compression_encodings;
-                    let send_compression_encodings = self.send_compression_encodings;
-                    let max_decoding_message_size = self.max_decoding_message_size;
-                    let max_encoding_message_size = self.max_encoding_message_size;
-                    let inner = self.inner.clone();
-                    let fut = async move {
-                        let inner = inner.0;
-                        let method = WriteSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
-                        let mut grpc = tonic::server::Grpc::new(codec)
-                            .apply_compression_config(
-                                accept_compression_encodings,
-                                send_compression_encodings,
-                            )
-                            .apply_max_message_size_config(
-                                max_decoding_message_size,
-                                max_encoding_message_size,
-                            );
-                        let res = grpc.unary(method, req).await;
-                        Ok(res)
-                    };
-                    Box::pin(fut)
-                }
-                "/net.conn.Conn/Close" => {
-                    #[allow(non_camel_case_types)]
-                    struct CloseSvc<T: Conn>(pub Arc<T>);
+                    struct GetMerkleRootSvc<T: Db>(pub Arc<T>);
                     impl<
-                        T: Conn,
-                    > tonic::server::UnaryService<
-                        super::super::super::google::protobuf::Empty,
-                    > for CloseSvc<T> {
-                        type Response = super::super::super::google::protobuf::Empty;
+                        T: Db,
+                    > tonic::server::UnaryService<super::super::google::protobuf::Empty>
+                    for GetMerkleRootSvc<T> {
+                        type Response = super::GetMerkleRootResponse;
                         type Future = BoxFuture<
                             tonic::Response<Self::Response>,
                             tonic::Status,
@@ -445,11 +395,13 @@ pub mod conn_server {
                         fn call(
                             &mut self,
                             request: tonic::Request<
-                                super::super::super::google::protobuf::Empty,
+                                super::super::google::protobuf::Empty,
                             >,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
-                            let fut = async move { (*inner).close(request).await };
+                            let fut = async move {
+                                (*inner).get_merkle_root(request).await
+                            };
                             Box::pin(fut)
                         }
                     }
@@ -460,7 +412,7 @@ pub mod conn_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let inner = inner.0;
-                        let method = CloseSvc(inner);
+                        let method = GetMerkleRootSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
@@ -476,24 +428,22 @@ pub mod conn_server {
                     };
                     Box::pin(fut)
                 }
-                "/net.conn.Conn/SetDeadline" => {
+                "/sync.DB/GetProof" => {
                     #[allow(non_camel_case_types)]
-                    struct SetDeadlineSvc<T: Conn>(pub Arc<T>);
-                    impl<T: Conn> tonic::server::UnaryService<super::SetDeadlineRequest>
-                    for SetDeadlineSvc<T> {
-                        type Response = super::super::super::google::protobuf::Empty;
+                    struct GetProofSvc<T: Db>(pub Arc<T>);
+                    impl<T: Db> tonic::server::UnaryService<super::GetProofRequest>
+                    for GetProofSvc<T> {
+                        type Response = super::GetProofResponse;
                         type Future = BoxFuture<
                             tonic::Response<Self::Response>,
                             tonic::Status,
                         >;
                         fn call(
                             &mut self,
-                            request: tonic::Request<super::SetDeadlineRequest>,
+                            request: tonic::Request<super::GetProofRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
-                            let fut = async move {
-                                (*inner).set_deadline(request).await
-                            };
+                            let fut = async move { (*inner).get_proof(request).await };
                             Box::pin(fut)
                         }
                     }
@@ -504,7 +454,7 @@ pub mod conn_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let inner = inner.0;
-                        let method = SetDeadlineSvc(inner);
+                        let method = GetProofSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
@@ -520,23 +470,23 @@ pub mod conn_server {
                     };
                     Box::pin(fut)
                 }
-                "/net.conn.Conn/SetReadDeadline" => {
+                "/sync.DB/GetChangeProof" => {
                     #[allow(non_camel_case_types)]
-                    struct SetReadDeadlineSvc<T: Conn>(pub Arc<T>);
-                    impl<T: Conn> tonic::server::UnaryService<super::SetDeadlineRequest>
-                    for SetReadDeadlineSvc<T> {
-                        type Response = super::super::super::google::protobuf::Empty;
+                    struct GetChangeProofSvc<T: Db>(pub Arc<T>);
+                    impl<T: Db> tonic::server::UnaryService<super::GetChangeProofRequest>
+                    for GetChangeProofSvc<T> {
+                        type Response = super::GetChangeProofResponse;
                         type Future = BoxFuture<
                             tonic::Response<Self::Response>,
                             tonic::Status,
                         >;
                         fn call(
                             &mut self,
-                            request: tonic::Request<super::SetDeadlineRequest>,
+                            request: tonic::Request<super::GetChangeProofRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                (*inner).set_read_deadline(request).await
+                                (*inner).get_change_proof(request).await
                             };
                             Box::pin(fut)
                         }
@@ -548,7 +498,7 @@ pub mod conn_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let inner = inner.0;
-                        let method = SetReadDeadlineSvc(inner);
+                        let method = GetChangeProofSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
@@ -564,23 +514,25 @@ pub mod conn_server {
                     };
                     Box::pin(fut)
                 }
-                "/net.conn.Conn/SetWriteDeadline" => {
+                "/sync.DB/VerifyChangeProof" => {
                     #[allow(non_camel_case_types)]
-                    struct SetWriteDeadlineSvc<T: Conn>(pub Arc<T>);
-                    impl<T: Conn> tonic::server::UnaryService<super::SetDeadlineRequest>
-                    for SetWriteDeadlineSvc<T> {
-                        type Response = super::super::super::google::protobuf::Empty;
+                    struct VerifyChangeProofSvc<T: Db>(pub Arc<T>);
+                    impl<
+                        T: Db,
+                    > tonic::server::UnaryService<super::VerifyChangeProofRequest>
+                    for VerifyChangeProofSvc<T> {
+                        type Response = super::VerifyChangeProofResponse;
                         type Future = BoxFuture<
                             tonic::Response<Self::Response>,
                             tonic::Status,
                         >;
                         fn call(
                             &mut self,
-                            request: tonic::Request<super::SetDeadlineRequest>,
+                            request: tonic::Request<super::VerifyChangeProofRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                (*inner).set_write_deadline(request).await
+                                (*inner).verify_change_proof(request).await
                             };
                             Box::pin(fut)
                         }
@@ -592,7 +544,143 @@ pub mod conn_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let inner = inner.0;
-                        let method = SetWriteDeadlineSvc(inner);
+                        let method = VerifyChangeProofSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/sync.DB/CommitChangeProof" => {
+                    #[allow(non_camel_case_types)]
+                    struct CommitChangeProofSvc<T: Db>(pub Arc<T>);
+                    impl<
+                        T: Db,
+                    > tonic::server::UnaryService<super::CommitChangeProofRequest>
+                    for CommitChangeProofSvc<T> {
+                        type Response = super::super::google::protobuf::Empty;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::CommitChangeProofRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                (*inner).commit_change_proof(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = CommitChangeProofSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/sync.DB/GetRangeProof" => {
+                    #[allow(non_camel_case_types)]
+                    struct GetRangeProofSvc<T: Db>(pub Arc<T>);
+                    impl<T: Db> tonic::server::UnaryService<super::GetRangeProofRequest>
+                    for GetRangeProofSvc<T> {
+                        type Response = super::GetRangeProofResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::GetRangeProofRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                (*inner).get_range_proof(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = GetRangeProofSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/sync.DB/CommitRangeProof" => {
+                    #[allow(non_camel_case_types)]
+                    struct CommitRangeProofSvc<T: Db>(pub Arc<T>);
+                    impl<
+                        T: Db,
+                    > tonic::server::UnaryService<super::CommitRangeProofRequest>
+                    for CommitRangeProofSvc<T> {
+                        type Response = super::super::google::protobuf::Empty;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::CommitRangeProofRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                (*inner).commit_range_proof(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = CommitRangeProofSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
@@ -623,7 +711,7 @@ pub mod conn_server {
             }
         }
     }
-    impl<T: Conn> Clone for ConnServer<T> {
+    impl<T: Db> Clone for DbServer<T> {
         fn clone(&self) -> Self {
             let inner = self.inner.clone();
             Self {
@@ -635,7 +723,7 @@ pub mod conn_server {
             }
         }
     }
-    impl<T: Conn> Clone for _Inner<T> {
+    impl<T: Db> Clone for _Inner<T> {
         fn clone(&self) -> Self {
             Self(Arc::clone(&self.0))
         }
@@ -645,7 +733,7 @@ pub mod conn_server {
             write!(f, "{:?}", self.0)
         }
     }
-    impl<T: Conn> tonic::server::NamedService for ConnServer<T> {
-        const NAME: &'static str = "net.conn.Conn";
+    impl<T: Db> tonic::server::NamedService for DbServer<T> {
+        const NAME: &'static str = "sync.DB";
     }
 }

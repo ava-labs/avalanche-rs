@@ -1,6 +1,7 @@
 use std::io::{self, Error, ErrorKind};
 
 use crate::{message, proto::pb::p2p};
+use prost::bytes::Bytes;
 use prost::Message as ProstMessage;
 
 #[derive(Debug, PartialEq, Clone)]
@@ -18,7 +19,13 @@ impl Default for Message {
 impl Message {
     pub fn default() -> Self {
         Message {
-            msg: p2p::Ping {},
+            msg: p2p::Ping {
+                uptime: 0,
+                subnet_uptimes: vec![p2p::SubnetUptime {
+                    subnet_id: Bytes::new(),
+                    uptime: 0,
+                }],
+            },
             gzip_compress: false,
         }
     }
@@ -41,9 +48,9 @@ impl Message {
         let uncompressed_len = encoded.len();
         let compressed = message::compress::pack_gzip(&encoded)?;
         let msg = p2p::Message {
-            message: Some(p2p::message::Message::CompressedGzip(
-                prost::bytes::Bytes::from(compressed),
-            )),
+            message: Some(p2p::message::Message::CompressedGzip(Bytes::from(
+                compressed,
+            ))),
         };
 
         let compressed_len = msg.encoded_len();
@@ -82,7 +89,7 @@ impl Message {
             p2p::message::Message::CompressedGzip(msg) => {
                 let decompressed = message::compress::unpack_gzip(msg.as_ref())?;
                 let decompressed_msg: p2p::Message =
-                    ProstMessage::decode(prost::bytes::Bytes::from(decompressed)).map_err(|e| {
+                    ProstMessage::decode(Bytes::from(decompressed)).map_err(|e| {
                         Error::new(
                             ErrorKind::InvalidData,
                             format!("failed prost::Message::decode '{}'", e),

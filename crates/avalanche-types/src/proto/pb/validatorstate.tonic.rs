@@ -12,7 +12,7 @@ pub mod validator_state_client {
         /// Attempt to create a new client by connecting to a given endpoint.
         pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
         where
-            D: std::convert::TryInto<tonic::transport::Endpoint>,
+            D: TryInto<tonic::transport::Endpoint>,
             D::Error: Into<StdError>,
         {
             let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
@@ -68,10 +68,29 @@ pub mod validator_state_client {
             self.inner = self.inner.accept_compressed(encoding);
             self
         }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_decoding_message_size(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_encoding_message_size(limit);
+            self
+        }
         pub async fn get_minimum_height(
             &mut self,
             request: impl tonic::IntoRequest<super::super::google::protobuf::Empty>,
-        ) -> Result<tonic::Response<super::GetMinimumHeightResponse>, tonic::Status> {
+        ) -> std::result::Result<
+            tonic::Response<super::GetMinimumHeightResponse>,
+            tonic::Status,
+        > {
             self.inner
                 .ready()
                 .await
@@ -85,12 +104,20 @@ pub mod validator_state_client {
             let path = http::uri::PathAndQuery::from_static(
                 "/validatorstate.ValidatorState/GetMinimumHeight",
             );
-            self.inner.unary(request.into_request(), path, codec).await
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("validatorstate.ValidatorState", "GetMinimumHeight"),
+                );
+            self.inner.unary(req, path, codec).await
         }
         pub async fn get_current_height(
             &mut self,
             request: impl tonic::IntoRequest<super::super::google::protobuf::Empty>,
-        ) -> Result<tonic::Response<super::GetCurrentHeightResponse>, tonic::Status> {
+        ) -> std::result::Result<
+            tonic::Response<super::GetCurrentHeightResponse>,
+            tonic::Status,
+        > {
             self.inner
                 .ready()
                 .await
@@ -104,12 +131,20 @@ pub mod validator_state_client {
             let path = http::uri::PathAndQuery::from_static(
                 "/validatorstate.ValidatorState/GetCurrentHeight",
             );
-            self.inner.unary(request.into_request(), path, codec).await
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("validatorstate.ValidatorState", "GetCurrentHeight"),
+                );
+            self.inner.unary(req, path, codec).await
         }
         pub async fn get_subnet_id(
             &mut self,
             request: impl tonic::IntoRequest<super::GetSubnetIdRequest>,
-        ) -> Result<tonic::Response<super::GetSubnetIdResponse>, tonic::Status> {
+        ) -> std::result::Result<
+            tonic::Response<super::GetSubnetIdResponse>,
+            tonic::Status,
+        > {
             self.inner
                 .ready()
                 .await
@@ -123,12 +158,18 @@ pub mod validator_state_client {
             let path = http::uri::PathAndQuery::from_static(
                 "/validatorstate.ValidatorState/GetSubnetID",
             );
-            self.inner.unary(request.into_request(), path, codec).await
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("validatorstate.ValidatorState", "GetSubnetID"));
+            self.inner.unary(req, path, codec).await
         }
         pub async fn get_validator_set(
             &mut self,
             request: impl tonic::IntoRequest<super::GetValidatorSetRequest>,
-        ) -> Result<tonic::Response<super::GetValidatorSetResponse>, tonic::Status> {
+        ) -> std::result::Result<
+            tonic::Response<super::GetValidatorSetResponse>,
+            tonic::Status,
+        > {
             self.inner
                 .ready()
                 .await
@@ -142,7 +183,12 @@ pub mod validator_state_client {
             let path = http::uri::PathAndQuery::from_static(
                 "/validatorstate.ValidatorState/GetValidatorSet",
             );
-            self.inner.unary(request.into_request(), path, codec).await
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("validatorstate.ValidatorState", "GetValidatorSet"),
+                );
+            self.inner.unary(req, path, codec).await
         }
     }
 }
@@ -156,25 +202,39 @@ pub mod validator_state_server {
         async fn get_minimum_height(
             &self,
             request: tonic::Request<super::super::google::protobuf::Empty>,
-        ) -> Result<tonic::Response<super::GetMinimumHeightResponse>, tonic::Status>;
+        ) -> std::result::Result<
+            tonic::Response<super::GetMinimumHeightResponse>,
+            tonic::Status,
+        >;
         async fn get_current_height(
             &self,
             request: tonic::Request<super::super::google::protobuf::Empty>,
-        ) -> Result<tonic::Response<super::GetCurrentHeightResponse>, tonic::Status>;
+        ) -> std::result::Result<
+            tonic::Response<super::GetCurrentHeightResponse>,
+            tonic::Status,
+        >;
         async fn get_subnet_id(
             &self,
             request: tonic::Request<super::GetSubnetIdRequest>,
-        ) -> Result<tonic::Response<super::GetSubnetIdResponse>, tonic::Status>;
+        ) -> std::result::Result<
+            tonic::Response<super::GetSubnetIdResponse>,
+            tonic::Status,
+        >;
         async fn get_validator_set(
             &self,
             request: tonic::Request<super::GetValidatorSetRequest>,
-        ) -> Result<tonic::Response<super::GetValidatorSetResponse>, tonic::Status>;
+        ) -> std::result::Result<
+            tonic::Response<super::GetValidatorSetResponse>,
+            tonic::Status,
+        >;
     }
     #[derive(Debug)]
     pub struct ValidatorStateServer<T: ValidatorState> {
         inner: _Inner<T>,
         accept_compression_encodings: EnabledCompressionEncodings,
         send_compression_encodings: EnabledCompressionEncodings,
+        max_decoding_message_size: Option<usize>,
+        max_encoding_message_size: Option<usize>,
     }
     struct _Inner<T>(Arc<T>);
     impl<T: ValidatorState> ValidatorStateServer<T> {
@@ -187,6 +247,8 @@ pub mod validator_state_server {
                 inner,
                 accept_compression_encodings: Default::default(),
                 send_compression_encodings: Default::default(),
+                max_decoding_message_size: None,
+                max_encoding_message_size: None,
             }
         }
         pub fn with_interceptor<F>(
@@ -210,6 +272,22 @@ pub mod validator_state_server {
             self.send_compression_encodings.enable(encoding);
             self
         }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.max_decoding_message_size = Some(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.max_encoding_message_size = Some(limit);
+            self
+        }
     }
     impl<T, B> tonic::codegen::Service<http::Request<B>> for ValidatorStateServer<T>
     where
@@ -223,7 +301,7 @@ pub mod validator_state_server {
         fn poll_ready(
             &mut self,
             _cx: &mut Context<'_>,
-        ) -> Poll<Result<(), Self::Error>> {
+        ) -> Poll<std::result::Result<(), Self::Error>> {
             Poll::Ready(Ok(()))
         }
         fn call(&mut self, req: http::Request<B>) -> Self::Future {
@@ -247,7 +325,7 @@ pub mod validator_state_server {
                                 super::super::google::protobuf::Empty,
                             >,
                         ) -> Self::Future {
-                            let inner = self.0.clone();
+                            let inner = Arc::clone(&self.0);
                             let fut = async move {
                                 (*inner).get_minimum_height(request).await
                             };
@@ -256,6 +334,8 @@ pub mod validator_state_server {
                     }
                     let accept_compression_encodings = self.accept_compression_encodings;
                     let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
                         let inner = inner.0;
@@ -265,6 +345,10 @@ pub mod validator_state_server {
                             .apply_compression_config(
                                 accept_compression_encodings,
                                 send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
                             );
                         let res = grpc.unary(method, req).await;
                         Ok(res)
@@ -289,7 +373,7 @@ pub mod validator_state_server {
                                 super::super::google::protobuf::Empty,
                             >,
                         ) -> Self::Future {
-                            let inner = self.0.clone();
+                            let inner = Arc::clone(&self.0);
                             let fut = async move {
                                 (*inner).get_current_height(request).await
                             };
@@ -298,6 +382,8 @@ pub mod validator_state_server {
                     }
                     let accept_compression_encodings = self.accept_compression_encodings;
                     let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
                         let inner = inner.0;
@@ -307,6 +393,10 @@ pub mod validator_state_server {
                             .apply_compression_config(
                                 accept_compression_encodings,
                                 send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
                             );
                         let res = grpc.unary(method, req).await;
                         Ok(res)
@@ -329,7 +419,7 @@ pub mod validator_state_server {
                             &mut self,
                             request: tonic::Request<super::GetSubnetIdRequest>,
                         ) -> Self::Future {
-                            let inner = self.0.clone();
+                            let inner = Arc::clone(&self.0);
                             let fut = async move {
                                 (*inner).get_subnet_id(request).await
                             };
@@ -338,6 +428,8 @@ pub mod validator_state_server {
                     }
                     let accept_compression_encodings = self.accept_compression_encodings;
                     let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
                         let inner = inner.0;
@@ -347,6 +439,10 @@ pub mod validator_state_server {
                             .apply_compression_config(
                                 accept_compression_encodings,
                                 send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
                             );
                         let res = grpc.unary(method, req).await;
                         Ok(res)
@@ -369,7 +465,7 @@ pub mod validator_state_server {
                             &mut self,
                             request: tonic::Request<super::GetValidatorSetRequest>,
                         ) -> Self::Future {
-                            let inner = self.0.clone();
+                            let inner = Arc::clone(&self.0);
                             let fut = async move {
                                 (*inner).get_validator_set(request).await
                             };
@@ -378,6 +474,8 @@ pub mod validator_state_server {
                     }
                     let accept_compression_encodings = self.accept_compression_encodings;
                     let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
                         let inner = inner.0;
@@ -387,6 +485,10 @@ pub mod validator_state_server {
                             .apply_compression_config(
                                 accept_compression_encodings,
                                 send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
                             );
                         let res = grpc.unary(method, req).await;
                         Ok(res)
@@ -415,12 +517,14 @@ pub mod validator_state_server {
                 inner,
                 accept_compression_encodings: self.accept_compression_encodings,
                 send_compression_encodings: self.send_compression_encodings,
+                max_decoding_message_size: self.max_decoding_message_size,
+                max_encoding_message_size: self.max_encoding_message_size,
             }
         }
     }
     impl<T: ValidatorState> Clone for _Inner<T> {
         fn clone(&self) -> Self {
-            Self(self.0.clone())
+            Self(Arc::clone(&self.0))
         }
     }
     impl<T: std::fmt::Debug> std::fmt::Debug for _Inner<T> {
