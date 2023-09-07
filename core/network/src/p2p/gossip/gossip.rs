@@ -2,6 +2,8 @@ use std::error::Error;
 use std::sync::Arc;
 use std::time::Duration;
 use log::{debug, error};
+use tokio::select;
+use tokio::sync::mpsc::{channel, Receiver};
 use tokio::time::interval;
 use avalanche_types::ids::Id;
 use crate::p2p::gossip::{Gossipable, Set};
@@ -16,6 +18,7 @@ pub struct Gossiper<T: Gossipable<T> + ?Sized> {
     config: Config,
     set: Arc<dyn Set<T>>,
     client: Arc<dyn Client>,
+    stop_rx: Receiver<()>,  // Receiver to get the stop signal
 }
 
 impl<T: Gossipable<T>> Gossiper<T> {
@@ -23,22 +26,31 @@ impl<T: Gossipable<T>> Gossiper<T> {
         config: Config,
         set: Arc<dyn Set<T>>,
         client: Arc<dyn Client>,
+        stop_rx: Receiver<()>,
     ) -> Self {
         Self {
             config,
             set,
             client,
+            stop_rx,
         }
     }
 
-    pub async fn gossip(&self) {
+    pub async fn gossip(&mut self) {
         let mut gossip_ticker = interval(self.config.frequency);
 
         loop {
-            gossip_ticker.tick().await;
-            // This will pause the loop for `self.config.frequency`
-            if let Err(e) = self.single_gossip().await {
-                error!("Failed to Gossip : {:?}", e)
+            select! {
+                _ = gossip_ticker.tick() => {
+                    debug!("Tick!");
+                    if let Err(e) = self.single_gossip().await {
+                        error!("Failed to Gossip : {:?}", e);
+                    }
+                }
+                _ = self.stop_rx.recv() => {
+                    debug!("Shutting down gossip");
+                    break;
+                }
             }
         }
     }
@@ -103,10 +115,13 @@ async fn test_gossip() {
         .try_init()
         .unwrap();
 
-    let gossiper: Gossiper<TestGossipableType> = Gossiper::new(
+    let (stop_tx, stop_rx) = channel(1); // Create a new channel
+
+    let mut gossiper: Gossiper<TestGossipableType> = Gossiper::new(
         Config { frequency: Duration::from_millis(200), poll_size: 0 },
         Arc::new(MockSet),  // Replace with your real Set implementation
         Arc::new(MockClient), // Replace with your real Client implementation
+        stop_rx
     );
 
     // Spawn the gossiping task
@@ -117,5 +132,7 @@ async fn test_gossip() {
     // Wait some time to let a few cycles of gossiping happen
     tokio::time::sleep(Duration::from_secs(5)).await;
 
-    gossip_task.abort();
+    stop_tx.send(()).await.expect("Failed to send stop signal");
+
+    gossip_task.await.expect("Gossip task failed");
 }
