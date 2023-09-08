@@ -1,6 +1,1 @@
-# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners#codeowners-syntax
-
-/crates/avalanche-types/ @gyuho
-/crates/avalanche-consensus/ @gyuho
-/crates/avalanche-types/proto/ @hexfusion @gyuho
-/crates/avalanche-types/subnet/ @hexfusion @gyuho
+* @exdx @gyuho @hexfusion @richardpringle
