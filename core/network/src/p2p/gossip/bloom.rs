@@ -1,15 +1,19 @@
+use std::error::Error;
 use probabilistic_collections::bloom::BloomFilter;
 use avalanche_types::ids::{Id, LEN};
 use crate::p2p::gossip::Gossipable;
 use byteorder::{BigEndian, ByteOrder};
+use proptest::proptest;
+use proptest::prelude::*;
 
+#[derive(Debug)]
 pub struct Bloom {
     bloom: BloomFilter::<Hasher>,
     // ToDo Which type here ?
     salt: Id,
 }
 
-#[derive(Hash)]
+#[derive(Debug, Hash)]
 pub struct Hasher {
     hash: Vec<u8>,
     // ToDo Which type here ?
@@ -43,7 +47,7 @@ impl Bloom {
         self.bloom.insert(&salted)
     }
 
-    pub fn has(&self, gossipable: impl Gossipable) -> bool {
+    pub fn has(&self, gossipable: &impl Gossipable) -> bool {
         let id = gossipable.get_id();
 
         let salted = Hasher {
@@ -111,3 +115,54 @@ impl Hasher {
         self.hash.len()
     }
 }
+
+#[derive(Debug, Clone)]
+struct TestTx {
+    pub id: Id,
+}
+
+impl Gossipable for TestTx {
+    fn get_id(&self) -> Id {
+        self.id
+    }
+
+    fn marshal(&self) -> Result<Vec<u8>, Box<dyn Error>> {
+        todo!()
+    }
+
+    fn unmarshal(&mut self, bytes: &[u8]) -> Result<(), Box<dyn Error>> {
+        todo!()
+    }
+}
+
+proptest! {
+        #![proptest_config(ProptestConfig {
+        cases: 100,
+        .. ProptestConfig::default()
+        })]
+
+        #[test]
+        fn test_bloom_filter_refresh(
+            false_positive_probability in 0.0..1.0f64,
+            txs in proptest::collection::vec(any::<[u8; 32]>(), 0..100)
+        ) {
+            let mut bloom_filter = Bloom::new_bloom_filter(10, 0.01);
+            let mut expected = vec![];
+
+            for tx in txs {
+                let should_reset = reset_bloom_filter_if_needed(&mut bloom_filter, false_positive_probability);
+                let test_tx = TestTx { id: Id::from_slice(&tx) };
+                if should_reset {
+                    expected.clear();
+                }
+
+                bloom_filter.add(test_tx.clone());
+                expected.push(test_tx.clone());
+
+                for expected_tx in &expected {
+                    assert!(bloom_filter.has(expected_tx))
+                }
+            }
+        }
+    }
+
