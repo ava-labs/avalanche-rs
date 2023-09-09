@@ -137,14 +137,14 @@ impl Gossipable for TestTx {
 
 proptest! {
         #![proptest_config(ProptestConfig {
-        cases: 100,
+        cases: 100, // Need 100 successful test cases
         .. ProptestConfig::default()
         })]
 
         #[test]
         fn test_bloom_filter_refresh(
             false_positive_probability in 0.0..1.0f64,
-            txs in proptest::collection::vec(any::<[u8; 32]>(), 0..100)
+            txs in proptest::collection::vec(any::<[u8; 32]>(), 0..100) // Will populate txs with 0 to 100 [u8; 32]
         ) {
             let mut bloom_filter = Bloom::new_bloom_filter(10, 0.01);
             let mut expected = vec![];
