@@ -10,18 +10,18 @@ use crate::p2p::gossip::{Gossipable, Set};
 use crate::p2p::client::Client;
 
 pub struct Config {
-    pub frequency: std::time::Duration,
+    pub frequency: Duration,
     pub poll_size: usize,
 }
 
-pub struct Gossiper<T: Gossipable<T> + ?Sized> {
+pub struct Gossiper<T: Gossipable + ?Sized> {
     config: Config,
     set: Arc<dyn Set<T>>,
     client: Arc<dyn Client>,
-    stop_rx: Receiver<()>,  // Receiver to get the stop signal
+    stop_rx: Receiver<()>,
 }
 
-impl<T: Gossipable<T>> Gossiper<T> {
+impl<T: Gossipable> Gossiper<T> {
     pub fn new(
         config: Config,
         set: Arc<dyn Set<T>>,
@@ -43,8 +43,10 @@ impl<T: Gossipable<T>> Gossiper<T> {
             select! {
                 _ = gossip_ticker.tick() => {
                     debug!("Tick!");
-                    if let Err(e) = self.single_gossip().await {
+                    if let Err(e) = self.execute_gossip().await {
                         error!("Failed to Gossip : {:?}", e);
+                        //ToDo
+
                     }
                 }
                 _ = self.stop_rx.recv() => {
@@ -55,11 +57,21 @@ impl<T: Gossipable<T>> Gossiper<T> {
         }
     }
 
-    async fn single_gossip(&self) -> Result<(), Box<dyn std::error::Error>> {
+    // ToDo Maybe there is a better name here
+    async fn execute_gossip(&self) -> Result<(), Box<dyn std::error::Error>> {
         let (bloom, salt) = self.set.get_filter()?;
-        // ... Perform the gossip operation, involving self.client, and return a Result
-        // (Left as an exercise for the reader)
+
         debug!("In single_gossip");
+        // ToDo Implement logic
+        Ok(())
+    }
+
+    async fn handle_response(&self, node_id: Id, response_bytes: Vec<u8>) -> Result<(), Box<dyn std::error::Error>> {
+        let (bloom, salt) = self.set.get_filter()?;
+
+        debug!("In handle_response");
+        // ToDo Implement logic
+
         Ok(())
     }
 }
@@ -67,7 +79,7 @@ impl<T: Gossipable<T>> Gossiper<T> {
 // Mock implementation for the Set trait
 struct MockSet;
 
-impl<T: Gossipable<T>> Set<T> for MockSet {
+impl<T: Gossipable> Set<T> for MockSet {
     fn add(&mut self, _gossipable: T) -> Result<(), Box<dyn std::error::Error>> {
         Ok(())
     }
@@ -81,16 +93,13 @@ impl<T: Gossipable<T>> Set<T> for MockSet {
     }
 }
 
-// Mock implementation for the Client trait
 struct MockClient;
 
-impl Client for MockClient {
-    // Implement the methods of the Client trait here...
-}
+impl Client for MockClient {}
 
 struct TestGossipableType;
 
-impl<T> Gossipable<T> for TestGossipableType {
+impl Gossipable for TestGossipableType {
     fn get_id(&self) -> Id {
         todo!()
     }
@@ -102,7 +111,6 @@ impl<T> Gossipable<T> for TestGossipableType {
     fn unmarshal(&mut self, bytes: &[u8]) -> Result<(), Box<dyn Error>> {
         todo!()
     }
-    // ... your methods here
 }
 
 
@@ -119,9 +127,9 @@ async fn test_gossip() {
 
     let mut gossiper: Gossiper<TestGossipableType> = Gossiper::new(
         Config { frequency: Duration::from_millis(200), poll_size: 0 },
-        Arc::new(MockSet),  // Replace with your real Set implementation
-        Arc::new(MockClient), // Replace with your real Client implementation
-        stop_rx
+        Arc::new(MockSet),
+        Arc::new(MockClient),
+        stop_rx,
     );
 
     // Spawn the gossiping task
@@ -132,7 +140,11 @@ async fn test_gossip() {
     // Wait some time to let a few cycles of gossiping happen
     tokio::time::sleep(Duration::from_secs(5)).await;
 
-    stop_tx.send(()).await.expect("Failed to send stop signal");
+    // Send the stop signal before awaiting the task.
+    if stop_tx.send(()).await.is_err() {
+        panic!("Failed to send stop signal");
+    }
 
-    gossip_task.await.expect("Gossip task failed");
+    // Await the gossip task.
+    let _ = gossip_task.await.expect("Gossip task failed");
 }
