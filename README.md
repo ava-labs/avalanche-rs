@@ -31,9 +31,9 @@ avalanche-rs provides a wide set of modules to use as imports in other projects.
 The Rust SDK in [subnet](./crates/avalanche-types/src/subnet/) provides tools to build Rust VMs on Avalanche.
 
 ## Releasing New Versions
-To release a new version, first be sure to increment the version in the `Cargo.toml` file for one or both of `avalanche-types` and `avalanche-consensus` to the new version. It's not possible to republish an existing version of a crate on crates.io. The other crates in this project are not published and do not need to be updated. CI will skip publishing the crate if the current and remote versions are found to be the same.
+To release a new version, first be sure to increment the version in the `Cargo.toml` file for one or both of `avalanche-types` and `avalanche-consensus` to the new version. It's not possible to republish an existing version of a crate on crates.io. The other crates in this project are not published and do not need to be updated. Be sure the version is semver-compatible.
 
-Once the version is incremented, simply push a semver tag (for example v0.1.0) to the main branch. The CI automation will generate a draft release. Once that released is published CI will automatically push the latest versions of the crates to crates.io. 
+Once the version is incremented, checkout the main branch and pull latest. Next create and push a tag with the name of the crate followed by the new crate version (for example, `avalanche-types-v0.1.0`). The CI automation will generate a draft release. Once that released is published CI will automatically push the latest versions of the crate in the tag to crates.io.
 
 ## License 
 avalanche-rs is licensed under the [Ecosystem License](./LICENSE).
