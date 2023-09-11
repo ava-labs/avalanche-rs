@@ -6,24 +6,28 @@ on:
     types: [published]
 
 jobs:
-  publish-avalanche-rs-crate:
-    name: avalanche-rs-lib
+  publish-avalanche-types-crate:
+    name: publish-avalanche-types
     runs-on: ubuntu-latest
-    if: "startsWith(github.event.release.tag_name, 'v')"
+    if: "startsWith(github.event.release.tag_name, 'avalanche-types-v')"
     steps:
       - uses: actions/checkout@v1
       - uses: dtolnay/rust-toolchain@stable
       - name: publish avalanche-types crate
-        continue-on-error: true
         shell: bash
         run: |
-          ./scripts/check_crate_version.sh avalanche-types
           cargo login ${{ secrets.CARGO_TOKEN }}
           cargo publish -p avalanche-types
+  publish-avalanche-consensus-crate:
+    name: publish-avalanche-consensus
+    runs-on: ubuntu-latest
+    if: "startsWith(github.event.release.tag_name, 'avalanche-consensus-v')"
+    steps:
+      - uses: actions/checkout@v1
+      - uses: dtolnay/rust-toolchain@stable
       - name: publish avalanche-consensus crate
-        continue-on-error: true
         shell: bash
         run: |
-          ./scripts/check_crate_version.sh avalanche-consensus
           cargo login ${{ secrets.CARGO_TOKEN }}
           cargo publish -p avalanche-consensus
+
