@@ -3,7 +3,8 @@ name: release
 on:
   push:
     tags:
-      - "v*.*.*"
+      - "avalanche-types-v*.*.*"
+      - "avalanche-consensus-v*.*.*"
 
 jobs:
   build:
