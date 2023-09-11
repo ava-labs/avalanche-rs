@@ -1,31 +1,39 @@
 use std::error::Error;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
+use std::thread::sleep;
 use std::time::Duration;
 use log::{debug, error};
+use prost::Message;
 use tokio::select;
 use tokio::sync::mpsc::{channel, Receiver};
 use tokio::time::interval;
-use avalanche_types::ids::Id;
+use avalanche_types::ids::{Id, Ids};
 use crate::p2p::gossip::{Gossipable, Set};
 use crate::p2p::client::Client;
+use crate::p2p::sdk::{PullGossipRequest, PullGossipResponse};
 
 pub struct Config {
     pub frequency: Duration,
     pub poll_size: usize,
 }
 
-pub struct Gossiper<T: Gossipable + ?Sized> {
+
+pub struct Gossiper<T>
+    where
+        T: Gossipable,
+{
     config: Config,
-    set: Arc<dyn Set<T>>,
-    client: Arc<dyn Client>,
+    set: Arc<Mutex<dyn Set<T>>>,
+    client: Arc<Client>,
     stop_rx: Receiver<()>,
 }
 
-impl<T: Gossipable> Gossiper<T> {
+impl<T> Gossiper<T> where
+    T: Gossipable + Default {
     pub fn new(
         config: Config,
-        set: Arc<dyn Set<T>>,
-        client: Arc<dyn Client>,
+        set: Arc<Mutex<dyn Set<T>>>, // Mutex or RWLock here ?
+        client: Arc<Client>,
         stop_rx: Receiver<()>,
     ) -> Self {
         Self {
@@ -58,21 +66,55 @@ impl<T: Gossipable> Gossiper<T> {
     }
 
     // ToDo Maybe there is a better name here
-    async fn execute_gossip(&self) -> Result<(), Box<dyn std::error::Error>> {
-        let (bloom, salt) = self.set.get_filter()?;
+    async fn execute_gossip(&self) -> Result<(), Box<dyn Error>> {
+        let read_guard = self.set.lock().unwrap();
+        let (bloom, salt) = read_guard.get_filter()?;
+        let request = PullGossipRequest { filter: bloom, salt };
+
+        let mut msg_bytes = vec![];
+        request
+            .encode(&mut msg_bytes)?;
+
+        for i in 0..self.config.poll_size {
+            self.client.app_request_any(); //ToDo
+        }
 
         debug!("In single_gossip");
-        // ToDo Implement logic
         Ok(())
     }
 
-    async fn handle_response(&self, node_id: Id, response_bytes: Vec<u8>) -> Result<(), Box<dyn std::error::Error>> {
-        let (bloom, salt) = self.set.get_filter()?;
+    async fn handle_response(& mut self, node_id: Id, response_bytes: Vec<u8>, err: Option<Box<dyn Error>>) {
+        if let Some(e) = err {
+            debug!("failed gossip request, nodeID: {:?}, error: {:?}", node_id, e);
+            return;
+        }
 
-        debug!("In handle_response");
-        // ToDo Implement logic
+        let mut response = PullGossipResponse::default();
+        match PullGossipResponse::decode(response_bytes.as_slice()) {
+            Ok(res) => response = res,
+            Err(e) => {
+                debug!("failed to unmarshal gossip response, error: {:?}", e);
+                return;
+            }
+        }
 
-        Ok(())
+        for bytes in response.gossip.iter() {
+            let mut gossipable: T = T::default();
+            if let Err(e) = gossipable.unmarshal(bytes) {
+                debug!("failed to unmarshal gossip, nodeID: {:?}, error: {:?}", node_id, e);
+                continue;
+            }
+
+            let hash = gossipable.get_id();
+            debug!("received gossip, nodeID: {:?}, id: {:?}", node_id, hash);
+
+
+            let mut set_guard = self.set.lock().unwrap();
+            if let Err(e) = set_guard.add(gossipable) {
+                debug!("failed to add gossip to the known set, nodeID: {:?}, id: {:?}, error: {:?}", node_id, hash, e);
+                continue;
+            }
+        }
     }
 }
 
@@ -95,9 +137,13 @@ impl<T: Gossipable> Set<T> for MockSet {
 
 struct MockClient;
 
-impl Client for MockClient {}
-
 struct TestGossipableType;
+
+impl Default for TestGossipableType {
+    fn default() -> Self {
+        todo!()
+    }
+}
 
 impl Gossipable for TestGossipableType {
     fn get_id(&self) -> Id {
@@ -127,8 +173,8 @@ async fn test_gossip() {
 
     let mut gossiper: Gossiper<TestGossipableType> = Gossiper::new(
         Config { frequency: Duration::from_millis(200), poll_size: 0 },
-        Arc::new(MockSet),
-        Arc::new(MockClient),
+        Arc::new(Mutex::new(MockSet)),
+        Arc::new(Client {}),
         stop_rx,
     );
 
