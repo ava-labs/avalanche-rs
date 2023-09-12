@@ -9,17 +9,14 @@ use proptest::prelude::*;
 #[derive(Debug)]
 pub struct Bloom {
     bloom: BloomFilter::<Hasher>,
-    // ToDo Which type here ?
     salt: Id,
 }
 
 #[derive(Debug, Hash)]
 pub struct Hasher {
     hash: Vec<u8>,
-    // ToDo Which type here ?
     salt: Id,
 }
-
 
 impl Bloom {
     pub fn new_bloom_filter(
@@ -43,7 +40,6 @@ impl Bloom {
             salt: self.salt,
         };
 
-        //ToDo Is this what we want here ?
         self.bloom.insert(&salted)
     }
 
@@ -55,7 +51,6 @@ impl Bloom {
             salt: self.salt,
         };
 
-        //ToDo Is this what we want here ?
         self.bloom.contains(&salted)
     }
 }
@@ -165,4 +160,3 @@ proptest! {
             }
         }
     }
-
