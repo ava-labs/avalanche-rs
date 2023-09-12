@@ -1,5 +1,5 @@
-pub mod gossip;
 pub mod bloom;
+pub mod gossip;
 
 use avalanche_types::ids::Id;
 

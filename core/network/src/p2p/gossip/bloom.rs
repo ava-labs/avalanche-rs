@@ -1,14 +1,14 @@
-use std::error::Error;
-use probabilistic_collections::bloom::BloomFilter;
-use avalanche_types::ids::{Id, LEN};
 use crate::p2p::gossip::Gossipable;
+use avalanche_types::ids::{Id, LEN};
 use byteorder::{BigEndian, ByteOrder};
-use proptest::proptest;
+use probabilistic_collections::bloom::BloomFilter;
 use proptest::prelude::*;
+use proptest::proptest;
+use std::error::Error;
 
 #[derive(Debug)]
 pub struct Bloom {
-    bloom: BloomFilter::<Hasher>,
+    bloom: BloomFilter<Hasher>,
     salt: Id,
 }
 
@@ -19,10 +19,7 @@ pub struct Hasher {
 }
 
 impl Bloom {
-    pub fn new_bloom_filter(
-        max_expected_elements: usize,
-        false_positive_probability: f64,
-    ) -> Self {
+    pub fn new_bloom_filter(max_expected_elements: usize, false_positive_probability: f64) -> Self {
         let salt = random_salt();
 
         Bloom {
@@ -30,7 +27,6 @@ impl Bloom {
             salt,
         }
     }
-
 
     pub fn add(&mut self, gossipable: impl Gossipable) {
         let id = gossipable.get_id();
@@ -131,32 +127,32 @@ impl Gossipable for TestTx {
 }
 
 proptest! {
-        #![proptest_config(ProptestConfig {
-        cases: 100, // Need 100 successful test cases
-        .. ProptestConfig::default()
-        })]
+    #![proptest_config(ProptestConfig {
+    cases: 100, // Need 100 successful test cases
+    .. ProptestConfig::default()
+    })]
 
-        #[test]
-        fn test_bloom_filter_refresh(
-            false_positive_probability in 0.0..1.0f64,
-            txs in proptest::collection::vec(any::<[u8; 32]>(), 0..100) // Will populate txs with 0 to 100 [u8; 32]
-        ) {
-            let mut bloom_filter = Bloom::new_bloom_filter(10, 0.01);
-            let mut expected = vec![];
+    #[test]
+    fn test_bloom_filter_refresh(
+        false_positive_probability in 0.0..1.0f64,
+        txs in proptest::collection::vec(any::<[u8; 32]>(), 0..100) // Will populate txs with 0 to 100 [u8; 32]
+    ) {
+        let mut bloom_filter = Bloom::new_bloom_filter(10, 0.01);
+        let mut expected = vec![];
 
-            for tx in txs {
-                let should_reset = reset_bloom_filter_if_needed(&mut bloom_filter, false_positive_probability);
-                let test_tx = TestTx { id: Id::from_slice(&tx) };
-                if should_reset {
-                    expected.clear();
-                }
+        for tx in txs {
+            let should_reset = reset_bloom_filter_if_needed(&mut bloom_filter, false_positive_probability);
+            let test_tx = TestTx { id: Id::from_slice(&tx) };
+            if should_reset {
+                expected.clear();
+            }
 
-                bloom_filter.add(test_tx.clone());
-                expected.push(test_tx.clone());
+            bloom_filter.add(test_tx.clone());
+            expected.push(test_tx.clone());
 
-                for expected_tx in &expected {
-                    assert!(bloom_filter.has(expected_tx))
-                }
+            for expected_tx in &expected {
+                assert!(bloom_filter.has(expected_tx))
             }
         }
     }
+}

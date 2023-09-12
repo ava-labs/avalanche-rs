@@ -4,12 +4,7 @@ fn main() {
         .out_dir("./src/p2p")
         .build_server(true)
         .build_client(true)
-        .compile(
-            &[
-                "./src/p2p/gossip/sdk.proto",
-            ],
-            &["./src/p2p/gossip/"]
-        )
+        .compile(&["./src/p2p/gossip/sdk.proto"], &["./src/p2p/gossip/"])
         .unwrap();
 
     println!("cargo:warning={:?}", std::env::var("OUT_DIR"));
