@@ -1,18 +1,18 @@
 use std::error::Error;
 use std::sync::{Arc, Mutex};
-use std::thread::sleep;
 use std::time::Duration;
 use log::{debug, error};
 use prost::Message;
 use tokio::select;
 use tokio::sync::mpsc::{channel, Receiver};
 use tokio::time::interval;
-use avalanche_types::ids::{Id, Ids};
+use avalanche_types::ids::{Id};
 use crate::p2p::gossip::{Gossipable, Set};
 use crate::p2p::client::Client;
 use crate::p2p::sdk::{PullGossipRequest, PullGossipResponse};
 
 pub struct Config {
+    pub namespace: String,
     pub frequency: Duration,
     pub poll_size: usize,
 }
@@ -50,7 +50,6 @@ impl<T> Gossiper<T> where
         loop {
             select! {
                 _ = gossip_ticker.tick() => {
-                    debug!("Tick!");
                     if let Err(e) = self.execute_gossip().await {
                         error!("Failed to Gossip : {:?}", e);
                         //ToDo
@@ -79,13 +78,12 @@ impl<T> Gossiper<T> where
             self.client.app_request_any(); //ToDo
         }
 
-        debug!("In single_gossip");
         Ok(())
     }
 
     async fn handle_response(& mut self, node_id: Id, response_bytes: Vec<u8>, err: Option<Box<dyn Error>>) {
         if let Some(e) = err {
-            debug!("failed gossip request, nodeID: {:?}, error: {:?}", node_id, e);
+            error!("failed gossip request, nodeID: {:?}, error: {:?}", node_id, e);
             return;
         }
 
@@ -93,7 +91,7 @@ impl<T> Gossiper<T> where
         match PullGossipResponse::decode(response_bytes.as_slice()) {
             Ok(res) => response = res,
             Err(e) => {
-                debug!("failed to unmarshal gossip response, error: {:?}", e);
+                error!("failed to unmarshal gossip response, error: {:?}", e);
                 return;
             }
         }
@@ -101,7 +99,7 @@ impl<T> Gossiper<T> where
         for bytes in response.gossip.iter() {
             let mut gossipable: T = T::default();
             if let Err(e) = gossipable.unmarshal(bytes) {
-                debug!("failed to unmarshal gossip, nodeID: {:?}, error: {:?}", node_id, e);
+                error!("failed to unmarshal gossip, nodeID: {:?}, error: {:?}", node_id, e);
                 continue;
             }
 
@@ -172,7 +170,7 @@ async fn test_gossip() {
     let (stop_tx, stop_rx) = channel(1); // Create a new channel
 
     let mut gossiper: Gossiper<TestGossipableType> = Gossiper::new(
-        Config { frequency: Duration::from_millis(200), poll_size: 0 },
+        Config { namespace: "test".to_string(), frequency: Duration::from_millis(200), poll_size: 0 },
         Arc::new(Mutex::new(MockSet)),
         Arc::new(Client {}),
         stop_rx,
