@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::error::Error;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
@@ -18,9 +19,7 @@ pub struct Config {
 }
 
 
-pub struct Gossiper<T>
-    where
-        T: Gossipable,
+pub struct Gossiper<T: Gossipable>
 {
     config: Config,
     set: Arc<Mutex<dyn Set<T>>>,
@@ -66,7 +65,7 @@ impl<T> Gossiper<T> where
 
     // ToDo Maybe there is a better name here
     async fn execute_gossip(&self) -> Result<(), Box<dyn Error>> {
-        let read_guard = self.set.lock().unwrap();
+        let read_guard = self.set.lock().expect("Failed to acquire lock");
         let (bloom, salt) = read_guard.get_filter()?;
         let request = PullGossipRequest { filter: bloom, salt };
 
@@ -75,13 +74,13 @@ impl<T> Gossiper<T> where
             .encode(&mut msg_bytes)?;
 
         for i in 0..self.config.poll_size {
-            self.client.app_request_any(); //ToDo
+            self.client.app_request_any(); //ToDo out of scope of my PR
         }
 
         Ok(())
     }
 
-    async fn handle_response(& mut self, node_id: Id, response_bytes: Vec<u8>, err: Option<Box<dyn Error>>) {
+    async fn handle_response(&mut self, node_id: Id, response_bytes: Vec<u8>, err: Option<Box<dyn Error>>) {
         if let Some(e) = err {
             error!("failed gossip request, nodeID: {:?}, error: {:?}", node_id, e);
             return;
@@ -107,7 +106,7 @@ impl<T> Gossiper<T> where
             debug!("received gossip, nodeID: {:?}, id: {:?}", node_id, hash);
 
 
-            let mut set_guard = self.set.lock().unwrap();
+            let mut set_guard = self.set.lock().expect("Failed to acquire lock");
             if let Err(e) = set_guard.add(gossipable) {
                 debug!("failed to add gossip to the known set, nodeID: {:?}, id: {:?}, error: {:?}", node_id, hash, e);
                 continue;
@@ -117,10 +116,11 @@ impl<T> Gossiper<T> where
 }
 
 // Mock implementation for the Set trait
+//ToDo Should we move all tests to a new file ?
 struct MockSet;
 
 impl<T: Gossipable> Set<T> for MockSet {
-    fn add(&mut self, _gossipable: T) -> Result<(), Box<dyn std::error::Error>> {
+    fn add(&mut self, _gossipable: T) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 
@@ -128,7 +128,7 @@ impl<T: Gossipable> Set<T> for MockSet {
         // Do nothing
     }
 
-    fn get_filter(&self) -> Result<(Vec<u8>, Vec<u8>), Box<dyn std::error::Error>> {
+    fn get_filter(&self) -> Result<(Vec<u8>, Vec<u8>), Box<dyn Error>> {
         Ok((vec![], vec![]))
     }
 }
@@ -158,9 +158,9 @@ impl Gossipable for TestGossipableType {
 }
 
 
-/// RUST_LOG=debug cargo test --package network --lib -- p2p::gossip::test_gossip --exact --show-output
+/// RUST_LOG=debug cargo test --package network --lib -- p2p::gossip::test_gossip_shutdown --exact --show-output
 #[tokio::test]
-async fn test_gossip() {
+async fn test_gossip_shutdown() {
     let _ = env_logger::builder()
         .filter_level(log::LevelFilter::Debug)
         .is_test(true)
@@ -191,4 +191,60 @@ async fn test_gossip() {
 
     // Await the gossip task.
     let _ = gossip_task.await.expect("Gossip task failed");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::HashSet;
+    use testing_logger;
+
+    #[tokio::test]
+    async fn test_handle_response_with_empty_response_bytes() {
+        // Initialize logging capture
+        testing_logger::setup();
+
+        let mut set = Arc::new(Mutex::new(HashSet::<u32>::new()));
+
+        let (stop_tx, stop_rx) = channel(1); // Create a new channel
+
+        let mut gossiper: Gossiper<TestGossipableType> = Gossiper::new(
+            Config { namespace: "test".to_string(), frequency: Duration::from_millis(200), poll_size: 0 },
+            Arc::new(Mutex::new(MockSet)),
+            Arc::new(Client {}),
+            stop_rx,
+        );
+
+        gossiper.handle_response(Id::default(), vec![0u8; 16], None).await;
+
+        testing_logger::validate(|captured_logs| {
+            assert_eq!(captured_logs.len(), 1);
+            assert_eq!(captured_logs[0].body, "failed to unmarshal gossip response, error: DecodeError { description: \"invalid tag value: 0\", stack: [] }");
+        })
+    }
+
+
+    #[tokio::test]
+    async fn test_handle_response_with_empty_response_bytes() {
+        // Initialize logging capture
+        testing_logger::setup();
+
+        let mut set = Arc::new(Mutex::new(HashSet::<u32>::new()));
+
+        let (stop_tx, stop_rx) = channel(1); // Create a new channel
+
+        let mut gossiper: Gossiper<TestGossipableType> = Gossiper::new(
+            Config { namespace: "test".to_string(), frequency: Duration::from_millis(200), poll_size: 0 },
+            Arc::new(Mutex::new(MockSet)),
+            Arc::new(Client {}),
+            stop_rx,
+        );
+
+        gossiper.handle_response(Id::default(), vec![0u8; 16], None).await;
+
+        testing_logger::validate(|captured_logs| {
+            assert_eq!(captured_logs.len(), 1);
+            assert_eq!(captured_logs[0].body, "failed to unmarshal gossip response, error: DecodeError { description: \"invalid tag value: 0\", stack: [] }");
+        })
+    }
 }
