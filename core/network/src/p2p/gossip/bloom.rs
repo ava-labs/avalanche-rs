@@ -5,14 +5,15 @@ use probabilistic_collections::bloom::BloomFilter;
 use proptest::prelude::*;
 use proptest::proptest;
 use std::error::Error;
+use serde::Deserialize;
 
 #[derive(Debug)]
 pub struct Bloom {
-    bloom: BloomFilter<Hasher>,
-    salt: Id,
+    pub bloom: BloomFilter<Hasher>,
+    pub salt: Id,
 }
 
-#[derive(Debug, Hash)]
+#[derive(Debug, Hash, Deserialize)]
 pub struct Hasher {
     hash: Vec<u8>,
     salt: Id,
@@ -21,6 +22,13 @@ pub struct Hasher {
 impl Bloom {
     pub fn new_bloom_filter(max_expected_elements: usize, false_positive_probability: f64) -> Self {
         let salt = random_salt();
+
+        Bloom {
+            bloom: BloomFilter::new(max_expected_elements, false_positive_probability),
+            salt,
+        }
+    }
+    pub fn new_bloom_filter_with_salt(max_expected_elements: usize, false_positive_probability: f64, salt: Id) -> Self {
 
         Bloom {
             bloom: BloomFilter::new(max_expected_elements, false_positive_probability),
@@ -39,7 +47,7 @@ impl Bloom {
         self.bloom.insert(&salted)
     }
 
-    pub fn has(&self, gossipable: &impl Gossipable) -> bool {
+    pub fn has(&self, gossipable: &(impl Gossipable + ?Sized)) -> bool {
         let id = gossipable.get_id();
 
         let salted = Hasher {

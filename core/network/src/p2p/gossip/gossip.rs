@@ -186,7 +186,7 @@ impl<T: Gossipable + Sync + Send + Clone + Hash> Set<T> for MockSet<T> {
         Ok(())
     }
 
-    fn iterate(&self, _f: &dyn Fn(&T) -> bool) {
+    fn iterate(&self, _f: &dyn FnMut(&T) -> bool) {
         // Do nothing
     }
 
