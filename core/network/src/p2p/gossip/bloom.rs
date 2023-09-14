@@ -28,6 +28,7 @@ impl Bloom {
             salt,
         }
     }
+
     pub fn new_bloom_filter_with_salt(max_expected_elements: usize, false_positive_probability: f64, salt: Id) -> Self {
 
         Bloom {
