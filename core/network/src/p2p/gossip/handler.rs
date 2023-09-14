@@ -3,13 +3,14 @@ use std::marker::PhantomData;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use probabilistic_collections::bloom::BloomFilter;
-use prost::Message;
+// use prost::bytes::BufMut;
+use prost::{bytes, Message};
 use avalanche_types::ids::node::Id;
 use crate::p2p;
 use crate::p2p::gossip::{Gossipable, Set};
 use crate::p2p::gossip::bloom::{Bloom, Hasher};
-use crate::p2p::sdk::PullGossipRequest;
-
+use crate::p2p::sdk::{PullGossipRequest, PullGossipResponse};
+use bytes::BufMut;
 pub struct HandlerConfig {
     pub namespace: String,
     pub target_response_size: usize,
@@ -79,8 +80,13 @@ impl<T, S> p2p::handler::Handler for Handler<T, S>
             response_size <= self.target_response_size
         });
 
+        let mut response = PullGossipResponse::default();
+        response.gossip = gossip_bytes;
 
-        todo!()
+        let mut response_bytes = vec![];
+        response.encode(&mut response_bytes).expect("s");
+
+        Ok(response_bytes)
     }
 
     fn cross_chain_app_request(&self, chain_id: Id, deadline: Duration, request_bytes: Vec<u8>) -> Result<Vec<u8>, Box<dyn Error>> {
