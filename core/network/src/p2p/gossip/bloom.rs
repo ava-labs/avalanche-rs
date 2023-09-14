@@ -3,7 +3,6 @@ use avalanche_types::ids::{Id, LEN};
 use byteorder::{BigEndian, ByteOrder};
 use probabilistic_collections::bloom::BloomFilter;
 use proptest::prelude::*;
-use proptest::proptest;
 use std::error::Error;
 use serde::Deserialize;
 
@@ -30,7 +29,6 @@ impl Bloom {
     }
 
     pub fn new_bloom_filter_with_salt(max_expected_elements: usize, false_positive_probability: f64, salt: Id) -> Self {
-
         Bloom {
             bloom: BloomFilter::new(max_expected_elements, false_positive_probability),
             salt,
@@ -116,26 +114,35 @@ impl Hasher {
     }
 }
 
-#[derive(Debug, Clone)]
-struct TestTx {
-    pub id: Id,
-}
+#[cfg(test)]
+mod test {
+    use std::error::Error;
+    use proptest::proptest;
+    use avalanche_types::ids::Id;
+    use crate::p2p::gossip::Gossipable;
+    use proptest::prelude::*;
+    use crate::p2p::gossip::bloom::*;
 
-impl Gossipable for TestTx {
-    fn get_id(&self) -> Id {
-        self.id
+    #[derive(Debug, Clone)]
+    struct TestTx {
+        pub id: Id,
     }
 
-    fn marshal(&self) -> Result<Vec<u8>, Box<dyn Error>> {
-        todo!()
+    impl Gossipable for TestTx {
+        fn get_id(&self) -> Id {
+            self.id
+        }
+
+        fn marshal(&self) -> Result<Vec<u8>, Box<dyn Error>> {
+            todo!()
+        }
+
+        fn unmarshal(&mut self, bytes: &[u8]) -> Result<(), Box<dyn Error>> {
+            todo!()
+        }
     }
 
-    fn unmarshal(&mut self, bytes: &[u8]) -> Result<(), Box<dyn Error>> {
-        todo!()
-    }
-}
-
-proptest! {
+    proptest! {
     #![proptest_config(ProptestConfig {
     cases: 100, // Need 100 successful test cases
     .. ProptestConfig::default()
@@ -164,4 +171,5 @@ proptest! {
             }
         }
     }
+}
 }

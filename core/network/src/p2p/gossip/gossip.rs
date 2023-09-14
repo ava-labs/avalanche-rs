@@ -29,9 +29,9 @@ pub struct Gossiper<T: Gossipable, S: Set<T>> {
 }
 
 impl<T, S> Gossiper<T, S>
-where
-    T: Gossipable + Default,
-    S: Set<T>,
+    where
+        T: Gossipable + Default,
+        S: Set<T>,
 {
     pub fn new(
         config: Config,
@@ -135,112 +135,121 @@ where
     }
 }
 
-struct MockClient;
-
-#[derive(Clone, Hash)]
-struct TestGossipableType {
-    pub id: Id,
-}
-
-impl Default for TestGossipableType {
-    fn default() -> Self {
-        TestGossipableType {
-            id: Default::default(),
-        }
-    }
-}
-
-impl Gossipable for TestGossipableType {
-    fn get_id(&self) -> Id {
-        self.id
-    }
-
-    fn marshal(&self) -> Result<Vec<u8>, Box<dyn Error>> {
-        Ok(self.id.to_vec())
-    }
-
-    fn unmarshal(&mut self, bytes: &[u8]) -> Result<(), Box<dyn Error>> {
-        self.id = Id::from_slice(bytes);
-        Ok(())
-    }
-}
-
-// Mock implementation for the Set trait
-//ToDo Should we move all tests to a new file ?
-struct MockSet<TestGossipableType> {
-    pub set: Vec<TestGossipableType>,
-    pub bloom: BloomFilter<TestGossipableType>,
-}
-
-impl<T> MockSet<T> {
-    pub fn len(&self) -> usize {
-        println!("{}", self.set.len());
-        self.set.len()
-    }
-}
-
-impl<T: Gossipable + Sync + Send + Clone + Hash> Set<T> for MockSet<T> {
-    fn add(&mut self, _gossipable: T) -> Result<(), Box<dyn Error>> {
-        self.set.push(_gossipable.clone());
-        self.bloom.insert(&_gossipable.clone());
-        Ok(())
-    }
-
-    fn iterate(&self, _f: &dyn FnMut(&T) -> bool) {
-        // Do nothing
-    }
-
-    fn get_filter(&self) -> Result<(Vec<u8>, Vec<u8>), Box<dyn Error>> {
-        Ok((vec![], vec![]))
-    }
-}
-
-/// RUST_LOG=debug cargo test --package network --lib -- p2p::gossip::test_gossip_shutdown --exact --show-output
-#[tokio::test]
-async fn test_gossip_shutdown() {
-    let _ = env_logger::builder()
-        .filter_level(log::LevelFilter::Debug)
-        .is_test(true)
-        .try_init()
-        .unwrap();
-
-    let (stop_tx, stop_rx) = channel(1); // Create a new channel
-
-    let mut gossiper: Gossiper<TestGossipableType, MockSet<TestGossipableType>> = Gossiper::new(
-        Config {
-            namespace: "test".to_string(),
-            frequency: Duration::from_millis(200),
-            poll_size: 0,
-        },
-        Arc::new(Mutex::new(MockSet {
-            set: Vec::new(),
-            bloom: BloomFilter::new(100, 0.5),
-        })),
-        Arc::new(Client {}),
-        stop_rx,
-    );
-
-    // Spawn the gossiping task
-    let gossip_task = tokio::spawn(async move {
-        gossiper.gossip().await;
-    });
-
-    // Wait some time to let a few cycles of gossiping happen
-    tokio::time::sleep(Duration::from_secs(5)).await;
-
-    // Send the stop signal before awaiting the task.
-    if stop_tx.send(()).await.is_err() {
-        panic!("Failed to send stop signal");
-    }
-
-    // Await the gossip task.
-    let _ = gossip_task.await.expect("Gossip task failed");
-}
 
 #[cfg(test)]
-mod tests {
+mod test {
+    use std::sync::{Arc, Mutex};
+    use tokio::sync::mpsc::{channel};
+    use std::time::Duration;
+    use probabilistic_collections::bloom::BloomFilter;
     use super::*;
     use testing_logger;
+    use avalanche_types::ids::Id;
+    use crate::p2p::client::Client;
+    use crate::p2p::gossip::gossip::{Config, Gossiper};
+    use crate::p2p::sdk::PullGossipResponse;
+
+    struct MockClient;
+
+    #[derive(Clone, Hash)]
+    struct TestGossipableType {
+        pub id: Id,
+    }
+
+    impl Default for TestGossipableType {
+        fn default() -> Self {
+            TestGossipableType {
+                id: Default::default(),
+            }
+        }
+    }
+
+    impl Gossipable for TestGossipableType {
+        fn get_id(&self) -> Id {
+            self.id
+        }
+
+        fn marshal(&self) -> Result<Vec<u8>, Box<dyn Error>> {
+            Ok(self.id.to_vec())
+        }
+
+        fn unmarshal(&mut self, bytes: &[u8]) -> Result<(), Box<dyn Error>> {
+            self.id = Id::from_slice(bytes);
+            Ok(())
+        }
+    }
+
+    // Mock implementation for the Set trait
+//ToDo Should we move all tests to a new file ?
+    struct MockSet<TestGossipableType> {
+        pub set: Vec<TestGossipableType>,
+        pub bloom: BloomFilter<TestGossipableType>,
+    }
+
+    impl<T> MockSet<T> {
+        pub fn len(&self) -> usize {
+            println!("{}", self.set.len());
+            self.set.len()
+        }
+    }
+
+    impl<T: Gossipable + Sync + Send + Clone + Hash> Set<T> for MockSet<T> {
+        fn add(&mut self, _gossipable: T) -> Result<(), Box<dyn Error>> {
+            self.set.push(_gossipable.clone());
+            self.bloom.insert(&_gossipable.clone());
+            Ok(())
+        }
+
+        fn iterate(&self, _f: &dyn FnMut(&T) -> bool) {
+            // Do nothing
+        }
+
+        fn get_filter(&self) -> Result<(Vec<u8>, Vec<u8>), Box<dyn Error>> {
+            Ok((vec![], vec![]))
+        }
+    }
+
+    /// RUST_LOG=debug cargo test --package network --lib -- p2p::gossip::test_gossip_shutdown --exact --show-output
+    #[tokio::test]
+    async fn test_gossip_shutdown() {
+        let _ = env_logger::builder()
+            .filter_level(log::LevelFilter::Debug)
+            .is_test(true)
+            .try_init()
+            .unwrap();
+
+        let (stop_tx, stop_rx) = channel(1); // Create a new channel
+
+        let mut gossiper: Gossiper<TestGossipableType, MockSet<TestGossipableType>> = Gossiper::new(
+            Config {
+                namespace: "test".to_string(),
+                frequency: Duration::from_millis(200),
+                poll_size: 0,
+            },
+            Arc::new(Mutex::new(MockSet {
+                set: Vec::new(),
+                bloom: BloomFilter::new(100, 0.5),
+            })),
+            Arc::new(Client {}),
+            stop_rx,
+        );
+
+        // Spawn the gossiping task
+        let gossip_task = tokio::spawn(async move {
+            gossiper.gossip().await;
+        });
+
+        // Wait some time to let a few cycles of gossiping happen
+        tokio::time::sleep(Duration::from_secs(5)).await;
+
+        // Send the stop signal before awaiting the task.
+        if stop_tx.send(()).await.is_err() {
+            panic!("Failed to send stop signal");
+        }
+
+        // Await the gossip task.
+        let _ = gossip_task.await.expect("Gossip task failed");
+    }
 
     #[tokio::test]
     async fn test_handle_response_with_empty_response_bytes() {
