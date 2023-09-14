@@ -46,8 +46,8 @@ impl<T, S> p2p::handler::Handler for Handler<T, S>
 
     fn app_request(
         &self,
-        node_id: Id,
-        deadline: Duration,
+        _: Id,
+        _: Duration,
         request_bytes: Vec<u8>,
     ) -> Result<Vec<u8>, Box<dyn Error>> {
         let mut request = PullGossipRequest::default();
