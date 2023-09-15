@@ -6,8 +6,8 @@ use avalanche_types::ids::Id;
 
 pub trait Gossipable {
     fn get_id(&self) -> Id;
-    fn marshal(&self) -> Result<Vec<u8>, Box<dyn std::error::Error>>;
-    fn unmarshal(&mut self, bytes: &[u8]) -> Result<(), Box<dyn std::error::Error>>;
+    fn serialize(&self) -> Result<Vec<u8>, Box<dyn std::error::Error>>;
+    fn deserialize(&mut self, bytes: &[u8]) -> Result<(), Box<dyn std::error::Error>>;
 }
 
 pub trait Set<T: Gossipable + ?Sized>: Send + Sync {

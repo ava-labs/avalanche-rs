@@ -133,11 +133,11 @@ mod test {
             self.id
         }
 
-        fn marshal(&self) -> Result<Vec<u8>, Box<dyn Error>> {
+        fn serialize(&self) -> Result<Vec<u8>, Box<dyn Error>> {
             todo!()
         }
 
-        fn unmarshal(&mut self, bytes: &[u8]) -> Result<(), Box<dyn Error>> {
+        fn deserialize(&mut self, bytes: &[u8]) -> Result<(), Box<dyn Error>> {
             todo!()
         }
     }

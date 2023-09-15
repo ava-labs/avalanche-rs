@@ -69,7 +69,7 @@ impl<T, S> p2p::handler::Handler for Handler<T, S>
         self.set.lock().expect("Failed to lock").iterate(&|gossipable| {
             if filter.has(gossipable) { return true; }
 
-            let bytes = match gossipable.marshal() {
+            let bytes = match gossipable.serialize() {
                 Ok(b) => b,
                 Err(_) => return false,
             };

@@ -54,7 +54,7 @@ impl<T, S> Gossiper<T, S>
         loop {
             select! {
                 _ = gossip_ticker.tick() => {
-                    if let Err(e) = self.execute_gossip().await {
+                    if let Err(e) = self.execute().await {
                         error!("Failed to Gossip : {:?}", e);
                         //ToDo
 
@@ -68,8 +68,7 @@ impl<T, S> Gossiper<T, S>
         }
     }
 
-    // ToDo Maybe there is a better name here
-    async fn execute_gossip(&self) -> Result<(), Box<dyn Error>> {
+    async fn execute(&self) -> Result<(), Box<dyn Error>> {
         let read_guard = self.set.lock().expect("Failed to acquire lock");
         let (bloom, salt) = read_guard.get_filter()?;
         let request = PullGossipRequest {
@@ -112,7 +111,7 @@ impl<T, S> Gossiper<T, S>
 
         for bytes in response.gossip.iter() {
             let mut gossipable: T = T::default();
-            if let Err(e) = gossipable.unmarshal(bytes) {
+            if let Err(e) = gossipable.deserialize(bytes) {
                 error!(
                     "failed to unmarshal gossip, nodeID: {:?}, error: {:?}",
                     node_id, e
@@ -169,11 +168,11 @@ mod test {
             self.id
         }
 
-        fn marshal(&self) -> Result<Vec<u8>, Box<dyn Error>> {
+        fn serialize(&self) -> Result<Vec<u8>, Box<dyn Error>> {
             Ok(self.id.to_vec())
         }
 
-        fn unmarshal(&mut self, bytes: &[u8]) -> Result<(), Box<dyn Error>> {
+        fn deserialize(&mut self, bytes: &[u8]) -> Result<(), Box<dyn Error>> {
             self.id = Id::from_slice(bytes);
             Ok(())
         }
