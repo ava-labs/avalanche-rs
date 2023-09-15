@@ -46,7 +46,7 @@ impl Bloom {
         self.bloom.insert(&salted)
     }
 
-    pub fn has(&self, gossipable: &(impl Gossipable + ?Sized)) -> bool {
+    pub fn has(&self, gossipable: &(impl Gossipable)) -> bool {
         let id = gossipable.get_id();
 
         let salted = Hasher {
