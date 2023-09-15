@@ -1,14 +1,13 @@
 use crate::p2p::client::Client;
-use crate::p2p::gossip::{Gossipable, Set};
+use crate::p2p::gossip::Gossipable;
 use crate::p2p::sdk::{PullGossipRequest, PullGossipResponse};
 use avalanche_types::ids::Id;
 use log::{debug, error};
-use probabilistic_collections::bloom::BloomFilter;
 use prost::Message;
 use std::error::Error;
 use std::hash::Hash;
 use std::marker::PhantomData;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use std::time::Duration;
 use tokio::select;
 use tokio::sync::mpsc::{channel, Receiver};
@@ -20,28 +19,24 @@ pub struct Config {
     pub poll_size: usize,
 }
 
-pub struct Gossiper<T: Gossipable, S: Set<T>> {
+pub struct Gossiper<T: Gossipable> {
     config: Config,
-    set: Arc<Mutex<S>>,
     client: Arc<Client>,
     stop_rx: Receiver<()>,
     phantom: PhantomData<T>, // Had to use this to please the compiler about T not being used.
 }
 
-impl<T, S> Gossiper<T, S>
+impl<T> Gossiper<T>
     where
         T: Gossipable + Default,
-        S: Set<T>,
 {
     pub fn new(
         config: Config,
-        set: Arc<Mutex<S>>, // Mutex or RWLock here ?
         client: Arc<Client>,
         stop_rx: Receiver<()>,
     ) -> Self {
         Self {
             config,
-            set,
             client,
             stop_rx,
             phantom: PhantomData,
@@ -69,11 +64,12 @@ impl<T, S> Gossiper<T, S>
     }
 
     async fn execute(&self) -> Result<(), Box<dyn Error>> {
-        let read_guard = self.set.lock().expect("Failed to acquire lock");
-        let (bloom, salt) = read_guard.get_filter()?;
+        //ToDo Dummy vec<u8> for now.
+        let bloom = Vec::new();
+
         let request = PullGossipRequest {
             filter: bloom,
-            salt,
+            salt: Id::default().to_vec(), //ToDo Use default for now
         };
 
         let mut msg_bytes = vec![];
@@ -121,15 +117,6 @@ impl<T, S> Gossiper<T, S>
 
             let hash = gossipable.get_id();
             debug!("received gossip, nodeID: {:?}, id: {:?}", node_id, hash);
-
-            let mut set_guard = self.set.lock().expect("Failed to acquire lock");
-            if let Err(e) = set_guard.add(gossipable) {
-                debug!(
-                    "failed to add gossip to the known set, nodeID: {:?}, id: {:?}, error: {:?}",
-                    node_id, hash, e
-                );
-                continue;
-            }
         }
     }
 }
@@ -137,10 +124,9 @@ impl<T, S> Gossiper<T, S>
 
 #[cfg(test)]
 mod test {
-    use std::sync::{Arc, Mutex};
+    use std::sync::Arc;
     use tokio::sync::mpsc::{channel};
     use std::time::Duration;
-    use probabilistic_collections::bloom::BloomFilter;
     use super::*;
     use testing_logger;
     use avalanche_types::ids::Id;
@@ -178,36 +164,6 @@ mod test {
         }
     }
 
-    // Mock implementation for the Set trait
-//ToDo Should we move all tests to a new file ?
-    struct MockSet<TestGossipableType> {
-        pub set: Vec<TestGossipableType>,
-        pub bloom: BloomFilter<TestGossipableType>,
-    }
-
-    impl<T> MockSet<T> {
-        pub fn len(&self) -> usize {
-            println!("{}", self.set.len());
-            self.set.len()
-        }
-    }
-
-    impl<T: Gossipable + Sync + Send + Clone + Hash> Set<T> for MockSet<T> {
-        fn add(&mut self, _gossipable: T) -> Result<(), Box<dyn Error>> {
-            self.set.push(_gossipable.clone());
-            self.bloom.insert(&_gossipable.clone());
-            Ok(())
-        }
-
-        fn iterate(&self, _f: &dyn FnMut(&T) -> bool) {
-            // Do nothing
-        }
-
-        fn get_filter(&self) -> Result<(Vec<u8>, Vec<u8>), Box<dyn Error>> {
-            Ok((vec![], vec![]))
-        }
-    }
-
     /// RUST_LOG=debug cargo test --package network --lib -- p2p::gossip::test_gossip_shutdown --exact --show-output
     #[tokio::test]
     async fn test_gossip_shutdown() {
@@ -219,16 +175,12 @@ mod test {
 
         let (stop_tx, stop_rx) = channel(1); // Create a new channel
 
-        let mut gossiper: Gossiper<TestGossipableType, MockSet<TestGossipableType>> = Gossiper::new(
+        let mut gossiper: Gossiper<TestGossipableType> = Gossiper::new(
             Config {
                 namespace: "test".to_string(),
                 frequency: Duration::from_millis(200),
                 poll_size: 0,
             },
-            Arc::new(Mutex::new(MockSet {
-                set: Vec::new(),
-                bloom: BloomFilter::new(100, 0.5),
-            })),
             Arc::new(Client {}),
             stop_rx,
         );
@@ -257,16 +209,12 @@ mod test {
 
         let (stop_tx, stop_rx) = channel(1); // Create a new channel
 
-        let mut gossiper: Gossiper<TestGossipableType, MockSet<TestGossipableType>> = Gossiper::new(
+        let mut gossiper: Gossiper<TestGossipableType> = Gossiper::new(
             Config {
                 namespace: "test".to_string(),
                 frequency: Duration::from_millis(200),
                 poll_size: 0,
             },
-            Arc::new(Mutex::new(MockSet {
-                set: Vec::new(),
-                bloom: BloomFilter::new(100, 0.5),
-            })),
             Arc::new(Client {}),
             stop_rx,
         );
@@ -288,16 +236,12 @@ mod test {
 
         let (stop_tx, stop_rx) = channel(1); // Create a new channel
 
-        let mut gossiper: Gossiper<TestGossipableType, MockSet<TestGossipableType>> = Gossiper::new(
+        let mut gossiper: Gossiper<TestGossipableType> = Gossiper::new(
             Config {
                 namespace: "test".to_string(),
                 frequency: Duration::from_millis(200),
                 poll_size: 0,
             },
-            Arc::new(Mutex::new(MockSet {
-                set: Vec::new(),
-                bloom: BloomFilter::new(100, 0.5),
-            })),
             Arc::new(Client {}),
             stop_rx,
         );
@@ -315,9 +259,5 @@ mod test {
         gossiper
             .handle_response(Id::default(), response_bytes, None)
             .await;
-
-        let read_guard = gossiper.set.lock().expect("Failed to acquire lock");
-
-        assert!(read_guard.len() == 2);
     }
 }
