@@ -35,7 +35,7 @@ impl Bloom {
         }
     }
 
-    pub fn add(&mut self, gossipable: impl Gossipable) {
+    pub fn add<T: Gossipable>(&mut self, gossipable: T) {
         let id = gossipable.get_id();
 
         let salted = Hasher {
