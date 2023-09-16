@@ -1,5 +1,4 @@
 use std::error::Error;
-use std::marker::PhantomData;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use prost::Message;
@@ -12,29 +11,28 @@ pub struct HandlerConfig {
     pub target_response_size: usize,
 }
 
-pub struct Handler<T: Gossipable, S: Set<T>> {
+pub struct Handler<S: Set> {
     pub handler: Arc<dyn p2p::handler::Handler>,
     set: Arc<Mutex<S>>,
     target_response_size: usize,
-    phantom: PhantomData<T>,
+
 }
 
-pub fn new<T: Gossipable, S: Set<T>>(
+pub fn new<S: Set>(
     config: HandlerConfig,
     set: Arc<Mutex<S>>,
-) -> Handler<T, S> {
+) -> Handler<S> {
     Handler {
         handler: Arc::new(p2p::handler::NoOpHandler {}),
         set,
         target_response_size: config.target_response_size,
-        phantom: PhantomData::default(),
     }
 }
 
-impl<T, S> p2p::handler::Handler for Handler<T, S>
+impl<S> p2p::handler::Handler for Handler<S>
     where
-        T: Gossipable + Default,
-        S: Set<T>,
+        S: Set,
+        S::Item: Default
 {
     fn app_gossip(&self, node_id: Id, gossip_bytes: Vec<u8>) -> Result<(), Box<dyn Error>> {
         todo!()

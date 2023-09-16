@@ -6,7 +6,6 @@ use log::{debug, error};
 use prost::Message;
 use std::error::Error;
 use std::hash::Hash;
-use std::marker::PhantomData;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use tokio::select;
@@ -19,18 +18,17 @@ pub struct Config {
     pub poll_size: usize,
 }
 
-pub struct Gossiper<T: Gossipable, S: Set<T>> {
+pub struct Gossiper<S: Set> {
     config: Config,
     set: Arc<Mutex<S>>,
     client: Arc<Client>,
     stop_rx: Receiver<()>,
-    phantom: PhantomData<T>, // Had to use this to please the compiler about T not being used.
 }
 
-impl<T, S> Gossiper<T, S>
+impl<S> Gossiper<S>
     where
-        T: Gossipable + Default,
-        S: Set<T>,
+        S: Set,
+        S::Item: Default
 {
     pub fn new(
         config: Config,
@@ -43,7 +41,6 @@ impl<T, S> Gossiper<T, S>
             set,
             client,
             stop_rx,
-            phantom: PhantomData,
         }
     }
 
@@ -110,7 +107,7 @@ impl<T, S> Gossiper<T, S>
         }
 
         for bytes in response.gossip.iter() {
-            let mut gossipable: T = T::default();
+            let mut gossipable: S::Item = S::Item::default();
             if let Err(e) = gossipable.deserialize(bytes) {
                 error!(
                     "failed to unmarshal gossip, nodeID: {:?}, error: {:?}",
@@ -190,7 +187,8 @@ mod test {
         }
     }
 
-    impl<T: Gossipable + Sync + Send + Clone + Hash> Set<T> for MockSet<T> {
+    impl<T: Gossipable + Sync + Send + Clone + Hash> Set for MockSet<T> {
+        type Item = T;
         fn add(&mut self, _gossipable: T) -> Result<(), Box<dyn Error>> {
             self.set.push(_gossipable.clone());
             Ok(())
@@ -212,7 +210,7 @@ mod test {
 
         let (stop_tx, stop_rx) = channel(1); // Create a new channel
 
-        let mut gossiper: Gossiper<TestGossipableType, MockSet<TestGossipableType>> = Gossiper::new(
+        let mut gossiper: Gossiper<MockSet<TestGossipableType>> = Gossiper::new(
             Config {
                 namespace: "test".to_string(),
                 frequency: Duration::from_millis(200),
@@ -249,7 +247,7 @@ mod test {
 
         let (stop_tx, stop_rx) = channel(1); // Create a new channel
 
-        let mut gossiper: Gossiper<TestGossipableType, MockSet<TestGossipableType>> = Gossiper::new(
+        let mut gossiper: Gossiper<MockSet<TestGossipableType>> = Gossiper::new(
             Config {
                 namespace: "test".to_string(),
                 frequency: Duration::from_millis(200),
@@ -279,7 +277,7 @@ mod test {
 
         let (stop_tx, stop_rx) = channel(1); // Create a new channel
 
-        let mut gossiper: Gossiper<TestGossipableType, MockSet<TestGossipableType>> = Gossiper::new(
+        let mut gossiper: Gossiper<MockSet<TestGossipableType>> = Gossiper::new(
             Config {
                 namespace: "test".to_string(),
                 frequency: Duration::from_millis(200),

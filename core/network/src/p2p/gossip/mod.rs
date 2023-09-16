@@ -9,7 +9,8 @@ pub trait Gossipable {
     fn deserialize(&mut self, bytes: &[u8]) -> Result<(), Box<dyn std::error::Error>>;
 }
 
-pub trait Set<T: Gossipable + ?Sized>: Send + Sync {
-    fn add(&mut self, gossipable: T) -> Result<(), Box<dyn std::error::Error>>;
-    fn iterate(&self, f: &dyn FnMut(&T) -> bool);
+pub trait Set: Send + Sync {
+    type Item: Gossipable + ?Sized;
+    fn add(&mut self, gossipable: Self::Item) -> Result<(), Box<dyn std::error::Error>>;
+    fn iterate(&self, f: &dyn FnMut(&Self::Item) -> bool);
 }
