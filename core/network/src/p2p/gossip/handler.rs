@@ -6,6 +6,7 @@ use avalanche_types::ids::node::Id;
 use crate::p2p;
 use crate::p2p::gossip::{Gossipable, Set};
 use crate::p2p::sdk::{PullGossipRequest, PullGossipResponse};
+
 pub struct HandlerConfig {
     pub namespace: String,
     pub target_response_size: usize,
@@ -35,7 +36,7 @@ impl<S> p2p::handler::Handler for Handler<S>
         S::Item: Default
 {
     fn app_gossip(&self, node_id: Id, gossip_bytes: Vec<u8>) -> Result<(), Box<dyn Error>> {
-        todo!()
+        unimplemented!()
     }
 
     fn app_request(
@@ -46,8 +47,6 @@ impl<S> p2p::handler::Handler for Handler<S>
     ) -> Result<Vec<u8>, Box<dyn Error>> {
         let mut request = PullGossipRequest::default();
         request = PullGossipRequest::decode(request_bytes.as_slice()).expect("Failed to decode request_bytes");
-
-        let salt = avalanche_types::ids::Id::from_slice(request.salt.as_slice());
 
         let mut response_size = 0_usize;
         let mut gossip_bytes: Vec<Vec<u8>> = Vec::new();
@@ -74,6 +73,6 @@ impl<S> p2p::handler::Handler for Handler<S>
     }
 
     fn cross_chain_app_request(&self, chain_id: Id, deadline: Duration, request_bytes: Vec<u8>) -> Result<Vec<u8>, Box<dyn Error>> {
-        todo!()
+        unimplemented!()
     }
 }

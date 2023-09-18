@@ -76,8 +76,8 @@ impl<S> Gossiper<S>
         let mut msg_bytes = vec![];
         request.encode(&mut msg_bytes)?;
 
-        for i in 0..self.config.poll_size {
-            self.client.app_request_any(); //ToDo out of scope of my PR
+        for _ in 0..self.config.poll_size {
+            let _ = self.client.app_request_any(); //ToDo out of scope of my PR
         }
 
         Ok(())
