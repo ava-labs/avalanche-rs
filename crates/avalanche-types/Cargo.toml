@@ -82,7 +82,7 @@ num-traits = { version = "0.2.15", optional = true }
 prost = { version = "0.11.9", optional = true } # prost-build requires "cmake", https://github.com/tokio-rs/prost/releases
 semver = { version = "1.0.17", optional = true }
 tokio-stream = { version = "0.1.14", features = ["net"], optional = true }
-tonic = { version = "0.9.2", features = ["gzip"], optional = true } # https://github.com/hyperium/tonic/tags
+tonic = { version = "0.10.0", features = ["gzip"], optional = true } # https://github.com/hyperium/tonic/tags
 tonic-health = { version = "0.9.2", optional = true } # https://github.com/hyperium/tonic/blob/v0.9.0/tonic-health/src/lib.rs
 tonic-reflection = { version = "0.9.2", optional = true }
 tower-service = { version = "0.3.2", optional = true }
