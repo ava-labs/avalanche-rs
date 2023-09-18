@@ -977,15 +977,34 @@ where
         _req: Request<Empty>,
     ) -> std::result::Result<Response<vm::VerifyHeightIndexResponse>, tonic::Status> {
         log::debug!("verify_height_index called");
-        Err(tonic::Status::unimplemented("verify_height_index"))
+
+        let inner_vm = self.vm.read().await;
+
+        inner_vm
+            .verify_height_index()
+            .await
+            .map_err(|e| tonic::Status::unknown(e.to_string()))?;
+
+        Ok(Response::new(vm::VerifyHeightIndexResponse { err: 0 }))
     }
 
     async fn get_block_id_at_height(
         &self,
-        _req: Request<vm::GetBlockIdAtHeightRequest>,
+        req: Request<vm::GetBlockIdAtHeightRequest>,
     ) -> std::result::Result<Response<vm::GetBlockIdAtHeightResponse>, tonic::Status> {
         log::debug!("get_block_id_at_height called");
 
-        Err(tonic::Status::unimplemented("get_block_id_at_height"))
+        let msg = req.into_inner();
+        let inner_vm = self.vm.read().await;
+
+        let height = inner_vm
+            .get_block_id_at_height(msg.height)
+            .await
+            .map_err(|e| tonic::Status::unknown(e.to_string()))?;
+
+        Ok(Response::new(vm::GetBlockIdAtHeightResponse {
+            blk_id: height.to_vec().into(),
+            err: 0,
+        }))
     }
 }
