@@ -983,12 +983,14 @@ where
 
         let inner_vm = self.vm.read().await;
 
-        inner_vm
-            .verify_height_index()
-            .await
-            .map_err(|e| tonic::Status::unknown(e.to_string()))?;
-
-        Ok(Response::new(vm::VerifyHeightIndexResponse { err: 0 }))
+        match inner_vm.verify_height_index().await {
+            Ok(_) => return Ok(Response::new(vm::VerifyHeightIndexResponse { err: 0 })),
+            Err(e) => {
+                return Ok(Response::new(vm::VerifyHeightIndexResponse {
+                    err: error_to_error_code(&e.to_string()).unwrap(),
+                }))
+            }
+        }
     }
 
     async fn get_block_id_at_height(
@@ -1000,14 +1002,19 @@ where
         let msg = req.into_inner();
         let inner_vm = self.vm.read().await;
 
-        let height = inner_vm
-            .get_block_id_at_height(msg.height)
-            .await
-            .map_err(|e| tonic::Status::unknown(e.to_string()))?;
-
-        Ok(Response::new(vm::GetBlockIdAtHeightResponse {
-            blk_id: height.to_vec().into(),
-            err: 0,
-        }))
+        match inner_vm.get_block_id_at_height(msg.height).await {
+            Ok(height) => {
+                return Ok(Response::new(vm::GetBlockIdAtHeightResponse {
+                    blk_id: height.to_vec().into(),
+                    err: 0,
+                }))
+            }
+            Err(e) => {
+                return Ok(Response::new(vm::GetBlockIdAtHeightResponse {
+                    blk_id: vec![].into(),
+                    err: error_to_error_code(&e.to_string()).unwrap(),
+                }))
+            }
+        }
     }
 }
