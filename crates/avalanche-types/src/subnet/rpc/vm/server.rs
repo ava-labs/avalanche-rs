@@ -432,7 +432,7 @@ where
                     status: 0,
                     height: 0,
                     timestamp: Some(timestamp_from_time(&Utc.timestamp_opt(0, 0).unwrap())),
-                    err: error_to_error_code(&e.to_string()).unwrap(),
+                    err: error_to_error_code(&e.to_string()),
                     verify_with_context: false,
                 }))
             }
@@ -987,9 +987,9 @@ where
         match inner_vm.verify_height_index().await {
             Ok(_) => return Ok(Response::new(vm::VerifyHeightIndexResponse { err: 0 })),
             Err(e) => {
-                if error_to_error_code(&e.to_string()).unwrap() != 0 {
+                if error_to_error_code(&e.to_string()) != 0 {
                     return Ok(Response::new(vm::VerifyHeightIndexResponse {
-                        err: error_to_error_code(&e.to_string()).unwrap(),
+                        err: error_to_error_code(&e.to_string()),
                     }));
                 }
                 return Err(tonic::Status::unknown(e.to_string()));
@@ -1014,10 +1014,10 @@ where
                 }))
             }
             Err(e) => {
-                if error_to_error_code(&e.to_string()).unwrap() != 0 {
+                if error_to_error_code(&e.to_string()) != 0 {
                     return Ok(Response::new(vm::GetBlockIdAtHeightResponse {
                         blk_id: vec![].into(),
-                        err: error_to_error_code(&e.to_string()).unwrap(),
+                        err: error_to_error_code(&e.to_string()),
                     }));
                 }
                 return Err(tonic::Status::unknown(e.to_string()));
