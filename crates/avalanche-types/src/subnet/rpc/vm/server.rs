@@ -922,7 +922,10 @@ where
     ) -> std::result::Result<Response<vm::StateSyncEnabledResponse>, tonic::Status> {
         log::debug!("state_sync_enabled called");
 
-        Err(tonic::Status::unimplemented("state_sync_enabled"))
+        Ok(Response::new(vm::StateSyncEnabledResponse {
+            enabled: false,
+            err: 0,
+        }))
     }
 
     async fn get_ongoing_sync_state_summary(

@@ -34,6 +34,9 @@ pub trait ChainVm: CommonVm + BatchedChainVm + Getter + Parser {
     /// Returns the ID of the block that was accepted with [height].
     /// Returns ErrNotFound if the [height] index is unknown.
     async fn get_block_id_at_height(&self, height: u64) -> Result<Id>;
+
+    /// Returns whether state sync is enabled.
+    async fn state_sync_enabled(&self) -> Result<bool>;
 }
 
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/snow/engine/snowman/block#Getter>
