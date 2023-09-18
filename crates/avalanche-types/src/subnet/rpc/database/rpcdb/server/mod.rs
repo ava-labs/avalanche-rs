@@ -60,7 +60,7 @@ impl pb::rpcdb::database_server::Database for Server {
             })),
             Err(e) => Ok(Response::new(HasResponse {
                 has: false,
-                err: error_to_error_code(&e.to_string()).unwrap(),
+                err: error_to_error_code(&e.to_string()),
             })),
         }
     }
@@ -76,7 +76,7 @@ impl pb::rpcdb::database_server::Database for Server {
             })),
             Err(e) => Ok(Response::new(GetResponse {
                 value: Bytes::from(""),
-                err: error_to_error_code(&e.to_string()).unwrap(),
+                err: error_to_error_code(&e.to_string()),
             })),
         }
     }
@@ -90,7 +90,7 @@ impl pb::rpcdb::database_server::Database for Server {
                 err: pb::rpcdb::Error::Unspecified.into(),
             })),
             Err(e) => Ok(Response::new(PutResponse {
-                err: error_to_error_code(&e.to_string()).unwrap(),
+                err: error_to_error_code(&e.to_string()),
             })),
         }
     }
@@ -107,7 +107,7 @@ impl pb::rpcdb::database_server::Database for Server {
                 err: pb::rpcdb::Error::Unspecified.into(),
             })),
             Err(e) => Ok(Response::new(DeleteResponse {
-                err: error_to_error_code(&e.to_string()).unwrap(),
+                err: error_to_error_code(&e.to_string()),
             })),
         }
     }
@@ -130,7 +130,7 @@ impl pb::rpcdb::database_server::Database for Server {
                 err: pb::rpcdb::Error::Unspecified.into(),
             })),
             Err(e) => Ok(Response::new(CloseResponse {
-                err: error_to_error_code(&e.to_string()).unwrap(),
+                err: error_to_error_code(&e.to_string()),
             })),
         }
     }
@@ -164,7 +164,7 @@ impl pb::rpcdb::database_server::Database for Server {
             let resp = batch.put(&put.key, &put.value).await;
             if let Err(e) = resp {
                 return Ok(Response::new(WriteBatchResponse {
-                    err: error_to_error_code(&e.to_string()).unwrap(),
+                    err: error_to_error_code(&e.to_string()),
                 }));
             }
         }
@@ -173,7 +173,7 @@ impl pb::rpcdb::database_server::Database for Server {
             let resp = batch.delete(&del.key).await;
             if let Err(e) = resp {
                 return Ok(Response::new(WriteBatchResponse {
-                    err: error_to_error_code(&e.to_string()).unwrap(),
+                    err: error_to_error_code(&e.to_string()),
                 }));
             }
         }
@@ -186,7 +186,7 @@ impl pb::rpcdb::database_server::Database for Server {
             }
             Err(e) => {
                 return Ok(Response::new(WriteBatchResponse {
-                    err: error_to_error_code(&e.to_string()).unwrap(),
+                    err: error_to_error_code(&e.to_string()),
                 }))
             }
         }
@@ -253,7 +253,7 @@ impl pb::rpcdb::database_server::Database for Server {
                 }
                 Err(e) => {
                     return Ok(Response::new(IteratorErrorResponse {
-                        err: error_to_error_code(&e.to_string()).unwrap(),
+                        err: error_to_error_code(&e.to_string()),
                     }))
                 }
             }
@@ -279,7 +279,7 @@ impl pb::rpcdb::database_server::Database for Server {
                 }
                 Err(e) => {
                     return Ok(Response::new(IteratorReleaseResponse {
-                        err: error_to_error_code(&e.to_string()).unwrap(),
+                        err: error_to_error_code(&e.to_string()),
                     }))
                 }
             }

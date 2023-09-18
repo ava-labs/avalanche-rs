@@ -25,6 +25,18 @@ pub trait ChainVm: CommonVm + BatchedChainVm + Getter + Parser {
     /// Returns the ID of the last accepted block.
     /// If no blocks have been accepted, this should return the genesis block
     async fn last_accepted(&self) -> Result<Id>;
+
+    /// Returns empty if the height index is available.
+    /// Returns ErrIndexIncomplete if the height index is not currently available.
+    /// TODO: Remove after v1.11.x activates.
+    async fn verify_height_index(&self) -> Result<()>;
+
+    /// Returns the ID of the block that was accepted with [height].
+    /// Returns ErrNotFound if the [height] index is unknown.
+    async fn get_block_id_at_height(&self, height: u64) -> Result<Id>;
+
+    /// Returns whether state sync is enabled.
+    async fn state_sync_enabled(&self) -> Result<bool>;
 }
 
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/snow/engine/snowman/block#Getter>

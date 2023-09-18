@@ -17,10 +17,10 @@ lazy_static! {
     };
 }
 
-pub fn error_to_error_code(msg: &str) -> io::Result<i32> {
+pub fn error_to_error_code(msg: &str) -> i32 {
     match ERROR_TO_ERROR_CODE.get(msg) {
-        None => Ok(0),
-        Some(code) => Ok(*code),
+        None => 0_i32,
+        Some(code) => *code,
     }
 }
 
