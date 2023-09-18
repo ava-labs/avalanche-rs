@@ -922,6 +922,7 @@ where
     ) -> std::result::Result<Response<vm::StateSyncEnabledResponse>, tonic::Status> {
         log::debug!("state_sync_enabled called");
 
+        // TODO: Implement state sync request/response
         Ok(Response::new(vm::StateSyncEnabledResponse {
             enabled: false,
             err: 0,
@@ -986,9 +987,12 @@ where
         match inner_vm.verify_height_index().await {
             Ok(_) => return Ok(Response::new(vm::VerifyHeightIndexResponse { err: 0 })),
             Err(e) => {
-                return Ok(Response::new(vm::VerifyHeightIndexResponse {
-                    err: error_to_error_code(&e.to_string()).unwrap(),
-                }))
+                if error_to_error_code(&e.to_string()).unwrap() != 0 {
+                    return Ok(Response::new(vm::VerifyHeightIndexResponse {
+                        err: error_to_error_code(&e.to_string()).unwrap(),
+                    }));
+                }
+                return Err(tonic::Status::unknown(e.to_string()));
             }
         }
     }
@@ -1010,10 +1014,13 @@ where
                 }))
             }
             Err(e) => {
-                return Ok(Response::new(vm::GetBlockIdAtHeightResponse {
-                    blk_id: vec![].into(),
-                    err: error_to_error_code(&e.to_string()).unwrap(),
-                }))
+                if error_to_error_code(&e.to_string()).unwrap() != 0 {
+                    return Ok(Response::new(vm::GetBlockIdAtHeightResponse {
+                        blk_id: vec![].into(),
+                        err: error_to_error_code(&e.to_string()).unwrap(),
+                    }));
+                }
+                return Err(tonic::Status::unknown(e.to_string()));
             }
         }
     }
