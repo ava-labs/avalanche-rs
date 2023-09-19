@@ -432,7 +432,7 @@ where
                     status: 0,
                     height: 0,
                     timestamp: Some(timestamp_from_time(&Utc.timestamp_opt(0, 0).unwrap())),
-                    err: error_to_error_code(&e.to_string()).unwrap(),
+                    err: error_to_error_code(&e.to_string()),
                     verify_with_context: false,
                 }))
             }
@@ -922,7 +922,11 @@ where
     ) -> std::result::Result<Response<vm::StateSyncEnabledResponse>, tonic::Status> {
         log::debug!("state_sync_enabled called");
 
-        Err(tonic::Status::unimplemented("state_sync_enabled"))
+        // TODO: Implement state sync request/response
+        Ok(Response::new(vm::StateSyncEnabledResponse {
+            enabled: false,
+            err: 0,
+        }))
     }
 
     async fn get_ongoing_sync_state_summary(
@@ -977,15 +981,47 @@ where
         _req: Request<Empty>,
     ) -> std::result::Result<Response<vm::VerifyHeightIndexResponse>, tonic::Status> {
         log::debug!("verify_height_index called");
-        Err(tonic::Status::unimplemented("verify_height_index"))
+
+        let inner_vm = self.vm.read().await;
+
+        match inner_vm.verify_height_index().await {
+            Ok(_) => return Ok(Response::new(vm::VerifyHeightIndexResponse { err: 0 })),
+            Err(e) => {
+                if error_to_error_code(&e.to_string()) != 0 {
+                    return Ok(Response::new(vm::VerifyHeightIndexResponse {
+                        err: error_to_error_code(&e.to_string()),
+                    }));
+                }
+                return Err(tonic::Status::unknown(e.to_string()));
+            }
+        }
     }
 
     async fn get_block_id_at_height(
         &self,
-        _req: Request<vm::GetBlockIdAtHeightRequest>,
+        req: Request<vm::GetBlockIdAtHeightRequest>,
     ) -> std::result::Result<Response<vm::GetBlockIdAtHeightResponse>, tonic::Status> {
         log::debug!("get_block_id_at_height called");
 
-        Err(tonic::Status::unimplemented("get_block_id_at_height"))
+        let msg = req.into_inner();
+        let inner_vm = self.vm.read().await;
+
+        match inner_vm.get_block_id_at_height(msg.height).await {
+            Ok(height) => {
+                return Ok(Response::new(vm::GetBlockIdAtHeightResponse {
+                    blk_id: height.to_vec().into(),
+                    err: 0,
+                }))
+            }
+            Err(e) => {
+                if error_to_error_code(&e.to_string()) != 0 {
+                    return Ok(Response::new(vm::GetBlockIdAtHeightResponse {
+                        blk_id: vec![].into(),
+                        err: error_to_error_code(&e.to_string()),
+                    }));
+                }
+                return Err(tonic::Status::unknown(e.to_string()));
+            }
+        }
     }
 }
