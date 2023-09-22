@@ -53,7 +53,7 @@ async fn iterator_test() {
     assert_eq!(iterator.key().await.unwrap(), key2);
     assert_eq!(iterator.value().await.unwrap(), value2);
 
-    assert_eq!(iterator.next().await.unwrap(), false);
+    assert!(!(iterator.next().await.unwrap()));
 
     // cleanup
     let _ = iterator.release().await;
@@ -140,7 +140,7 @@ async fn iterator_prefix_test() {
     assert_eq!(iterator.key().await.unwrap(), key1);
     assert_eq!(iterator.value().await.unwrap(), value1);
 
-    assert_eq!(iterator.next().await.unwrap(), false);
+    assert!(!(iterator.next().await.unwrap()));
 
     // cleanup
     let _ = iterator.release().await;
@@ -189,7 +189,7 @@ async fn iterator_error_test() {
     assert_eq!(iterator.value().await.unwrap(), value1);
 
     // Subsequent calls to the iterator should return false and report an error
-    assert_eq!(iterator.next().await.unwrap(), false);
+    assert!(!(iterator.next().await.unwrap()));
 
     let resp = iterator.error().await;
     assert!(resp.is_err());
@@ -230,7 +230,7 @@ async fn iterator_error_after_release_test() {
     let mut iterator = resp.unwrap();
     let _ = iterator.release().await;
 
-    assert_eq!(iterator.next().await.unwrap(), false);
+    assert!(!(iterator.next().await.unwrap()));
 
     assert!(iterator.key().await.unwrap().is_empty());
     assert!(iterator.value().await.unwrap().is_empty());

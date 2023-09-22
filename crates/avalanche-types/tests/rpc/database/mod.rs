@@ -66,7 +66,7 @@ async fn rpcdb_mutation_test() {
     log::info!("has foo true");
     let resp = client.has("foo".as_bytes()).await;
     assert!(resp.is_ok());
-    assert_eq!(resp.unwrap(), true);
+    assert!(resp.unwrap());
 
     log::info!("get fool error not found");
     let resp = client.get("fool".as_bytes()).await;
@@ -76,7 +76,7 @@ async fn rpcdb_mutation_test() {
     log::info!("has fool false");
     let resp = client.has("fool".as_bytes()).await;
     assert!(resp.is_ok());
-    assert_eq!(resp.unwrap(), false);
+    assert!(!(resp.unwrap()));
 
     log::info!("close client");
     let resp = client.close().await;
@@ -116,7 +116,7 @@ async fn corruptibledb_mutation_test() {
     log::info!("has foo true");
     let resp = corruptible.has("foo".as_bytes()).await;
     assert!(resp.is_ok());
-    assert_eq!(resp.unwrap(), true);
+    assert!(resp.unwrap());
 
     log::info!("get fool error not found");
     let resp = corruptible.get("fool".as_bytes()).await;
@@ -126,7 +126,7 @@ async fn corruptibledb_mutation_test() {
     log::info!("has fool false");
     let resp = corruptible.has("fool".as_bytes()).await;
     assert!(resp.is_ok());
-    assert_eq!(resp.unwrap(), false);
+    assert!(!(resp.unwrap()));
 
     log::info!("close client");
     let resp = corruptible.close().await;
@@ -190,7 +190,7 @@ async fn test_rpcdb_corruptible() {
     log::info!("has foo true");
     let resp = client.has("foo".as_bytes()).await;
     assert!(resp.is_ok());
-    assert_eq!(resp.unwrap(), true);
+    assert!(resp.unwrap());
 
     log::info!("get fool error not found");
     let resp = client.get("fool".as_bytes()).await;
@@ -200,7 +200,7 @@ async fn test_rpcdb_corruptible() {
     log::info!("has fool false");
     let resp = client.has("fool".as_bytes()).await;
     assert!(resp.is_ok());
-    assert_eq!(resp.unwrap(), false);
+    assert!(!(resp.unwrap()));
 
     log::info!("close client");
     let resp = client.close().await;

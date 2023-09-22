@@ -271,7 +271,7 @@ fn test_bag_set_threshold() {
     assert_eq!(bag.mode_frequency(), 3);
     assert_eq!(bag.threshold(), 3);
     assert_eq!(bag.met_threshold().len(), 1);
-    assert_eq!(bag.met_threshold().contains(&id1), true);
+    assert!(bag.met_threshold().contains(&id1));
 }
 
 /// RUST_LOG=debug cargo test --package avalanche-types --lib -- ids::bag::test_bag_filter --exact --show-output

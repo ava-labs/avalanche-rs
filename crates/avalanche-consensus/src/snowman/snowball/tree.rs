@@ -216,23 +216,23 @@ fn test_tree_snowball_singletone() {
         },
         red.clone(),
     );
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
 
     let one_red = Bag::new();
     one_red.add_count(&red, 1);
-    assert_eq!(tree.record_poll(&one_red), true);
-    assert_eq!(tree.finalized(), false);
+    assert!(tree.record_poll(&one_red));
+    assert!(!(tree.finalized()));
 
     let empty = Bag::new();
-    assert_eq!(tree.record_poll(&empty), false);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.record_poll(&empty)));
+    assert!(!(tree.finalized()));
 
-    assert_eq!(tree.record_poll(&one_red), true);
-    assert_eq!(tree.finalized(), false);
+    assert!(tree.record_poll(&one_red));
+    assert!(!(tree.finalized()));
 
-    assert_eq!(tree.record_poll(&one_red), true);
+    assert!(tree.record_poll(&one_red));
     assert_eq!(tree.preference(), red);
-    assert_eq!(tree.finalized(), true);
+    assert!(tree.finalized());
 
     tree.add(&blue);
 
@@ -243,7 +243,7 @@ fn test_tree_snowball_singletone() {
     // record_poll returns either true or false
     tree.record_poll(&one_blue);
     assert_eq!(tree.preference(), red);
-    assert_eq!(tree.finalized(), true);
+    assert!(tree.finalized());
 }
 
 /// RUST_LOG=debug cargo test --package avalanche-consensus --lib -- snowman::snowball::tree::test_tree_snowball_record_unsuccessful_poll --exact --show-output
@@ -267,24 +267,24 @@ fn test_tree_snowball_record_unsuccessful_poll() {
         },
         red.clone(),
     );
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
 
     let one_red = Bag::new();
     one_red.add_count(&red, 1);
-    assert_eq!(tree.record_poll(&one_red), true);
-    assert_eq!(tree.finalized(), false);
+    assert!(tree.record_poll(&one_red));
+    assert!(!(tree.finalized()));
 
     tree.record_unsuccessful_poll();
 
-    assert_eq!(tree.record_poll(&one_red), true);
-    assert_eq!(tree.finalized(), false);
+    assert!(tree.record_poll(&one_red));
+    assert!(!(tree.finalized()));
 
-    assert_eq!(tree.record_poll(&one_red), true);
-    assert_eq!(tree.finalized(), false);
+    assert!(tree.record_poll(&one_red));
+    assert!(!(tree.finalized()));
 
-    assert_eq!(tree.record_poll(&one_red), true);
+    assert!(tree.record_poll(&one_red));
     assert_eq!(tree.preference(), red);
-    assert_eq!(tree.finalized(), true);
+    assert!(tree.finalized());
 }
 
 /// RUST_LOG=debug cargo test --package avalanche-consensus --lib -- snowman::snowball::tree::test_tree_snowball_binary --exact --show-output
@@ -309,31 +309,31 @@ fn test_tree_snowball_binary() {
         },
         red.clone(),
     );
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
 
     tree.add(&blue);
     assert_eq!(tree.preference(), red);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
 
     let one_blue = Bag::new();
     one_blue.add_count(&blue, 1);
-    assert_eq!(tree.record_poll(&one_blue), true);
+    assert!(tree.record_poll(&one_blue));
     assert_eq!(tree.preference(), blue);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
 
     let one_red = Bag::new();
     one_red.add_count(&red, 1);
-    assert_eq!(tree.record_poll(&one_red), true);
+    assert!(tree.record_poll(&one_red));
     assert_eq!(tree.preference(), blue);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
 
-    assert_eq!(tree.record_poll(&one_blue), true);
+    assert!(tree.record_poll(&one_blue));
     assert_eq!(tree.preference(), blue);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
 
-    assert_eq!(tree.record_poll(&one_blue), true);
+    assert!(tree.record_poll(&one_blue));
     assert_eq!(tree.preference(), blue);
-    assert_eq!(tree.finalized(), true);
+    assert!(tree.finalized());
 }
 
 /// RUST_LOG=debug cargo test --package avalanche-consensus --lib -- snowman::snowball::tree::test_tree_snowball_last_binary --exact --show-output
@@ -362,12 +362,12 @@ fn test_tree_snowball_last_binary() {
         },
         zero.clone(),
     );
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
 
     tree.add(&one);
     tree.add(&one); // should do nothing
     assert_eq!(tree.preference(), zero);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
 
     log::info!("{}", tree);
     assert_eq!(tree.to_string(), "SB(NumSuccessfulPolls = 0, SF(Confidence = 0, Finalized = false)) Bits = [0, 255)
@@ -377,18 +377,18 @@ fn test_tree_snowball_last_binary() {
     let one_bag = Bag::new();
     one_bag.add_count(&one, 1);
 
-    assert_eq!(tree.record_poll(&one_bag), true);
+    assert!(tree.record_poll(&one_bag));
     assert_eq!(tree.preference(), one);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
 
     log::info!("{}", tree);
     assert_eq!(tree.to_string(), "SB(NumSuccessfulPolls = 1, SF(Confidence = 1, Finalized = false)) Bits = [0, 255)
     SB(Preference = 1, NumSuccessfulPolls[0] = 0, NumSuccessfulPolls[1] = 1, SF(Confidence = 1, Finalized = false, SL(Preference = 1))) Bit = 255
 ");
 
-    assert_eq!(tree.record_poll(&one_bag), true);
+    assert!(tree.record_poll(&one_bag));
     assert_eq!(tree.preference(), one);
-    assert_eq!(tree.finalized(), true);
+    assert!(tree.finalized());
 
     log::info!("{}", tree);
     assert_eq!(tree.to_string(), "SB(Preference = 1, NumSuccessfulPolls[0] = 0, NumSuccessfulPolls[1] = 2, SF(Confidence = 2, Finalized = true, SL(Preference = 1))) Bit = 255
@@ -419,13 +419,13 @@ fn test_tree_snowball_add_previously_rejected() {
         },
         zero.clone(),
     );
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
 
     tree.add(&one);
     tree.add(&four);
 
     assert_eq!(tree.preference(), zero);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
     log::info!("{}", tree);
     assert_eq!(tree.to_string(), "SB(Preference = 0, NumSuccessfulPolls[0] = 0, NumSuccessfulPolls[1] = 0, SF(Confidence = 0, Finalized = false, SL(Preference = 0))) Bit = 0
     SB(NumSuccessfulPolls = 0, SF(Confidence = 0, Finalized = false)) Bits = [1, 2)
@@ -437,10 +437,10 @@ fn test_tree_snowball_add_previously_rejected() {
 
     let zero_bag = Bag::new();
     zero_bag.add_count(&zero, 1);
-    assert_eq!(tree.record_poll(&zero_bag), true);
+    assert!(tree.record_poll(&zero_bag));
 
     assert_eq!(tree.preference(), zero);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
     log::info!("{}", tree);
     assert_eq!(tree.to_string(), "SB(Preference = 0, NumSuccessfulPolls[0] = 1, NumSuccessfulPolls[1] = 0, SF(Confidence = 1, Finalized = false, SL(Preference = 0))) Bit = 0
     SB(Preference = 0, NumSuccessfulPolls[0] = 1, NumSuccessfulPolls[1] = 0, SF(Confidence = 1, Finalized = false, SL(Preference = 0))) Bit = 2
@@ -451,7 +451,7 @@ fn test_tree_snowball_add_previously_rejected() {
 
     tree.add(&two);
     assert_eq!(tree.preference(), zero);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
     log::info!("{}", tree);
     assert_eq!(tree.to_string(), "SB(Preference = 0, NumSuccessfulPolls[0] = 1, NumSuccessfulPolls[1] = 0, SF(Confidence = 1, Finalized = false, SL(Preference = 0))) Bit = 0
     SB(Preference = 0, NumSuccessfulPolls[0] = 1, NumSuccessfulPolls[1] = 0, SF(Confidence = 1, Finalized = false, SL(Preference = 0))) Bit = 2
@@ -483,11 +483,11 @@ fn test_tree_snowball_new_unary() {
         },
         zero.clone(),
     );
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
 
     tree.add(&one);
     assert_eq!(tree.preference(), zero);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
     log::info!("{}", tree);
     assert_eq!(tree.to_string(), "SB(Preference = 0, NumSuccessfulPolls[0] = 0, NumSuccessfulPolls[1] = 0, SF(Confidence = 0, Finalized = false, SL(Preference = 0))) Bit = 0
     SB(NumSuccessfulPolls = 0, SF(Confidence = 0, Finalized = false)) Bits = [1, 256)
@@ -496,30 +496,30 @@ fn test_tree_snowball_new_unary() {
 
     let one_bag = Bag::new();
     one_bag.add_count(&one, 1);
-    assert_eq!(tree.record_poll(&one_bag), true);
+    assert!(tree.record_poll(&one_bag));
 
     assert_eq!(tree.preference(), one);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
     log::info!("{}", tree);
     assert_eq!(tree.to_string(), "SB(Preference = 1, NumSuccessfulPolls[0] = 0, NumSuccessfulPolls[1] = 1, SF(Confidence = 1, Finalized = false, SL(Preference = 1))) Bit = 0
     SB(NumSuccessfulPolls = 0, SF(Confidence = 0, Finalized = false)) Bits = [1, 256)
     SB(NumSuccessfulPolls = 1, SF(Confidence = 1, Finalized = false)) Bits = [1, 256)
 ");
 
-    assert_eq!(tree.record_poll(&one_bag), true);
+    assert!(tree.record_poll(&one_bag));
 
     assert_eq!(tree.preference(), one);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
     log::info!("{}", tree);
     assert_eq!(tree.to_string(), "SB(Preference = 1, NumSuccessfulPolls[0] = 0, NumSuccessfulPolls[1] = 2, SF(Confidence = 2, Finalized = false, SL(Preference = 1))) Bit = 0
     SB(NumSuccessfulPolls = 0, SF(Confidence = 0, Finalized = false)) Bits = [1, 256)
     SB(NumSuccessfulPolls = 2, SF(Confidence = 2, Finalized = true)) Bits = [1, 256)
 ");
 
-    assert_eq!(tree.record_poll(&one_bag), true);
+    assert!(tree.record_poll(&one_bag));
 
     assert_eq!(tree.preference(), one);
-    assert_eq!(tree.finalized(), true);
+    assert!(tree.finalized());
     log::info!("{}", tree);
     assert_eq!(
         tree.to_string(),
@@ -551,13 +551,13 @@ fn test_tree_snowball_transitive_reset() {
         },
         zero.clone(),
     );
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
 
     tree.add(&two);
     tree.add(&eight);
 
     assert_eq!(tree.preference(), zero);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
     log::info!("{}", tree);
     assert_eq!(
         tree.to_string(),
@@ -573,10 +573,10 @@ fn test_tree_snowball_transitive_reset() {
 
     let zero_bag = Bag::new();
     zero_bag.add_count(&zero, 1);
-    assert_eq!(tree.record_poll(&zero_bag), true);
+    assert!(tree.record_poll(&zero_bag));
 
     assert_eq!(tree.preference(), zero);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
     log::info!("{}", tree);
     assert_eq!(
         tree.to_string(),
@@ -591,10 +591,10 @@ fn test_tree_snowball_transitive_reset() {
     );
 
     let empty_bag = Bag::new();
-    assert_eq!(tree.record_poll(&empty_bag), false);
+    assert!(!(tree.record_poll(&empty_bag)));
 
     assert_eq!(tree.preference(), zero);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
     log::info!("{}", tree);
     assert_eq!(
         tree.to_string(),
@@ -608,10 +608,10 @@ fn test_tree_snowball_transitive_reset() {
 "
     );
 
-    assert_eq!(tree.record_poll(&zero_bag), true);
+    assert!(tree.record_poll(&zero_bag));
 
     assert_eq!(tree.preference(), zero);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
     log::info!("{}", tree);
     assert_eq!(
         tree.to_string(),
@@ -625,10 +625,10 @@ fn test_tree_snowball_transitive_reset() {
 "
     );
 
-    assert_eq!(tree.record_poll(&zero_bag), true);
+    assert!(tree.record_poll(&zero_bag));
 
     assert_eq!(tree.preference(), zero);
-    assert_eq!(tree.finalized(), true);
+    assert!(tree.finalized());
     log::info!("{}", tree);
     assert_eq!(
         tree.to_string(),
@@ -660,7 +660,7 @@ fn test_tree_snowball_trinary() {
         },
         green.clone(),
     );
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
 
     tree.add(&red);
     tree.add(&blue);
@@ -672,41 +672,41 @@ fn test_tree_snowball_trinary() {
     //       G   B
 
     assert_eq!(tree.preference(), green);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
 
     let red_bag = Bag::new();
     red_bag.add_count(&red, 1);
-    assert_eq!(tree.record_poll(&red_bag), true);
+    assert!(tree.record_poll(&red_bag));
 
     assert_eq!(tree.preference(), red);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
 
     let blue_bag = Bag::new();
     blue_bag.add_count(&blue, 1);
-    assert_eq!(tree.record_poll(&blue_bag), true);
+    assert!(tree.record_poll(&blue_bag));
 
     assert_eq!(tree.preference(), red);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
 
     // Here is a case where voting for a color makes a different color become
     // the preferred color. This is intended behavior.
     let green_bag = Bag::new();
     green_bag.add_count(&green, 1);
-    assert_eq!(tree.record_poll(&green_bag), true);
+    assert!(tree.record_poll(&green_bag));
 
     assert_eq!(tree.preference(), blue);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
 
     // Red has already been rejected here, so this is not a successful poll.
-    assert_eq!(tree.record_poll(&red_bag), false);
+    assert!(!(tree.record_poll(&red_bag)));
 
     assert_eq!(tree.preference(), blue);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
 
-    assert_eq!(tree.record_poll(&green_bag), true);
+    assert!(tree.record_poll(&green_bag));
 
     assert_eq!(tree.preference(), green);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
 }
 
 /// RUST_LOG=debug cargo test --package avalanche-consensus --lib -- snowman::snowball::tree::test_tree_snowball_close_trinary --exact --show-output
@@ -732,7 +732,7 @@ fn test_tree_snowball_close_trinary() {
         },
         yellow.clone(),
     );
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
 
     tree.add(&cyan);
     tree.add(&magenta);
@@ -744,34 +744,34 @@ fn test_tree_snowball_close_trinary() {
     //       Y   M
 
     assert_eq!(tree.preference(), yellow);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
 
     let yellow_bag = Bag::new();
     yellow_bag.add_count(&yellow, 1);
-    assert_eq!(tree.record_poll(&yellow_bag), true);
+    assert!(tree.record_poll(&yellow_bag));
 
     assert_eq!(tree.preference(), yellow);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
 
     let magenta_bag = Bag::new();
     magenta_bag.add_count(&magenta, 1);
-    assert_eq!(tree.record_poll(&magenta_bag), true);
+    assert!(tree.record_poll(&magenta_bag));
 
     assert_eq!(tree.preference(), yellow);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
 
     // Cyan has already been rejected here, so these are not successful polls.
     let cyan_bag = Bag::new();
     cyan_bag.add_count(&cyan, 1);
-    assert_eq!(tree.record_poll(&cyan_bag), false);
+    assert!(!(tree.record_poll(&cyan_bag)));
 
     assert_eq!(tree.preference(), yellow);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
 
-    assert_eq!(tree.record_poll(&cyan_bag), false);
+    assert!(!(tree.record_poll(&cyan_bag)));
 
     assert_eq!(tree.preference(), yellow);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
 }
 
 /// RUST_LOG=debug cargo test --package avalanche-consensus --lib -- snowman::snowball::tree::test_tree_snowball_add_rejected --exact --show-output
@@ -807,20 +807,20 @@ fn test_tree_snowball_add_rejected() {
         },
         c0000.clone(),
     );
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
 
     tree.add(&c1000);
     tree.add(&c0010);
 
     assert_eq!(tree.preference(), c0000);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
 
     let c0010_bag = Bag::new();
     c0010_bag.add_count(&c0010, 1);
-    assert_eq!(tree.record_poll(&c0010_bag), true);
+    assert!(tree.record_poll(&c0010_bag));
 
     assert_eq!(tree.preference(), c0010);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
     log::info!("{}", tree);
     assert_eq!(
         tree.to_string(),
@@ -835,7 +835,7 @@ fn test_tree_snowball_add_rejected() {
     tree.add(&c0101);
 
     assert_eq!(tree.preference(), c0010);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
     log::info!("{}", tree);
     assert_eq!(
         tree.to_string(),
@@ -878,20 +878,20 @@ fn test_tree_snowball_reset_child() {
         },
         c0000.clone(),
     );
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
 
     tree.add(&c0100);
     tree.add(&c1000);
 
     assert_eq!(tree.preference(), c0000);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
 
     let c0000_bag = Bag::new();
     c0000_bag.add_count(&c0000, 1);
-    assert_eq!(tree.record_poll(&c0000_bag), true);
+    assert!(tree.record_poll(&c0000_bag));
 
     assert_eq!(tree.preference(), c0000);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
     log::info!("{}", tree);
     assert_eq!(
         tree.to_string(),
@@ -904,10 +904,10 @@ fn test_tree_snowball_reset_child() {
     );
 
     let empty_bag = Bag::new();
-    assert_eq!(tree.record_poll(&empty_bag), false);
+    assert!(!(tree.record_poll(&empty_bag)));
 
     assert_eq!(tree.preference(), c0000);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
     log::info!("{}", tree);
     assert_eq!(
         tree.to_string(),
@@ -919,10 +919,10 @@ fn test_tree_snowball_reset_child() {
 "
     );
 
-    assert_eq!(tree.record_poll(&c0000_bag), true);
+    assert!(tree.record_poll(&c0000_bag));
 
     assert_eq!(tree.preference(), c0000);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
     log::info!("{}", tree);
     assert_eq!(
         tree.to_string(),
@@ -958,20 +958,20 @@ fn test_tree_snowball_reset_sibling() {
         },
         c0000.clone(),
     );
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
 
     tree.add(&c0100);
     tree.add(&c1000);
 
     assert_eq!(tree.preference(), c0000);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
 
     let c0100_bag = Bag::new();
     c0100_bag.add_count(&c0100, 1);
-    assert_eq!(tree.record_poll(&c0100_bag), true);
+    assert!(tree.record_poll(&c0100_bag));
 
     assert_eq!(tree.preference(), c0100);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
     log::info!("{}", tree);
     assert_eq!(
         tree.to_string(),
@@ -985,10 +985,10 @@ fn test_tree_snowball_reset_sibling() {
 
     let c1000_bag = Bag::new();
     c1000_bag.add_count(&c1000, 1);
-    assert_eq!(tree.record_poll(&c1000_bag), true);
+    assert!(tree.record_poll(&c1000_bag));
 
     assert_eq!(tree.preference(), c0100);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
     log::info!("{}", tree);
     assert_eq!(
         tree.to_string(),
@@ -1000,10 +1000,10 @@ fn test_tree_snowball_reset_sibling() {
 "
     );
 
-    assert_eq!(tree.record_poll(&c0100_bag), true);
+    assert!(tree.record_poll(&c0100_bag));
 
     assert_eq!(tree.preference(), c0100);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
     log::info!("{}", tree);
     assert_eq!(
         tree.to_string(),
@@ -1040,7 +1040,7 @@ fn test_tree_snowball_5_colors() {
         },
         colors[4].clone(),
     );
-    assert_eq!(tree0.finalized(), false);
+    assert!(!(tree0.finalized()));
     tree0.add(&colors[0]);
     tree0.add(&colors[1]);
     tree0.add(&colors[2]);
@@ -1056,7 +1056,7 @@ fn test_tree_snowball_5_colors() {
         },
         colors[3].clone(),
     );
-    assert_eq!(tree1.finalized(), false);
+    assert!(!(tree1.finalized()));
     tree1.add(&colors[0]);
     tree1.add(&colors[1]);
     tree1.add(&colors[2]);
@@ -1107,7 +1107,7 @@ fn test_tree_snowball_fine_grained() {
         c0000.clone(),
     );
     assert_eq!(tree.preference(), c0000);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
     log::info!("{}", tree);
     assert_eq!(
         tree.to_string(),
@@ -1118,7 +1118,7 @@ fn test_tree_snowball_fine_grained() {
     tree.add(&c1100);
 
     assert_eq!(tree.preference(), c0000);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
     log::info!("{}", tree);
     assert_eq!(
         tree.to_string(),
@@ -1131,7 +1131,7 @@ fn test_tree_snowball_fine_grained() {
     tree.add(&c1000);
 
     assert_eq!(tree.preference(), c0000);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
     log::info!("{}", tree);
     assert_eq!(
         tree.to_string(),
@@ -1146,7 +1146,7 @@ fn test_tree_snowball_fine_grained() {
     tree.add(&c0010);
 
     assert_eq!(tree.preference(), c0000);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
     log::info!("{}", tree);
     assert_eq!(
         tree.to_string(),
@@ -1163,10 +1163,10 @@ fn test_tree_snowball_fine_grained() {
 
     let c0000_bag = Bag::new();
     c0000_bag.add_count(&c0000, 1);
-    assert_eq!(tree.record_poll(&c0000_bag), true);
+    assert!(tree.record_poll(&c0000_bag));
 
     assert_eq!(tree.preference(), c0000);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
     log::info!("{}", tree);
     assert_eq!(
         tree.to_string(),
@@ -1182,10 +1182,10 @@ fn test_tree_snowball_fine_grained() {
 
     let c0010_bag = Bag::new();
     c0010_bag.add_count(&c0010, 1);
-    assert_eq!(tree.record_poll(&c0010_bag), true);
+    assert!(tree.record_poll(&c0010_bag));
 
     assert_eq!(tree.preference(), c0000);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
     log::info!("{}", tree);
     assert_eq!(
         tree.to_string(),
@@ -1195,10 +1195,10 @@ fn test_tree_snowball_fine_grained() {
 "
     );
 
-    assert_eq!(tree.record_poll(&c0010_bag), true);
+    assert!(tree.record_poll(&c0010_bag));
 
     assert_eq!(tree.preference(), c0010);
-    assert_eq!(tree.finalized(), true);
+    assert!(tree.finalized());
     log::info!("{}", tree);
     assert_eq!(
         tree.to_string(),
@@ -1228,12 +1228,12 @@ fn test_tree_snowball_double_add() {
         },
         red.clone(),
     );
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
 
     tree.add(&red);
 
     assert_eq!(tree.preference(), red);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
     log::info!("{}", tree);
     assert_eq!(
         tree.to_string(),
@@ -1279,7 +1279,7 @@ fn test_tree_snowball_filter_binary_children() {
         c0000.clone(),
     );
     assert_eq!(tree.preference(), c0000);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
     log::info!("{}", tree);
     assert_eq!(
         tree.to_string(),
@@ -1290,7 +1290,7 @@ fn test_tree_snowball_filter_binary_children() {
     tree.add(&c1000);
 
     assert_eq!(tree.preference(), c0000);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
     log::info!("{}", tree);
     assert_eq!(
         tree.to_string(),
@@ -1303,7 +1303,7 @@ fn test_tree_snowball_filter_binary_children() {
     tree.add(&c0010);
 
     assert_eq!(tree.preference(), c0000);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
     log::info!("{}", tree);
     assert_eq!(
         tree.to_string(),
@@ -1318,10 +1318,10 @@ fn test_tree_snowball_filter_binary_children() {
 
     let c0000_bag = Bag::new();
     c0000_bag.add_count(&c0000, 1);
-    assert_eq!(tree.record_poll(&c0000_bag), true);
+    assert!(tree.record_poll(&c0000_bag));
 
     assert_eq!(tree.preference(), c0000);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
     log::info!("{}", tree);
     assert_eq!(
         tree.to_string(),
@@ -1336,7 +1336,7 @@ fn test_tree_snowball_filter_binary_children() {
     tree.add(&c0100);
 
     assert_eq!(tree.preference(), c0000);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
     log::info!("{}", tree);
     assert_eq!(
         tree.to_string(),
@@ -1350,10 +1350,10 @@ fn test_tree_snowball_filter_binary_children() {
 
     let c0100_bag = Bag::new();
     c0100_bag.add_count(&c0100, 1);
-    assert_eq!(tree.record_poll(&c0100_bag), true);
+    assert!(tree.record_poll(&c0100_bag));
 
     assert_eq!(tree.preference(), c0000);
-    assert_eq!(tree.finalized(), false);
+    assert!(!(tree.finalized()));
     log::info!("{}", tree);
     assert_eq!(
         tree.to_string(),
