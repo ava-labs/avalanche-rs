@@ -911,9 +911,9 @@ fn test_pack_bool() {
         header: false,
         offset: Cell::new(0),
     };
-    assert_eq!(packer.unpack_bool().unwrap(), false);
-    assert_eq!(packer.unpack_bool().unwrap(), true);
-    assert_eq!(packer.unpack_bool().unwrap(), false);
+    assert!(!(packer.unpack_bool().unwrap()));
+    assert!(packer.unpack_bool().unwrap());
+    assert!(!(packer.unpack_bool().unwrap()));
 
     let packer = Packer::new_with_header(4 + 3, 0);
     packer.pack_bool(false).unwrap();

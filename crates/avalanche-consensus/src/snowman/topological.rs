@@ -937,7 +937,7 @@ fn test_topological_initialize() {
     assert_eq!(tp.preference(), genesis_id);
     assert_eq!(tp.height(), genesis_height);
 
-    assert_eq!(tp.finalized(), true);
+    assert!(tp.finalized());
 }
 
 /// RUST_LOG=debug cargo test --package avalanche-consensus --lib -- snowman::topological::test_topological_num_processing --exact --show-output
