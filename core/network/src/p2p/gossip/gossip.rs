@@ -81,6 +81,7 @@ impl<S> Gossiper<S>
 
         let mut msg_bytes = vec![];
 
+        // We scope the lock here to avoid issue later on
         {
             let set_guard = self.set.lock().await;
 
@@ -91,11 +92,9 @@ impl<S> Gossiper<S>
             request.encode(&mut msg_bytes)?;
         }
 
-
-        let set_clone = Arc::clone(&self.set.clone());
         for _ in 0..self.config.poll_size {
             {
-                let set_clone = Arc::clone(&set_clone.clone());
+                let set = Arc::clone(&self.set.clone());
 
                 // Initialize the callback that will be used upon receiving a response from our gossip attempt
                 let on_response: AppResponseCallback = Arc::new({
@@ -118,7 +117,7 @@ impl<S> Gossiper<S>
 
                             let hash = gossipable.get_id();
 
-                            let mut set_guard = set_clone.try_lock().expect("Failed to acquire lock on set_clone");
+                            let mut set_guard = set.try_lock().expect("Failed to acquire lock on set");
                             if let Err(e) = set_guard.add(gossipable) {
                                 error!(
                             "failed to add gossip to the known set, id: {:?}, error: {:?}"

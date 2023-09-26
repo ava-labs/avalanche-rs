@@ -190,9 +190,14 @@ async fn start_fake_node(gossip_handler_addr: String, listener_handler_addr: Str
         }
     }
 
+    {
+        assert_eq!(set.try_lock().expect("Failed to acquire lock").set.len().clone(), 3);
+    }
+
     let (stop_tx, stop_rx) = channel(1);
 
     // Spawn the gossiping task
+    let set_clone = set.clone();
     let gossip_task = tokio::spawn(async move {
         // Initialize a TestClient instance with the given stream and listener
         let gossip_client = Arc::new(Mutex::new(TestClient { stream: stream.clone(), listener: gossip_listener.clone() }));
@@ -200,13 +205,18 @@ async fn start_fake_node(gossip_handler_addr: String, listener_handler_addr: Str
         // Create a channel for stopping the gossiper
 
         // Initialize the Gossiper with the provided configuration, set, client, and receiver end of the stop channel
-        let mut gossiper = Gossiper::new(config, set.clone(), gossip_client.clone(), stop_rx);
+        let mut gossiper = Gossiper::new(config, set_clone, gossip_client.clone(), stop_rx);
 
         gossiper.gossip().await;
     });
 
     // Sleep for a few seconds, make sure the whole process ran
     tokio::time::sleep(Duration::from_secs(1)).await;
+
+    {
+        assert_eq!(set.try_lock().expect("Failed to acquire lock").set.len(), 4);
+    }
+
     // Send the stop signal before awaiting the task.
     if stop_tx.send(()).await.is_err() {
         eprintln!("Failed to send stop signal");
