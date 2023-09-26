@@ -1,4 +1,4 @@
-use crate::p2p::client::Client;
+use crate::p2p::client::{AppResponseCallback, Client};
 use crate::p2p::gossip::{Gossipable, Set};
 use crate::p2p::sdk::{PullGossipRequest, PullGossipResponse};
 use avalanche_types::ids::Id;
@@ -6,7 +6,9 @@ use log::{debug, error};
 use prost::Message;
 use std::error::Error;
 use std::hash::Hash;
-use std::sync::{Arc, Mutex};
+use std::ops::Deref;
+use tokio::sync::Mutex;
+use std::sync::Arc;
 use std::time::Duration;
 use tokio::select;
 use tokio::sync::mpsc::{channel, Receiver};
@@ -18,12 +20,16 @@ pub struct Config {
     pub poll_size: usize,
 }
 
-pub struct Gossiper<S: Set> {
+pub struct Gossiper<S: Set + 'static> {
     config: Config,
     set: Arc<Mutex<S>>,
-    client: Arc<Client>,
+    client: Arc<Mutex<dyn Client>>,
     stop_rx: Receiver<()>,
 }
+
+unsafe impl<S: Set> Sync for Gossiper<S> {}
+
+unsafe impl<S: Set> Send for Gossiper<S> {}
 
 impl<S> Gossiper<S>
     where
@@ -33,7 +39,7 @@ impl<S> Gossiper<S>
     pub fn new(
         config: Config,
         set: Arc<Mutex<S>>, // Mutex or RWLock here ?
-        client: Arc<Client>,
+        client: Arc<Mutex<dyn Client>>,
         stop_rx: Receiver<()>,
     ) -> Self {
         Self {
@@ -64,77 +70,80 @@ impl<S> Gossiper<S>
         }
     }
 
-    async fn execute(&self) -> Result<(), Box<dyn Error>> {
+    async fn execute(&mut self) -> Result<(), Box<dyn Error>> {
         //ToDo Dummy vec<u8> for now.
         let bloom = Vec::new();
 
-        let request = PullGossipRequest {
+        let mut request = PullGossipRequest {
             filter: bloom,
             salt: Id::default().to_vec(), //ToDo Use default for now
         };
 
         let mut msg_bytes = vec![];
-        request.encode(&mut msg_bytes)?;
 
+        {
+            let set_guard = self.set.lock().await;
+
+            let elem = set_guard.fetch_elements();
+
+            let filter = elem.serialize().expect("Issue serializing elem");
+            request.filter = filter;
+            request.encode(&mut msg_bytes)?;
+        }
+
+
+        let set_clone = Arc::clone(&self.set.clone());
         for _ in 0..self.config.poll_size {
-            let _ = self.client.app_request_any(); //ToDo out of scope of my PR
+            {
+                let set_clone = Arc::clone(&set_clone.clone());
+
+                // Initialize the callback that will be used upon receiving a response from our gossip attempt
+                let on_response: AppResponseCallback = Arc::new({
+                    move |response_bytes| {
+                        let response = match PullGossipResponse::decode(response_bytes.as_slice()) {
+                            Ok(res) => {
+                                res
+                            }
+                            Err(e) => {
+                                error!("failed to unmarshal gossip response, error: {:?}", e);
+                                return;
+                            }
+                        };
+
+                        // We iterate over the response's gossip
+                        debug!("There are {} gossips", response.gossip.len());
+                        for bytes in response.gossip.iter() {
+                            let mut gossipable: S::Item = S::Item::default();
+                            gossipable.deserialize(bytes).unwrap();
+
+                            let hash = gossipable.get_id();
+
+                            let mut set_guard = set_clone.try_lock().expect("Failed to acquire lock on set_clone");
+                            if let Err(e) = set_guard.add(gossipable) {
+                                error!(
+                            "failed to add gossip to the known set, id: {:?}, error: {:?}"
+                            , hash, e
+                        );
+                                continue;
+                            }
+                        }
+                    }
+                });
+
+                let mut guard = self.client.try_lock().expect("Failed to acquire a lock on client");
+                guard.app_request_any(msg_bytes.clone(), on_response).await;
+            }
         }
 
         Ok(())
-    }
-
-    async fn handle_response(
-        &mut self,
-        node_id: Id,
-        response_bytes: Vec<u8>,
-        err: Option<Box<dyn Error>>,
-    ) {
-        if let Some(e) = err {
-            error!(
-                "failed gossip request, nodeID: {:?}, error: {:?}",
-                node_id, e
-            );
-            return;
-        }
-
-        let mut response = PullGossipResponse::default();
-        match PullGossipResponse::decode(response_bytes.as_slice()) {
-            Ok(res) => response = res,
-            Err(e) => {
-                error!("failed to unmarshal gossip response, error: {:?}", e);
-                return;
-            }
-        }
-
-        for bytes in response.gossip.iter() {
-            let mut gossipable: S::Item = S::Item::default();
-            if let Err(e) = gossipable.deserialize(bytes) {
-                error!(
-                    "failed to unmarshal gossip, nodeID: {:?}, error: {:?}",
-                    node_id, e
-                );
-                continue;
-            }
-
-            let hash = gossipable.get_id();
-            debug!("received gossip, nodeID: {:?}, id: {:?}", node_id, hash);
-
-            let mut set_guard = self.set.lock().expect("Failed to acquire lock");
-            if let Err(e) = set_guard.add(gossipable) {
-                debug!(
-                    "failed to add gossip to the known set, nodeID: {:?}, id: {:?}, error: {:?}",
-                    node_id, hash, e
-                );
-                continue;
-            }
-        }
     }
 }
 
 
 #[cfg(test)]
 mod test {
-    use std::sync::{Arc, Mutex};
+    use tokio::sync::Mutex;
+    use std::sync::Arc;
     use tokio::sync::mpsc::{channel};
     use std::time::Duration;
     use super::*;
@@ -143,6 +152,7 @@ mod test {
     use crate::p2p::client::Client;
     use crate::p2p::gossip::gossip::{Config, Gossiper};
     use crate::p2p::sdk::PullGossipResponse;
+    use crate::p2p::client::NoOpClient;
 
     struct MockClient;
 
@@ -176,7 +186,7 @@ mod test {
 
     // Mock implementation for the Set trait
 //ToDo Should we move all tests to a new file ?
-    struct MockSet<TestGossipableType> {
+    pub struct MockSet<TestGossipableType> {
         pub set: Vec<TestGossipableType>,
     }
 
@@ -207,7 +217,8 @@ mod test {
             .is_test(true)
             .try_init()
             .unwrap();
-
+        let noopclient = NoOpClient {};
+        noopclient.app_request(Vec::new());
         let (stop_tx, stop_rx) = channel(1); // Create a new channel
 
         let mut gossiper: Gossiper<MockSet<TestGossipableType>> = Gossiper::new(
@@ -219,7 +230,7 @@ mod test {
             Arc::new(Mutex::new(MockSet {
                 set: Vec::new(),
             })),
-            Arc::new(Client {}),
+            Arc::new(NoOpClient {}),
             stop_rx,
         );
 
@@ -256,7 +267,7 @@ mod test {
             Arc::new(Mutex::new(MockSet {
                 set: Vec::new(),
             })),
-            Arc::new(Client {}),
+            Arc::new(NoOpClient {}),
             stop_rx,
         );
 
@@ -286,7 +297,7 @@ mod test {
             Arc::new(Mutex::new(MockSet {
                 set: Vec::new(),
             })),
-            Arc::new(Client {}),
+            Arc::new(NoOpClient {}),
             stop_rx,
         );
 

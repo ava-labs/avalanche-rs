@@ -13,4 +13,5 @@ pub trait Set: Send + Sync {
     type Item: Gossipable + ?Sized;
     fn add(&mut self, gossipable: Self::Item) -> Result<(), Box<dyn std::error::Error>>;
     fn iterate(&self, f: &dyn FnMut(&Self::Item) -> bool);
+    fn fetch_elements(&self) -> Self::Item;
 }
