@@ -4,6 +4,7 @@ use tokio::sync::Mutex;
 use std::sync::Arc;
 use std::time::Duration;
 use async_trait::async_trait;
+use log::debug;
 use prost::Message;
 use avalanche_types::ids::node::Id;
 use crate::p2p;
@@ -41,11 +42,14 @@ impl<S> p2p::handler::Handler for Handler<S>
 {
     async fn app_gossip(&self, node_id: Id, gossip_bytes: Vec<u8>) -> Result<Vec<u8>, Box<dyn Error>> {
         let request = PullGossipRequest::decode(gossip_bytes.as_slice()).expect("Failed to decode request_bytes into PullGossipRequest");
+        debug!("Allloooo");
 
         let mut response_size = 0_usize;
         let mut gossip_bytes: Vec<Vec<u8>> = Vec::new();
         let guard = self.set.try_lock().expect("Lock failed on set");
-        guard.iterate(&|gossipable| {
+        debug!("BEFORE Iterate over set gossipable items");
+        guard.iterate(&mut |gossipable : &S::Item| {
+            debug!("Iterate over set gossipable items");
             let bytes = match gossipable.serialize() {
                 Ok(b) => {
                     b
@@ -54,6 +58,8 @@ impl<S> p2p::handler::Handler for Handler<S>
                     return false;
                 }
             };
+
+            debug!("In app_gossip -- bytes == {:?}", bytes);
 
             gossip_bytes.push(bytes.clone());
             response_size += bytes.len();
@@ -65,7 +71,7 @@ impl<S> p2p::handler::Handler for Handler<S>
 
         let mut response_bytes = vec![];
         response.encode(&mut response_bytes).expect("Failed to encode response_bytes into PullGossipResponse");
-
+        debug!("Response bytes in app_gossip {:?}", response_bytes);
         Ok(response_bytes)
     }
 
@@ -80,7 +86,12 @@ impl<S> p2p::handler::Handler for Handler<S>
         let mut response_size = 0_usize;
         let mut gossip_bytes: Vec<Vec<u8>> = Vec::new();
 
-        self.set.lock().await.iterate(&|gossipable| {
+        self.set.lock().await.iterate(&mut |gossipable| {
+
+            if self.set.try_lock().expect("ssss").has(gossipable) {
+                return true
+            };
+
             let bytes = match gossipable.serialize() {
                 Ok(b) => b,
                 Err(_) => return false,

@@ -56,6 +56,7 @@ impl<S> Gossiper<S>
         loop {
             select! {
                 _ = gossip_ticker.tick() => {
+                    debug!("Gossip tick");
                     if let Err(e) = self.execute().await {
                         error!("Failed to Gossip : {:?}", e);
                         //ToDo
@@ -92,15 +93,19 @@ impl<S> Gossiper<S>
             request.encode(&mut msg_bytes)?;
         }
 
+        debug!("Before going over the poll_size");
         for _ in 0..self.config.poll_size {
             {
+                debug!("poll_size");
                 let set = Arc::clone(&self.set.clone());
 
                 // Initialize the callback that will be used upon receiving a response from our gossip attempt
                 let on_response: AppResponseCallback = Arc::new({
                     move |response_bytes| {
+                        debug!("In AppResponseCallback -- beginning");
                         let response = match PullGossipResponse::decode(response_bytes.as_slice()) {
                             Ok(res) => {
+                                debug!("Decoded in AppResponseCallback -- {:?}", res);
                                 res
                             }
                             Err(e) => {
@@ -113,11 +118,15 @@ impl<S> Gossiper<S>
                         debug!("There are {} gossips", response.gossip.len());
                         for bytes in response.gossip.iter() {
                             let mut gossipable: S::Item = S::Item::default();
+                            debug!("In AppResponseCallback -- deserialized gossipable -- {:?}", gossipable);
                             gossipable.deserialize(bytes).unwrap();
+                            debug!("In AppResponseCallback -- deserialized gossipable -- {:?}", gossipable);
 
                             let hash = gossipable.get_id();
+                            debug!("In AppResponseCallback -- let hash = gossipable.get_id(); -- {:?}", hash);
 
                             let mut set_guard = set.try_lock().expect("Failed to acquire lock on set");
+                            debug!("In AppResponseCallback -- set_guard = set.try_lock()");
                             if let Err(e) = set_guard.add(gossipable) {
                                 error!(
                             "failed to add gossip to the known set, id: {:?}, error: {:?}"
@@ -126,11 +135,14 @@ impl<S> Gossiper<S>
                                 continue;
                             }
                         }
+                        debug!("In AppResponseCallback -- ending");
                     }
                 });
 
                 let mut guard = self.client.try_lock().expect("Failed to acquire a lock on client");
+                debug!("After acquiring lock for client in execute");
                 guard.app_request_any(msg_bytes.clone(), on_response).await;
+                debug!("After app_request_any in execute");
             }
         }
 
@@ -203,8 +215,8 @@ mod test {
             Ok(())
         }
 
-        fn iterate(&self, _f: &dyn FnMut(&T) -> bool) {
-            // Do nothing
+        fn iterate(&self, _f: &mut dyn FnMut(&T) -> bool) {
+            unimplemented!()
         }
     }
 
