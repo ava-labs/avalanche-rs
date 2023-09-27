@@ -11,12 +11,6 @@ pub struct Message {
 
 impl Default for Message {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl Message {
-    pub fn default() -> Self {
         Message {
             msg: p2p::Pong {
                 uptime: 0,
@@ -25,7 +19,9 @@ impl Message {
             gzip_compress: false,
         }
     }
+}
 
+impl Message {
     #[must_use]
     pub fn uptime_pct(mut self, uptime: u32) -> Self {
         self.msg.uptime = uptime;
@@ -126,7 +122,7 @@ fn test_message() {
     let msg1_with_no_compression = Message::default().uptime_pct(100);
 
     let data1 = msg1_with_no_compression.serialize().unwrap();
-    let msg1_with_no_compression_deserialized = Message::deserialize(&data1).unwrap();
+    let msg1_with_no_compression_deserialized = Message::deserialize(data1).unwrap();
     assert_eq!(
         msg1_with_no_compression,
         msg1_with_no_compression_deserialized
@@ -136,6 +132,6 @@ fn test_message() {
     assert_ne!(msg1_with_no_compression, msg2_with_compression);
 
     let data2 = msg2_with_compression.serialize().unwrap();
-    let msg2_with_compression_deserialized = Message::deserialize(&data2).unwrap();
+    let msg2_with_compression_deserialized = Message::deserialize(data2).unwrap();
     assert_eq!(msg1_with_no_compression, msg2_with_compression_deserialized);
 }

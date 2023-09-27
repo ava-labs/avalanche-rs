@@ -24,12 +24,6 @@ pub struct Tx {
 
 impl Default for Tx {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl Tx {
-    pub fn default() -> Self {
         Self {
             base_tx: txs::Tx::default(),
             subnet_id: ids::Id::empty(),
@@ -41,7 +35,9 @@ impl Tx {
             creds: Vec::new(),
         }
     }
+}
 
+impl Tx {
     pub fn new(base_tx: txs::Tx) -> Self {
         Self {
             base_tx,
@@ -145,8 +141,7 @@ impl Tx {
                 sigs.push(Vec::from(sig));
             }
 
-            let mut cred = key::secp256k1::txs::Credential::default();
-            cred.signatures = sigs;
+            let cred = key::secp256k1::txs::Credential { signatures: sigs };
 
             // add a new credential to "Tx"
             self.creds.push(cred);

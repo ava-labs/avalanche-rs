@@ -169,7 +169,7 @@ where
         let outputs: Vec<txs::transferable::Output> = vec![
             // receiver
             txs::transferable::Output {
-                asset_id: self.inner.inner.avax_asset_id.clone(),
+                asset_id: self.inner.inner.avax_asset_id,
                 transfer_output: Some(key::secp256k1::txs::transfer::Output {
                     amount: import_amount,
                     output_owners: key::secp256k1::txs::OutputOwners {
@@ -190,11 +190,11 @@ where
         let mut tx = platformvm::txs::import::Tx {
             base_tx: txs::Tx {
                 network_id: self.inner.inner.network_id,
-                blockchain_id: self.inner.inner.blockchain_id_p.clone(),
+                blockchain_id: self.inner.inner.blockchain_id_p,
                 transferable_outputs: Some(outputs),
                 ..Default::default()
             },
-            source_chain_id: self.source_blockchain_id.clone(),
+            source_chain_id: self.source_blockchain_id,
             source_chain_transferable_inputs: Some(import_inputs),
             ..Default::default()
         };

@@ -11,12 +11,6 @@ pub struct Message {
 
 impl Default for Message {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl Message {
-    pub fn default() -> Self {
         Message {
             msg: p2p::AppGossip {
                 chain_id: prost::bytes::Bytes::new(),
@@ -25,7 +19,9 @@ impl Message {
             gzip_compress: false,
         }
     }
+}
 
+impl Message {
     #[must_use]
     pub fn chain_id(mut self, chain_id: ids::Id) -> Self {
         self.msg.chain_id = prost::bytes::Bytes::from(chain_id.to_vec());
@@ -136,7 +132,7 @@ fn test_message() {
         .app_bytes(vec![0u8; 100]);
 
     let data1 = msg1_with_no_compression.serialize().unwrap();
-    let msg1_with_no_compression_deserialized = Message::deserialize(&data1).unwrap();
+    let msg1_with_no_compression_deserialized = Message::deserialize(data1).unwrap();
     assert_eq!(
         msg1_with_no_compression,
         msg1_with_no_compression_deserialized
@@ -146,6 +142,6 @@ fn test_message() {
     assert_ne!(msg1_with_no_compression, msg2_with_compression);
 
     let data2 = msg2_with_compression.serialize().unwrap();
-    let msg2_with_compression_deserialized = Message::deserialize(&data2).unwrap();
+    let msg2_with_compression_deserialized = Message::deserialize(data2).unwrap();
     assert_eq!(msg1_with_no_compression, msg2_with_compression_deserialized);
 }

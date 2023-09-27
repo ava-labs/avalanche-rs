@@ -151,12 +151,6 @@ pub struct Info {
 
 impl Default for Info {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl Info {
-    pub fn default() -> Self {
         Info {
             id: None,
             key_type: KeyType::Unknown(String::new()),
@@ -188,7 +182,7 @@ impl Info {
             });
         }
 
-        let f = File::open(&file_path).map_err(|e| Error::Other {
+        let f = File::open(file_path).map_err(|e| Error::Other {
             message: format!("failed to open {} ({})", file_path, e),
             retryable: false,
         })?;
@@ -328,10 +322,10 @@ fn test_keys_address() {
     #[prefix = "artifacts/"]
     struct Asset;
 
-    for asset in vec!["artifacts/test.insecure.secp256k1.key.infos.json"] {
+    for asset in ["artifacts/test.insecure.secp256k1.key.infos.json"] {
         let key_file = Asset::get(asset).unwrap();
         let key_contents = std::str::from_utf8(key_file.data.as_ref()).unwrap();
-        let key_infos: Vec<Info> = serde_json::from_slice(&key_contents.as_bytes()).unwrap();
+        let key_infos: Vec<Info> = serde_json::from_slice(key_contents.as_bytes()).unwrap();
         log::info!("loaded {}", asset);
 
         for (pos, ki) in key_infos.iter().enumerate() {

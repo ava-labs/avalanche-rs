@@ -59,32 +59,32 @@ where
     T: key::secp256k1::ReadOnly + key::secp256k1::SignOnly + Clone,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "key_type: {}\n", self.key_type.as_str())?;
-        write!(f, "http_rpcs: {:?}\n", self.base_http_urls)?;
-        write!(f, "network_id: {}\n", self.network_id)?;
-        write!(f, "network_name: {}\n", self.network_name)?;
+        writeln!(f, "key_type: {}", self.key_type.as_str())?;
+        writeln!(f, "http_rpcs: {:?}", self.base_http_urls)?;
+        writeln!(f, "network_id: {}", self.network_id)?;
+        writeln!(f, "network_name: {}", self.network_name)?;
 
-        write!(f, "x_address: {}\n", self.x_address)?;
-        write!(f, "p_address: {}\n", self.p_address)?;
-        write!(f, "short_address: {}\n", self.short_address)?;
-        write!(f, "eth_address: {}\n", self.eth_address)?;
-        write!(f, "h160_address: {}\n", self.h160_address)?;
+        writeln!(f, "x_address: {}", self.x_address)?;
+        writeln!(f, "p_address: {}", self.p_address)?;
+        writeln!(f, "short_address: {}", self.short_address)?;
+        writeln!(f, "eth_address: {}", self.eth_address)?;
+        writeln!(f, "h160_address: {}", self.h160_address)?;
 
-        write!(f, "blockchain_id_x: {}\n", self.blockchain_id_x)?;
-        write!(f, "blockchain_id_p: {}\n", self.blockchain_id_p)?;
+        writeln!(f, "blockchain_id_x: {}", self.blockchain_id_x)?;
+        writeln!(f, "blockchain_id_p: {}", self.blockchain_id_p)?;
 
-        write!(f, "avax_asset_id: {}\n", self.avax_asset_id)?;
+        writeln!(f, "avax_asset_id: {}", self.avax_asset_id)?;
 
-        write!(f, "tx_fee: {}\n", self.tx_fee)?;
-        write!(
+        writeln!(f, "tx_fee: {}", self.tx_fee)?;
+        writeln!(
             f,
-            "add_primary_network_validator_fee: {}\n",
+            "add_primary_network_validator_fee: {}",
             self.add_primary_network_validator_fee
         )?;
-        write!(f, "create_subnet_tx_fee: {}\n", self.create_subnet_tx_fee)?;
-        write!(
+        writeln!(f, "create_subnet_tx_fee: {}", self.create_subnet_tx_fee)?;
+        writeln!(
             f,
-            "create_blockchain_tx_fee: {}\n",
+            "create_blockchain_tx_fee: {}",
             self.create_blockchain_tx_fee
         )
     }

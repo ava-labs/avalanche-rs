@@ -20,8 +20,8 @@ pub fn equal_subset(start: usize, stop: usize, id1: &Id, id2: &Id) -> bool {
         return false;
     }
 
-    let start_index = (start / BITS_PER_BYTES) as usize;
-    let stop_index = (stop / BITS_PER_BYTES) as usize;
+    let start_index = start / BITS_PER_BYTES;
+    let stop_index = stop / BITS_PER_BYTES;
 
     if start_index + 1 < stop_index
         && id1.0[(start_index + 1)..stop_index] != id2.0[(start_index + 1)..stop_index]
@@ -29,8 +29,8 @@ pub fn equal_subset(start: usize, stop: usize, id1: &Id, id2: &Id) -> bool {
         return false;
     }
 
-    let start_bit = (start % BITS_PER_BYTES) as usize; // index in the byte that the first bit is at
-    let stop_bit = (stop % BITS_PER_BYTES) as usize; // index in the byte that the last bit is at
+    let start_bit = start % BITS_PER_BYTES; // index in the byte that the first bit is at
+    let stop_bit = stop % BITS_PER_BYTES; // index in the byte that the last bit is at
 
     let start_mask: i32 = -1 << start_bit; // 111...0... The number of 0s is equal to start_bit
     let stop_mask: i32 = (1 << (stop_bit + 1)) - 1; // 000...1... The number of 1s is equal to stop_bit + 1
@@ -58,8 +58,8 @@ pub fn equal_subset(start: usize, stop: usize, id1: &Id, id2: &Id) -> bool {
 #[test]
 fn test_equal_subset() {
     // ref. TestEqualSubsetEarlyStop
-    let id1 = Id::from_slice(&vec![0xf0, 0x0f]);
-    let id2 = Id::from_slice(&vec![0xf0, 0x1f]);
+    let id1 = Id::from_slice(&[0xf0, 0x0f]);
+    let id2 = Id::from_slice(&[0xf0, 0x1f]);
 
     // println!("");
     // for c in &id1.0 {
@@ -78,8 +78,8 @@ fn test_equal_subset() {
     assert!(!equal_subset(0, 13, &id1, &id2));
 
     // ref. TestEqualSubsetLateStart
-    let id1 = Id::from_slice(&vec![0x1f, 0xf8]);
-    let id2 = Id::from_slice(&vec![0x10, 0x08]);
+    let id1 = Id::from_slice(&[0x1f, 0xf8]);
+    let id2 = Id::from_slice(&[0x10, 0x08]);
 
     // println!("");
     // for c in &id1.0 {
@@ -102,8 +102,8 @@ fn test_equal_subset() {
 /// ref. "TestEqualSubsetSameByte"
 #[test]
 fn test_equal_subset_same_byte() {
-    let id1 = Id::from_slice(&vec![0x18]);
-    let id2 = Id::from_slice(&vec![0xfc]);
+    let id1 = Id::from_slice(&[0x18]);
+    let id2 = Id::from_slice(&[0xfc]);
 
     // println!("");
     // for c in &id1.0 {
@@ -127,8 +127,8 @@ fn test_equal_subset_same_byte() {
 /// ref. "TestEqualSubsetBadMiddle"
 #[test]
 fn test_equal_subset_bad_middle() {
-    let id1 = Id::from_slice(&vec![0x18, 0xe8, 0x55]);
-    let id2 = Id::from_slice(&vec![0x18, 0x8e, 0x55]);
+    let id1 = Id::from_slice(&[0x18, 0xe8, 0x55]);
+    let id2 = Id::from_slice(&[0x18, 0x8e, 0x55]);
 
     // println!("");
     // for c in &id1.0 {
@@ -150,8 +150,8 @@ fn test_equal_subset_bad_middle() {
 /// ref. "TestEqualSubsetOutOfBounds"
 #[test]
 fn test_equal_subset_out_of_bounds() {
-    let id1 = Id::from_slice(&vec![0x18, 0xe8, 0x55]);
-    let id2 = Id::from_slice(&vec![0x18, 0x8e, 0x55]);
+    let id1 = Id::from_slice(&[0x18, 0xe8, 0x55]);
+    let id2 = Id::from_slice(&[0x18, 0x8e, 0x55]);
     assert!(!equal_subset(0, 500, &id1, &id2));
 }
 
@@ -171,11 +171,11 @@ pub fn first_difference_subset(start: usize, stop: usize, id1: &Id, id2: &Id) ->
         return (0, false);
     }
 
-    let start_index = (start / BITS_PER_BYTES) as usize;
-    let stop_index = (stop / BITS_PER_BYTES) as usize;
+    let start_index = start / BITS_PER_BYTES;
+    let stop_index = stop / BITS_PER_BYTES;
 
-    let start_bit = (start % BITS_PER_BYTES) as usize; // index in the byte that the first bit is at
-    let stop_bit = (stop % BITS_PER_BYTES) as usize; // index in the byte that the last bit is at
+    let start_bit = start % BITS_PER_BYTES; // index in the byte that the first bit is at
+    let stop_bit = stop % BITS_PER_BYTES; // index in the byte that the last bit is at
 
     let start_mask: i32 = -1 << start_bit; // 111...0... The number of 0s is equal to start_bit
     let stop_mask: i32 = (1 << (stop_bit + 1)) - 1; // 000...1... The number of 1s is equal to stop_bit + 1
@@ -234,8 +234,8 @@ pub fn first_difference_subset(start: usize, stop: usize, id1: &Id, id2: &Id) ->
 #[test]
 fn test_first_difference_subset() {
     // ref. TestFirstDifferenceSubsetEarlyStop
-    let id1 = Id::from_slice(&vec![0xf0, 0x0f]);
-    let id2 = Id::from_slice(&vec![0xf0, 0x1f]);
+    let id1 = Id::from_slice(&[0xf0, 0x0f]);
+    let id2 = Id::from_slice(&[0xf0, 0x1f]);
 
     // println!("");
     // for c in &id1.0 {
@@ -254,8 +254,8 @@ fn test_first_difference_subset() {
     assert_eq!(first_difference_subset(0, 13, &id1, &id2), (12, true));
 
     // ref. TestFirstDifferenceEqualByte4
-    let id1 = Id::from_slice(&vec![0x10]);
-    let id2 = Id::from_slice(&vec![0x00]);
+    let id1 = Id::from_slice(&[0x10]);
+    let id2 = Id::from_slice(&[0x00]);
 
     // println!("");
     // for c in &id1.0 {
@@ -278,8 +278,8 @@ fn test_first_difference_subset() {
 /// ref. TestFirstDifferenceEqualByte5
 #[test]
 fn test_first_difference_equal_byte_5() {
-    let id1 = Id::from_slice(&vec![0x20]);
-    let id2 = Id::from_slice(&vec![0x00]);
+    let id1 = Id::from_slice(&[0x20]);
+    let id2 = Id::from_slice(&[0x00]);
 
     // println!("");
     // for c in &id1.0 {
@@ -302,8 +302,8 @@ fn test_first_difference_equal_byte_5() {
 /// ref. TestFirstDifferenceSubsetMiddle
 #[test]
 fn test_first_difference_subset_middle() {
-    let id1 = Id::from_slice(&vec![0xf0, 0x0f, 0x11]);
-    let id2 = Id::from_slice(&vec![0xf0, 0x1f, 0xff]);
+    let id1 = Id::from_slice(&[0xf0, 0x0f, 0x11]);
+    let id2 = Id::from_slice(&[0xf0, 0x1f, 0xff]);
 
     // println!("");
     // for c in &id1.0 {
@@ -326,8 +326,8 @@ fn test_first_difference_subset_middle() {
 /// ref. TestFirstDifferenceVacuous
 #[test]
 fn test_first_difference_vacuous() {
-    let id1 = Id::from_slice(&vec![0xf0, 0x0f, 0x11]);
-    let id2 = Id::from_slice(&vec![0xf0, 0x1f, 0xff]);
+    let id1 = Id::from_slice(&[0xf0, 0x0f, 0x11]);
+    let id2 = Id::from_slice(&[0xf0, 0x1f, 0xff]);
 
     // println!("");
     // for c in &id1.0 {
@@ -459,7 +459,7 @@ impl std::fmt::Display for Set64 {
 #[test]
 fn test_bit_set() {
     let mut bs1 = Set64::new();
-    assert!(bs1.len() == 0);
+    assert!(bs1.is_empty());
 
     bs1.add(5);
     assert!(bs1.len() == 1);
@@ -476,7 +476,7 @@ fn test_bit_set() {
     assert!(bs1.contains(10));
 
     let mut bs2 = Set64::new();
-    assert!(bs2.len() == 0);
+    assert!(bs2.is_empty());
 
     bs2.add(0);
     assert!(bs2.len() == 1);
@@ -492,7 +492,7 @@ fn test_bit_set() {
     assert!(bs2.contains(10));
 
     bs1.clear();
-    assert!(bs1.len() == 0);
+    assert!(bs1.is_empty());
     assert!(bs2.len() == 3);
     assert!(bs2.contains(0));
     assert!(bs2.contains(5));

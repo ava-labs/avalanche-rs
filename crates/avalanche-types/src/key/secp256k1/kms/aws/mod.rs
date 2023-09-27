@@ -118,10 +118,10 @@ impl Key {
             });
         }
 
-        return Err(Error::API {
+        Err(Error::API {
             message: "public key not found".to_string(),
             retryable: false,
-        });
+        })
     }
 
     /// Schedules to delete the KMS key.
@@ -183,7 +183,7 @@ impl Key {
         // ref. <https://docs.aws.amazon.com/kms/latest/APIReference/API_Sign.html#KMS-Sign-response-Signature>
         let mut raw_der = Vec::new();
         loop {
-            round = round + 1;
+            round += 1;
             let elapsed = start.elapsed();
             if elapsed.gt(&self.retry_timeout) {
                 break;

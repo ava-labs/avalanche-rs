@@ -6,24 +6,24 @@ use std::io::{self, Error, ErrorKind};
 use ripemd::{Digest, Ripemd160};
 use sha3::Keccak256;
 
-#[cfg(all(not(windows)))]
+#[cfg(not(windows))]
 use ring::digest::{digest, SHA256};
 
-#[cfg(all(not(windows)))]
+#[cfg(not(windows))]
 pub const SHA256_OUTPUT_LEN: usize = ring::digest::SHA256_OUTPUT_LEN;
 
-#[cfg(all(windows))]
+#[cfg(windows)]
 pub const SHA256_OUTPUT_LEN: usize = 32;
 
 /// Returns SHA256 digest of the given data.
-#[cfg(all(not(windows)))]
+#[cfg(not(windows))]
 pub fn sha256(d: impl AsRef<[u8]>) -> Vec<u8> {
     digest(&SHA256, d.as_ref()).as_ref().into()
 }
 
 /// Returns SHA256 digest of the given data.
 /// TODO: implement this
-#[cfg(all(windows))]
+#[cfg(windows)]
 pub fn sha256(b: impl AsRef<[u8]>) -> Vec<u8> {
     panic!("unimplemented")
 }
@@ -41,7 +41,7 @@ where
     // acquire hash digest in the form of GenericArray,
     // which in this case is equivalent to [u8; 20]
     // already in "type ShortID [20]byte" format
-    let sha256_ripemd160 = Ripemd160::digest(&digest_sha256);
+    let sha256_ripemd160 = Ripemd160::digest(digest_sha256);
 
     // "ids.ToShortID" merely enforces "ripemd160" size!
     // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/ids#ToShortID
@@ -61,7 +61,7 @@ where
 /// RUST_LOG=debug cargo test --package avalanche-types --lib -- hash::test_sha256_ripemd160 --exact --show-output
 #[test]
 fn test_sha256_ripemd160() {
-    let d = sha256_ripemd160(&<Vec<u8>>::from([
+    let d = sha256_ripemd160(<Vec<u8>>::from([
         0x3d, 0x0a, 0xd1, 0x2b, 0x8e, 0xe8, 0x92, 0x8e, 0xdf, 0x24, //
         0x8c, 0xa9, 0x1c, 0xa5, 0x56, 0x00, 0xfb, 0x38, 0x3f, 0x07, //
         0xc3, 0x2b, 0xff, 0x1d, 0x6d, 0xec, 0x47, 0x2b, 0x25, 0xcf, //

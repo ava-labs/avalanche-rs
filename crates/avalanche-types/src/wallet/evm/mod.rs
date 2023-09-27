@@ -40,6 +40,7 @@ where
     /// ref. "ethers-signers::wallet::Wallet"
     /// ref. "ethers-signers::wallet::Wallet::sign_transaction_sync"
     /// ref. <https://github.com/giantbrain0216/ethers_rs/blob/master/ethers-middleware/tests/nonce_manager.rs>
+    #[allow(clippy::type_complexity)]
     pub middleware: Arc<
         NonceManagerMiddleware<
             SignerMiddleware<GasEscalatorMiddleware<Arc<Provider<RetryClient<Http>>>>, S>,
@@ -70,7 +71,6 @@ where
     /// Sets the chain RPC URLs (can be different than base HTTP URLs).
     /// e.g., "{base_http_url}/ext/bc/{chain_id_alias}/rpc"
     /// Set "chain_id_alias" to either "C" or subnet-evm chain Id.
-    #[must_use]
     pub fn evm<S>(&self, eth_signer: &S, chain_rpc_url: &str, chain_id: U256) -> Result<Evm<T, S>>
     where
         S: ethers_signers::Signer + Clone,
@@ -146,6 +146,7 @@ pub fn new_provider(
 }
 
 /// Make sure to not create multiple providers for the ease of nonce management.
+#[allow(clippy::type_complexity)]
 pub fn new_middleware<S>(
     provider: Arc<Provider<RetryClient<Http>>>,
     eth_signer: &S,

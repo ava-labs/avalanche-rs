@@ -40,7 +40,7 @@ async fn load_certificate_to_node_id() {
     assert!(is_set);
     let cli = Client::new(&ep).await;
 
-    let cert_paths = vec![
+    let cert_paths = [
         "../../crates/avalanche-types/artifacts/staker1.insecure.crt",
         "../../crates/avalanche-types/artifacts/staker2.insecure.crt",
         "../../crates/avalanche-types/artifacts/staker3.insecure.crt",
@@ -51,11 +51,11 @@ async fn load_certificate_to_node_id() {
     for (i, cert_path) in cert_paths.iter().enumerate() {
         log::debug!("[{}] loading certs", i);
 
-        let cert = cert_manager::x509::load_pem_cert_to_der(*cert_path)
+        let cert = cert_manager::x509::load_pem_cert_to_der(cert_path)
             .expect("failed load_pem_cert_to_der");
         log::debug!("cert: {} bytes", cert.0.len());
 
-        let node_id = node::Id::from_cert_pem_file(*cert_path).expect("failed from_cert_pem_file");
+        let node_id = node::Id::from_cert_pem_file(cert_path).expect("failed from_cert_pem_file");
         log::debug!("node id: {}", node_id);
 
         let resp = cli

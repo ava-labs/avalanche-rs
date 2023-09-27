@@ -91,7 +91,7 @@ impl Key {
         let bb = ep.as_bytes();
 
         let mut b = [0u8; LEN];
-        b.copy_from_slice(&bb);
+        b.copy_from_slice(bb);
         b
     }
 
@@ -112,7 +112,7 @@ impl Key {
     /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/utils/hashing#PubkeyBytesToAddress>
     pub fn to_short_id(&self) -> Result<crate::ids::short::Id> {
         let compressed = self.to_compressed_bytes();
-        short::Id::from_public_key_bytes(&compressed).map_err(|e| Error::Other {
+        short::Id::from_public_key_bytes(compressed).map_err(|e| Error::Other {
             message: format!("failed short::Id::from_public_key_bytes '{}'", e),
             retryable: false,
         })
@@ -123,7 +123,7 @@ impl Key {
     /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/utils/hashing#PubkeyBytesToAddress>
     pub fn to_short_bytes(&self) -> Result<Vec<u8>> {
         let compressed = self.to_compressed_bytes();
-        hash::sha256_ripemd160(&compressed).map_err(|e| Error::Other {
+        hash::sha256_ripemd160(compressed).map_err(|e| Error::Other {
             message: format!("failed to_short_bytes '{}'", e),
             retryable: false,
         })
@@ -272,7 +272,7 @@ fn test_public_key() {
     assert_eq!(pubkey2, pubkey3);
 
     let msg: Vec<u8> = random_manager::secure_bytes(100).unwrap();
-    let hashed = hash::sha256(&msg);
+    let hashed = hash::sha256(msg);
 
     let sig1 = pk1.sign_digest(&hashed).unwrap();
     assert_eq!(sig1.to_bytes().len(), crate::key::secp256k1::signature::LEN);
@@ -292,7 +292,7 @@ fn test_public_key() {
 
     // make sure H160 parses regardless of lower/upper case
     let eth_addr = pubkey1.to_eth_address();
-    let eth_to_h160 = H160::from_str(&eth_addr.trim_start_matches("0x")).unwrap();
+    let eth_to_h160 = H160::from_str(eth_addr.trim_start_matches("0x")).unwrap();
     assert_eq!(eth_to_h160, pubkey1.to_h160());
 
     let x_avax_addr = pubkey1.to_hrp_address(1, "X").unwrap();
@@ -327,9 +327,7 @@ fn test_key_serialization() {
 
     let pk = crate::key::secp256k1::private_key::Key::generate().unwrap();
     let pubkey = pk.to_public_key();
-    let d = Data {
-        key: pubkey.clone(),
-    };
+    let d = Data { key: pubkey };
 
     let json_encoded = serde_json::to_string(&d).unwrap();
     println!("json_encoded:\n{}", json_encoded);

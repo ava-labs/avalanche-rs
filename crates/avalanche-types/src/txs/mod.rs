@@ -35,12 +35,6 @@ pub struct Tx {
 
 impl Default for Tx {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl Tx {
-    pub fn default() -> Self {
         Self {
             metadata: None,
             network_id: 0,
@@ -50,7 +44,9 @@ impl Tx {
             memo: None,
         }
     }
+}
 
+impl Tx {
     pub fn type_name() -> String {
         "avm.BaseTx".to_string()
     }
@@ -487,19 +483,15 @@ pub struct Metadata {
 
 impl Default for Metadata {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl Metadata {
-    pub fn default() -> Self {
         Self {
             id: ids::Id::empty(),
             tx_bytes_with_no_signature: Vec::new(),
             tx_bytes_with_signatures: Vec::new(),
         }
     }
+}
 
+impl Metadata {
     pub fn new(tx_bytes_with_no_signature: &[u8], tx_bytes_with_signatures: &[u8]) -> Self {
         let id = hash::sha256(tx_bytes_with_signatures);
         let id = ids::Id::from_slice(&id);

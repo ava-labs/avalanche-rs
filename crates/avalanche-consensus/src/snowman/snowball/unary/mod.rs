@@ -96,37 +96,37 @@ fn test_snowflake() {
     snf.record_successful_poll();
     assert_eq!(snf.beta(), beta);
     assert_eq!(snf.confidence(), 1);
-    assert_eq!(snf.finalized(), false);
+    assert!(!snf.finalized());
 
     snf.record_unsuccessful_poll();
     assert_eq!(snf.beta(), beta);
     assert_eq!(snf.confidence(), 0);
-    assert_eq!(snf.finalized(), false);
+    assert!(!snf.finalized());
 
     // only one successful poll, so not finalized yet
     snf.record_successful_poll();
     assert_eq!(snf.beta(), beta);
     assert_eq!(snf.confidence(), 1);
-    assert_eq!(snf.finalized(), false);
+    assert!(!snf.finalized());
 
     // beta must've been reached
     // after two consecutive successful polls
     snf.record_successful_poll();
     assert_eq!(snf.beta(), beta);
     assert_eq!(snf.confidence(), 2);
-    assert_eq!(snf.finalized(), true);
+    assert!(snf.finalized());
 
     // "finalized" should not change once finalized before
     snf.record_unsuccessful_poll();
     assert_eq!(snf.beta(), beta);
     assert_eq!(snf.confidence(), 0);
-    assert_eq!(snf.finalized(), true);
+    assert!(snf.finalized());
 
     // "finalized" should not change once finalized before
     snf.record_successful_poll();
     assert_eq!(snf.beta(), beta);
     assert_eq!(snf.confidence(), 1);
-    assert_eq!(snf.finalized(), true);
+    assert!(snf.finalized());
 
     log::info!("{snf}");
 }
@@ -146,45 +146,45 @@ fn test_snowflake_extend() {
 
     snf.record_successful_poll();
     assert_eq!(snf.confidence(), 1);
-    assert_eq!(snf.finalized(), false);
+    assert!(!snf.finalized());
 
     snf.record_unsuccessful_poll();
     assert_eq!(snf.confidence(), 0);
-    assert_eq!(snf.finalized(), false);
+    assert!(!snf.finalized());
 
     // only one successful poll thus "not" finalized yet
     snf.record_successful_poll();
     assert_eq!(snf.confidence(), 1);
-    assert_eq!(snf.finalized(), false);
+    assert!(!snf.finalized());
 
     let snf_binary = snf.extend(beta, 0);
     assert_eq!(snf_binary.beta(), beta);
 
     snf_binary.record_unsuccessful_poll();
     snf_binary.record_successful_poll(1);
-    assert_eq!(snf_binary.finalized(), false);
+    assert!(!snf_binary.finalized());
 
     // two consecutive polls on the choice "1"
     // reaching the threshold "beta" 2, thus finalized
     snf_binary.record_successful_poll(1);
     assert_eq!(snf_binary.preference(), 1);
-    assert_eq!(snf_binary.finalized(), true);
+    assert!(snf_binary.finalized());
 
     log::info!("{snf_binary}");
 
     // one more consecutive successful thus finalized
     snf.record_successful_poll();
     assert_eq!(snf.confidence(), 2);
-    assert_eq!(snf.finalized(), true);
+    assert!(snf.finalized());
 
     // another unsucessful poll should NOT change the finalized state
     snf.record_unsuccessful_poll();
     assert_eq!(snf.confidence(), 0);
-    assert_eq!(snf.finalized(), true);
+    assert!(snf.finalized());
 
     snf.record_successful_poll();
     assert_eq!(snf.confidence(), 1);
-    assert_eq!(snf.finalized(), true);
+    assert!(snf.finalized());
 }
 
 /// Implements a unary snowball instance.
@@ -280,36 +280,36 @@ fn test_snowball_unary() {
 
     snb.record_successful_poll();
     assert_eq!(snb.confidence(), 1);
-    assert_eq!(snb.finalized(), false);
+    assert!(!snb.finalized());
     assert_eq!(snb.num_successful_polls(), 1);
 
     snb.record_unsuccessful_poll();
     assert_eq!(snb.confidence(), 0);
-    assert_eq!(snb.finalized(), false);
+    assert!(!snb.finalized());
     assert_eq!(snb.num_successful_polls(), 1);
 
     // total "two" successful but not consecutive
     // thus not finalized yet
     snb.record_successful_poll();
     assert_eq!(snb.confidence(), 1);
-    assert_eq!(snb.finalized(), false);
+    assert!(!snb.finalized());
     assert_eq!(snb.num_successful_polls(), 2);
 
     // "two" consecutive polls thus finalized
     snb.record_successful_poll();
     assert_eq!(snb.beta(), beta);
     assert_eq!(snb.confidence(), 2);
-    assert_eq!(snb.finalized(), true);
+    assert!(snb.finalized());
     assert_eq!(snb.num_successful_polls(), 3);
 
     // following unsuccessful poll should not change the finalized state
     snb.record_unsuccessful_poll();
     assert_eq!(snb.confidence(), 0);
-    assert_eq!(snb.finalized(), true);
+    assert!(snb.finalized());
 
     snb.record_successful_poll();
     assert_eq!(snb.confidence(), 1);
-    assert_eq!(snb.finalized(), true);
+    assert!(snb.finalized());
 
     log::info!("{snb}");
 }
@@ -329,17 +329,17 @@ fn test_snowball_extend() {
 
     snb.record_successful_poll();
     assert_eq!(snb.confidence(), 1);
-    assert_eq!(snb.finalized(), false);
+    assert!(!snb.finalized());
     assert_eq!(snb.num_successful_polls(), 1);
 
     snb.record_unsuccessful_poll();
     assert_eq!(snb.confidence(), 0);
-    assert_eq!(snb.finalized(), false);
+    assert!(!snb.finalized());
     assert_eq!(snb.num_successful_polls(), 1);
 
     snb.record_successful_poll();
     assert_eq!(snb.confidence(), 1);
-    assert_eq!(snb.finalized(), false);
+    assert!(!snb.finalized());
     assert_eq!(snb.num_successful_polls(), 2);
 
     let snb_binary = snb.extend(beta, 0);
@@ -347,7 +347,7 @@ fn test_snowball_extend() {
     assert_eq!(snb_binary.to_string(), "SB(Preference = 0, NumSuccessfulPolls[0] = 2, NumSuccessfulPolls[1] = 0, SF(Confidence = 1, Finalized = false, SL(Preference = 0)))");
     assert_eq!(snb_binary.beta(), beta);
     assert_eq!(snb_binary.confidence(), 1);
-    assert_eq!(snb_binary.finalized(), false);
+    assert!(!snb_binary.finalized());
     assert_eq!(snb_binary.preference(), 0);
     assert_eq!(snb_binary.num_successful_polls(0), 2);
     assert_eq!(snb_binary.num_successful_polls(1), 0);
@@ -355,7 +355,7 @@ fn test_snowball_extend() {
     snb_binary.record_unsuccessful_poll();
     for _ in 0..3 {
         assert_eq!(snb_binary.preference(), 0);
-        assert_eq!(snb_binary.finalized(), false);
+        assert!(!snb_binary.finalized());
 
         snb_binary.record_successful_poll(1);
         snb_binary.record_unsuccessful_poll();
@@ -363,7 +363,7 @@ fn test_snowball_extend() {
     assert_eq!(snb_binary.confidence(), 0);
 
     // no consecutive successful poll >= beta yet
-    assert_eq!(snb_binary.finalized(), false);
+    assert!(!snb_binary.finalized());
 
     assert_eq!(snb_binary.preference(), 1);
     assert_eq!(snb_binary.num_successful_polls(0), 2);
@@ -373,13 +373,13 @@ fn test_snowball_extend() {
     snb_binary.record_successful_poll(1);
     assert_eq!(snb_binary.preference(), 1);
     assert_eq!(snb_binary.confidence(), 1);
-    assert_eq!(snb_binary.finalized(), false);
+    assert!(!snb_binary.finalized());
 
     // two consecutive polls for the choice "1"
     snb_binary.record_successful_poll(1);
     assert_eq!(snb_binary.preference(), 1);
     assert_eq!(snb_binary.confidence(), 2);
-    assert_eq!(snb_binary.finalized(), true);
+    assert!(snb_binary.finalized());
 
     log::info!("{snb}");
     assert_eq!(

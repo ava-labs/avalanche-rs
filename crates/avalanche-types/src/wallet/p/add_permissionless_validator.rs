@@ -7,7 +7,7 @@ use crate::{
     jsonrpc::client::p as client_p,
     key, platformvm, txs, units,
 };
-use chrono::{DateTime, NaiveDateTime, Utc};
+use chrono::{DateTime, NaiveDateTime, TimeZone, Utc};
 use tokio::time::{sleep, Duration, Instant};
 
 /// Represents P-chain "AddPermissionlessValidator" transaction.
@@ -64,15 +64,15 @@ where
             .as_secs();
 
         let start_time = now_unix + 60;
-        let native_dt = NaiveDateTime::from_timestamp_opt(start_time as i64, 0).unwrap();
-        let start_time = DateTime::<Utc>::from_utc(native_dt, Utc);
+        let naive_dt = NaiveDateTime::from_timestamp_opt(start_time as i64, 0).unwrap();
+        let start_time = Utc.from_utc_datetime(&naive_dt);
 
         // 100-day
         // must be smaller than the primary network default
         // otherwise "staking period must be a subset of the primary network"
         let end_time = now_unix + 100 * 24 * 60 * 60;
-        let native_dt = NaiveDateTime::from_timestamp_opt(end_time as i64, 0).unwrap();
-        let end_time = DateTime::<Utc>::from_utc(native_dt, Utc);
+        let naive_dt = NaiveDateTime::from_timestamp_opt(end_time as i64, 0).unwrap();
+        let end_time = Utc.from_utc_datetime(&naive_dt);
 
         Self {
             inner: p.clone(),
@@ -135,14 +135,14 @@ where
             .as_secs();
 
         let start_time = now_unix + offset_seconds;
-        let native_dt = NaiveDateTime::from_timestamp_opt(start_time as i64, 0).unwrap();
-        let start_time = DateTime::<Utc>::from_utc(native_dt, Utc);
+        let naive_dt = NaiveDateTime::from_timestamp_opt(start_time as i64, 0).unwrap();
+        let start_time = Utc.from_utc_datetime(&naive_dt);
 
         // must be smaller than the primary network default
         // otherwise "staking period must be a subset of the primary network"
         let end_time = now_unix + days * 24 * 60 * 60;
-        let native_dt = NaiveDateTime::from_timestamp_opt(end_time as i64, 0).unwrap();
-        let end_time = DateTime::<Utc>::from_utc(native_dt, Utc);
+        let naive_dt = NaiveDateTime::from_timestamp_opt(end_time as i64, 0).unwrap();
+        let end_time = Utc.from_utc_datetime(&naive_dt);
 
         self.start_time = start_time;
         self.end_time = end_time;
@@ -263,7 +263,7 @@ where
                 ..Default::default()
             },
             validator: platformvm::txs::Validator {
-                node_id: self.node_id.clone(),
+                node_id: self.node_id,
                 start: self.start_time.timestamp() as u64,
                 end: self.end_time.timestamp() as u64,
                 weight: self.stake_amount,

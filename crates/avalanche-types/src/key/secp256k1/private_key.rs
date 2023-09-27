@@ -19,7 +19,7 @@ use lazy_static::lazy_static;
 use rand::{seq::SliceRandom, thread_rng};
 use sha2::Sha256;
 
-#[cfg(all(not(windows)))]
+#[cfg(not(windows))]
 use ring::rand::{SecureRandom, SystemRandom};
 
 /// The size (in bytes) of a secret key.
@@ -35,7 +35,7 @@ pub const CB58_ENCODE_PREFIX: &str = "PrivateKey-";
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Key((SecretKey, SigningKey));
 
-#[cfg(all(not(windows)))]
+#[cfg(not(windows))]
 fn secure_random() -> &'static dyn SecureRandom {
     use std::ops::Deref;
     lazy_static! {
@@ -46,7 +46,7 @@ fn secure_random() -> &'static dyn SecureRandom {
 
 impl Key {
     /// Generates a private key from random bytes.
-    #[cfg(all(not(windows)))]
+    #[cfg(not(windows))]
     pub fn generate() -> Result<Self> {
         let mut b = [0u8; LEN];
         secure_random().fill(&mut b).map_err(|e| Error::Other {
@@ -56,7 +56,7 @@ impl Key {
         Self::from_bytes(&b)
     }
 
-    #[cfg(all(windows))]
+    #[cfg(windows)]
     pub fn generate() -> Result<Self> {
         unimplemented!("not implemented")
     }
@@ -99,7 +99,7 @@ impl Key {
     /// Hex-encodes the raw private key to string with "0x" prefix (e.g., Ethereum).
     pub fn to_hex(&self) -> String {
         let b = self.0 .0.to_bytes();
-        let enc = hex::encode(&b);
+        let enc = hex::encode(b);
 
         let mut s = String::from(HEX_ENCODE_PREFIX);
         s.push_str(&enc);
@@ -217,7 +217,7 @@ impl Key {
         // ref. <https://github.com/RustCrypto/elliptic-curves/blob/k256/v0.13.0/k256/src/ecdsa.rs>
         // ref. <https://github.com/RustCrypto/elliptic-curves/blob/k256/v0.11.6/k256/src/ecdsa/sign.rs> "sign_prehash"
         let (sig, recid) = secret_scalar
-            .try_sign_prehashed_rfc6979::<Sha256>(&prehash, &[])
+            .try_sign_prehashed_rfc6979::<Sha256>(prehash, &[])
             .map_err(|e| Error::Other {
                 message: format!("failed try_sign_prehashed_rfc6979 '{}'", e),
                 retryable: false,
@@ -320,7 +320,7 @@ fn test_private_key() {
         .try_init();
 
     let msg: Vec<u8> = random_manager::secure_bytes(100).unwrap();
-    let hashed = hash::sha256(&msg);
+    let hashed = hash::sha256(msg);
 
     let pk1 = Key::generate().unwrap();
 

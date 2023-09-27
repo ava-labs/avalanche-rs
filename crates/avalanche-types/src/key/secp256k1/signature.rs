@@ -140,7 +140,7 @@ fn test_signature() {
     let pubkey = pk.to_public_key();
 
     let msg: Vec<u8> = random_manager::secure_bytes(100).unwrap();
-    let hashed = crate::hash::sha256(&msg);
+    let hashed = crate::hash::sha256(msg);
 
     let sig = pk.sign_digest(&hashed).unwrap();
     assert_eq!(sig.to_bytes().len(), crate::key::secp256k1::signature::LEN);
@@ -220,7 +220,7 @@ fn test_signature_serialization() {
     let pubkey = pk.to_public_key();
 
     let msg: Vec<u8> = random_manager::secure_bytes(100).unwrap();
-    let hashed = crate::hash::sha256(&msg);
+    let hashed = crate::hash::sha256(msg);
     let sig = pk.sign_digest(&hashed).unwrap();
     let d = Data { sig: sig.clone() };
 

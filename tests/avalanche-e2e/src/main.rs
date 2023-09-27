@@ -66,38 +66,28 @@ $ avalanche-e2e \
 
     match matches.subcommand() {
         Some((default_spec::NAME, sub_matches)) => {
-            let keys_to_generate = sub_matches
+            let keys_to_generate = *sub_matches
                 .get_one::<usize>("KEYS_TO_GENERATE")
-                .unwrap_or(&30)
-                .clone();
+                .unwrap_or(&30);
 
-            let network_id = sub_matches
-                .get_one::<u32>("NETWORK_ID")
-                .unwrap_or(&1337)
-                .clone();
+            let network_id = *sub_matches.get_one::<u32>("NETWORK_ID").unwrap_or(&1337);
 
             let network_runner_grpc_endpoint = {
-                if let Some(s) = sub_matches.get_one::<String>("NETWORK_RUNNER_GRPC_ENDPOINT") {
-                    Some(String::from(s))
-                } else {
-                    None
-                }
+                sub_matches
+                    .get_one::<String>("NETWORK_RUNNER_GRPC_ENDPOINT")
+                    .map(String::from)
             };
 
             let avalanchego_path = {
-                if let Some(s) = sub_matches.get_one::<String>("NETWORK_RUNNER_AVALANCHEGO_PATH") {
-                    Some(String::from(s))
-                } else {
-                    None
-                }
+                sub_matches
+                    .get_one::<String>("NETWORK_RUNNER_AVALANCHEGO_PATH")
+                    .map(String::from)
             };
 
             let avalanchego_rpc_endpoint = {
-                if let Some(s) = sub_matches.get_one::<String>("AVALANCHEGO_RPC_ENDPOINT") {
-                    Some(String::from(s))
-                } else {
-                    None
-                }
+                sub_matches
+                    .get_one::<String>("AVALANCHEGO_RPC_ENDPOINT")
+                    .map(String::from)
             };
 
             default_spec::execute(

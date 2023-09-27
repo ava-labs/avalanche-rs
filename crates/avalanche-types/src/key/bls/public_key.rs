@@ -6,7 +6,7 @@ use blst::min_pk::{AggregatePublicKey, PublicKey};
 
 /// Represents "blst::min_pk::PublicKey".
 /// By default, serializes as hex string.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct Key(pub PublicKey);
 
 pub const LEN: usize = 48;
@@ -51,18 +51,6 @@ impl Key {
     }
 }
 
-impl Default for Key {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl Key {
-    pub fn default() -> Self {
-        Self(PublicKey::default())
-    }
-}
-
 impl From<PublicKey> for Key {
     fn from(pubkey: PublicKey) -> Self {
         Self(pubkey)
@@ -76,7 +64,7 @@ impl From<Key> for PublicKey {
 }
 
 pub fn aggregate(pubkeys: &[Key]) -> io::Result<Key> {
-    let ss = pubkeys.into_iter().map(|s| &s.0).collect::<Vec<_>>();
+    let ss = pubkeys.iter().map(|s| &s.0).collect::<Vec<_>>();
 
     let agg_pubkey = AggregatePublicKey::aggregate(&ss, false).map_err(|e| {
         Error::new(
