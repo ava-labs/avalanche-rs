@@ -36,9 +36,7 @@ async fn main() -> io::Result<()> {
         .build()
         .await
         .unwrap();
-    let evm_wallet = w
-        .evm(&k1_signer, chain_rpc_url.as_str(), U256::from(chain_id))
-        .unwrap();
+    let evm_wallet = w.evm(&k1_signer, chain_rpc_url.as_str(), chain_id).unwrap();
 
     let c_bal = evm_wallet.balance().await.unwrap();
     let transfer_amount = c_bal.div(U256::from(10));

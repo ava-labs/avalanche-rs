@@ -155,27 +155,27 @@ fn test_snowflake() {
     let snf = Snowflake::new(beta, red, 0, false);
     assert_eq!(snf.beta(), beta);
     assert_eq!(snf.preference(), red);
-    assert_eq!(snf.finalized(), false, "finalized too early");
+    assert!(!snf.finalized(), "finalized too early");
 
     // slush changes its preference to "blue" on this successful poll
     snf.record_successful_poll(blue);
     assert_eq!(snf.preference(), blue);
-    assert_eq!(snf.finalized(), false, "finalized too early");
+    assert!(!snf.finalized(), "finalized too early");
 
     // slush changes its preference to "red" on this successful poll
     snf.record_successful_poll(red);
     assert_eq!(snf.preference(), red);
-    assert_eq!(snf.finalized(), false, "finalized too early");
+    assert!(!snf.finalized(), "finalized too early");
 
     // slush changes its preference to "blue" on this successful poll
     snf.record_successful_poll(blue);
     assert_eq!(snf.preference(), blue);
-    assert_eq!(snf.finalized(), false, "finalized too early");
+    assert!(!snf.finalized(), "finalized too early");
 
     // reaching the threshold of 2 with two consecutive polls
     snf.record_successful_poll(blue);
     assert_eq!(snf.preference(), blue);
-    assert_eq!(snf.finalized(), true, "didn't finalize correctly");
+    assert!(snf.finalized(), "didn't finalize correctly");
 
     log::info!("{snf}");
 }
@@ -284,27 +284,27 @@ fn test_snowball() {
     let snb = Snowball::new(Snowflake::new(beta, red, 0, false), red, [0, 0]);
     assert_eq!(snb.beta(), beta);
     assert_eq!(snb.preference(), red);
-    assert_eq!(snb.finalized(), false, "finalized too early");
+    assert!(!snb.finalized(), "finalized too early");
 
     // initial choice "red" count is 0,
     // thus one successful poll on "blue" should flip the preference
     snb.record_successful_poll(blue);
     assert_eq!(snb.preference(), blue);
-    assert_eq!(snb.finalized(), false, "finalized too early");
+    assert!(!snb.finalized(), "finalized too early");
 
     // preference is only updated when the count other is greater than current
     snb.record_successful_poll(red);
     assert_eq!(snb.preference(), blue);
-    assert_eq!(snb.finalized(), false, "finalized too early");
+    assert!(!snb.finalized(), "finalized too early");
 
     snb.record_successful_poll(blue);
     assert_eq!(snb.preference(), blue);
-    assert_eq!(snb.finalized(), false, "finalized too early");
+    assert!(!snb.finalized(), "finalized too early");
 
     // now confidence >= beta
     snb.record_successful_poll(blue);
     assert_eq!(snb.preference(), blue);
-    assert_eq!(snb.finalized(), true, "didn't finalize correctly");
+    assert!(snb.finalized(), "didn't finalize correctly");
 
     log::info!("{snb}");
 }
@@ -323,23 +323,23 @@ fn test_snowball_record_unsuccessful_poll() {
     let snb = Snowball::new(Snowflake::new(beta, red, 0, false), red, [0, 0]);
     assert_eq!(snb.beta(), beta);
     assert_eq!(snb.preference(), red);
-    assert_eq!(snb.finalized(), false);
+    assert!(!snb.finalized());
 
     // initial choice "red" count is 0,
     // thus one successful poll on "blue" should flip the preference
     snb.record_successful_poll(blue);
     assert_eq!(snb.preference(), blue);
-    assert_eq!(snb.finalized(), false, "finalized too early");
+    assert!(!snb.finalized(), "finalized too early");
 
     snb.record_unsuccessful_poll();
     snb.record_successful_poll(blue);
     assert_eq!(snb.preference(), blue);
-    assert_eq!(snb.finalized(), false, "finalized too early");
+    assert!(!snb.finalized(), "finalized too early");
 
     // now confidence >= beta
     snb.record_successful_poll(blue);
     assert_eq!(snb.preference(), blue);
-    assert_eq!(snb.finalized(), true, "finalized too late");
+    assert!(snb.finalized(), "finalized too late");
     assert_eq!(snb.num_successful_polls(red as usize), 0);
     assert_eq!(snb.num_successful_polls(blue as usize), 3);
 
@@ -361,27 +361,27 @@ fn test_snowball_accept_weird_color() {
     let snb = Snowball::new(Snowflake::new(beta, red, 0, false), red, [0, 0]);
     assert_eq!(snb.beta(), beta);
     assert_eq!(snb.preference(), red);
-    assert_eq!(snb.finalized(), false);
+    assert!(!snb.finalized());
 
     snb.record_successful_poll(red);
     snb.record_unsuccessful_poll();
     assert_eq!(snb.preference(), red);
-    assert_eq!(snb.finalized(), false, "finalized too early");
+    assert!(!snb.finalized(), "finalized too early");
 
     snb.record_successful_poll(red);
     snb.record_unsuccessful_poll();
     assert_eq!(snb.preference(), red);
-    assert_eq!(snb.finalized(), false, "finalized too early");
+    assert!(!snb.finalized(), "finalized too early");
 
     // preference is only updated when the count other is greater than current
     snb.record_successful_poll(blue);
     assert_eq!(snb.preference(), red);
-    assert_eq!(snb.finalized(), false, "finalized too early");
+    assert!(!snb.finalized(), "finalized too early");
 
     // now confidence >= beta
     snb.record_successful_poll(blue);
     assert_eq!(snb.preference(), blue);
-    assert_eq!(snb.finalized(), true, "finalized too late");
+    assert!(snb.finalized(), "finalized too late");
 
     log::info!("{snb}");
     assert_eq!(snb.to_string(), "SB(Preference = 1, NumSuccessfulPolls[0] = 2, NumSuccessfulPolls[1] = 2, SF(Confidence = 2, Finalized = true, SL(Preference = 0)))");
@@ -401,22 +401,22 @@ fn test_snowball_lock_color() {
     let snb = Snowball::new(Snowflake::new(beta, red, 0, false), red, [0, 0]);
     assert_eq!(snb.beta(), beta);
     assert_eq!(snb.preference(), red);
-    assert_eq!(snb.finalized(), false, "finalized too early");
+    assert!(!snb.finalized(), "finalized too early");
 
     // now confidence >= beta
     snb.record_successful_poll(red);
     assert_eq!(snb.preference(), red);
-    assert_eq!(snb.finalized(), true, "finalized too late");
+    assert!(snb.finalized(), "finalized too late");
 
     // cannot flip the preference once finalized
     snb.record_successful_poll(blue);
     assert_eq!(snb.preference(), red);
-    assert_eq!(snb.finalized(), true, "finalized too late");
+    assert!(snb.finalized(), "finalized too late");
 
     // cannot flip the preference once finalized
     snb.record_successful_poll(blue);
     assert_eq!(snb.preference(), red);
-    assert_eq!(snb.finalized(), true, "finalized too late");
+    assert!(snb.finalized(), "finalized too late");
 
     log::info!("{snb}");
     assert_eq!(snb.to_string(), "SB(Preference = 1, NumSuccessfulPolls[0] = 1, NumSuccessfulPolls[1] = 2, SF(Confidence = 1, Finalized = true, SL(Preference = 0)))");

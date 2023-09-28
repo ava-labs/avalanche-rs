@@ -30,12 +30,7 @@ pub fn cast_xp_navax_to_avax(navax: U256) -> u64 {
     if avaxs >= U256::from(u64::MAX) {
         u64::MAX
     } else {
-        let converted = avaxs.as_u64();
-        if converted >= u64::MAX as u64 {
-            u64::MAX
-        } else {
-            converted as u64
-        }
+        avaxs.as_u64()
     }
 }
 

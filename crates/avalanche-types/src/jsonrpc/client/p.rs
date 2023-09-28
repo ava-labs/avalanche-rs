@@ -23,13 +23,19 @@ pub async fn issue_tx(http_rpc: &str, tx: &str) -> Result<platformvm::IssueTxRes
     let url = url::try_create_url(url::Path::P, scheme.as_deref(), host.as_str(), port)?;
     log::info!("issuing a transaction via {url}");
 
-    let mut data = platformvm::IssueTxRequest::default();
-    data.method = String::from("platform.issueTx");
+    let method = String::from("platform.issueTx");
     let params = platformvm::IssueTxParams {
         tx: prefix_manager::prepend_0x(tx),
         encoding: String::from("hex"), // don't use "cb58"
+    }
+    .into();
+
+    let data = platformvm::IssueTxRequest {
+        method,
+        params,
+        ..Default::default()
     };
-    data.params = Some(params);
+
     let d = data.encode_json().map_err(|e| Error::Other {
         message: format!("failed encode_json '{}'", e),
         retryable: false,
@@ -88,12 +94,19 @@ pub async fn get_tx(http_rpc: &str, tx_id: &str) -> Result<platformvm::GetTxResp
     let url = url::try_create_url(url::Path::P, scheme.as_deref(), host.as_str(), port)?;
     log::info!("getting tx via {url}");
 
-    let mut data = jsonrpc::Request::default();
-    data.method = String::from("platform.getTx");
-    let mut params = HashMap::new();
-    params.insert(String::from("txID"), String::from(tx_id));
-    params.insert(String::from("encoding"), String::from("json")); // TODO: use "hex"?
-    data.params = Some(params);
+    let method = String::from("platform.getTx");
+    // TODO: use "hex"?
+    let params = HashMap::from([
+        (String::from("txID"), String::from(tx_id)),
+        (String::from("encoding"), String::from("json")),
+    ])
+    .into();
+
+    let data = jsonrpc::Request {
+        method,
+        params,
+        ..Default::default()
+    };
     let d = data.encode_json().map_err(|e| Error::Other {
         message: format!("failed encode_json '{}'", e),
         retryable: false,
@@ -152,11 +165,15 @@ pub async fn get_tx_status(http_rpc: &str, tx_id: &str) -> Result<platformvm::Ge
     let url = url::try_create_url(url::Path::P, scheme.as_deref(), host.as_str(), port)?;
     log::info!("getting tx status via {url}");
 
-    let mut data = jsonrpc::Request::default();
-    data.method = String::from("platform.getTxStatus");
-    let mut params = HashMap::new();
-    params.insert(String::from("txID"), String::from(tx_id));
-    data.params = Some(params);
+    let method = String::from("platform.getTxStatus");
+    let params = HashMap::from([(String::from("txID"), String::from(tx_id))]).into();
+
+    let data = jsonrpc::Request {
+        method,
+        params,
+        ..Default::default()
+    };
+
     let d = data.encode_json().map_err(|e| Error::Other {
         message: format!("failed encode_json '{}'", e),
         retryable: false,
@@ -215,11 +232,15 @@ pub async fn get_height(http_rpc: &str) -> Result<platformvm::GetHeightResponse>
     let url = url::try_create_url(url::Path::P, scheme.as_deref(), host.as_str(), port)?;
     log::info!("getting height via {url}");
 
-    let mut data = jsonrpc::Request::default();
-    data.method = String::from("platform.getHeight");
+    let method = String::from("platform.getHeight");
+    let params = HashMap::new().into();
 
-    let params = HashMap::new();
-    data.params = Some(params);
+    let data = jsonrpc::Request {
+        method,
+        params,
+        ..Default::default()
+    };
+
     let d = data.encode_json().map_err(|e| Error::Other {
         message: format!("failed encode_json '{}'", e),
         retryable: false,
@@ -279,11 +300,15 @@ pub async fn get_balance(http_rpc: &str, paddr: &str) -> Result<platformvm::GetB
     let url = url::try_create_url(url::Path::P, scheme.as_deref(), host.as_str(), port)?;
     log::info!("getting balance via {url} for {}", paddr);
 
-    let mut data = jsonrpc::RequestWithParamsHashMapToArray::default();
-    data.method = String::from("platform.getBalance");
-    let mut params = HashMap::new();
-    params.insert(String::from("addresses"), vec![paddr.to_string()]);
-    data.params = Some(params);
+    let method = String::from("platform.getBalance");
+    let params = HashMap::from([(String::from("addresses"), vec![paddr.to_string()])]).into();
+
+    let data = jsonrpc::RequestWithParamsHashMapToArray {
+        method,
+        params,
+        ..Default::default()
+    };
+
     let d = data.encode_json().map_err(|e| Error::Other {
         message: format!("failed encode_json '{}'", e),
         retryable: false,
@@ -342,14 +367,19 @@ pub async fn get_utxos(http_rpc: &str, paddr: &str) -> Result<platformvm::GetUtx
     let url = url::try_create_url(url::Path::P, scheme.as_deref(), host.as_str(), port)?;
     log::info!("getting UTXOs via {url} for {}", paddr);
 
-    let mut data = platformvm::GetUtxosRequest::default();
-    data.method = String::from("platform.getUTXOs");
+    let method = String::from("platform.getUTXOs");
     let params = platformvm::GetUtxosParams {
         addresses: vec![paddr.to_string()],
         limit: 100,
         encoding: String::from("hex"), // don't use "cb58"
+    }
+    .into();
+
+    let data = platformvm::GetUtxosRequest {
+        method,
+        params,
+        ..Default::default()
     };
-    data.params = Some(params);
     let d = data.encode_json().map_err(|e| Error::Other {
         message: format!("failed encode_json '{}'", e),
         retryable: false,
@@ -411,10 +441,14 @@ pub async fn get_primary_network_validators(
     let url = url::try_create_url(url::Path::P, scheme.as_deref(), host.as_str(), port)?;
     log::info!("getting primary network validators via {url}");
 
-    let mut data = jsonrpc::Request::default();
-    data.method = String::from("platform.getCurrentValidators");
-    let params = HashMap::new();
-    data.params = Some(params);
+    let method = String::from("platform.getCurrentValidators");
+    let params = HashMap::new().into();
+
+    let data = jsonrpc::Request {
+        method,
+        params,
+        ..Default::default()
+    };
     let d = data.encode_json().map_err(|e| Error::Other {
         message: format!("failed encode_json '{}'", e),
         retryable: false,
@@ -477,11 +511,15 @@ pub async fn get_subnet_validators(
     let url = url::try_create_url(url::Path::P, scheme.as_deref(), host.as_str(), port)?;
     log::info!("getting subnet validators via {url} for {subnet_id}");
 
-    let mut data = jsonrpc::Request::default();
-    data.method = String::from("platform.getCurrentValidators");
-    let mut params = HashMap::new();
-    params.insert(String::from("subnetID"), subnet_id.to_string());
-    data.params = Some(params);
+    let method = String::from("platform.getCurrentValidators");
+    let params = HashMap::from([(String::from("subnetID"), subnet_id.to_string())]).into();
+
+    let data = jsonrpc::Request {
+        method,
+        params,
+        ..Default::default()
+    };
+
     let d = data.encode_json().map_err(|e| Error::Other {
         message: format!("failed encode_json '{}'", e),
         retryable: false,
@@ -543,17 +581,20 @@ pub async fn get_subnets(
     let url = url::try_create_url(url::Path::P, scheme.as_deref(), host.as_str(), port)?;
     log::info!("getting subnets via {url}");
 
-    let mut data = jsonrpc::RequestWithParamsHashMapToArray::default();
-    data.method = String::from("platform.getSubnets");
-    let mut ids = Vec::new();
-    if let Some(ss) = &subnet_ids {
-        for id in ss.iter() {
-            ids.push(id.to_string());
-        }
-    }
-    let mut params = HashMap::new();
-    params.insert(String::from("ids"), ids);
-    data.params = Some(params);
+    let method = String::from("platform.getSubnets");
+
+    let ids = subnet_ids
+        .iter()
+        .flat_map(|ids| ids.iter().map(|id| id.to_string()))
+        .collect();
+    let params = HashMap::from([(String::from("ids"), ids)]).into();
+
+    let data = jsonrpc::RequestWithParamsHashMapToArray {
+        method,
+        params,
+        ..Default::default()
+    };
+
     let d = data.encode_json().map_err(|e| Error::Other {
         message: format!("failed encode_json '{}'", e),
         retryable: false,
@@ -612,10 +653,14 @@ pub async fn get_blockchains(http_rpc: &str) -> Result<platformvm::GetBlockchain
     let url = url::try_create_url(url::Path::P, scheme.as_deref(), host.as_str(), port)?;
     log::info!("getting blockchain via {url}");
 
-    let mut data = jsonrpc::Request::default();
-    data.method = String::from("platform.getBlockchains");
-    let params = HashMap::new();
-    data.params = Some(params);
+    let method = String::from("platform.getBlockchains");
+    let params = HashMap::new().into();
+    let data = jsonrpc::Request {
+        method,
+        params,
+        ..Default::default()
+    };
+
     let d = data.encode_json().map_err(|e| Error::Other {
         message: format!("failed encode_json '{}'", e),
         retryable: false,
@@ -677,11 +722,15 @@ pub async fn get_blockchain_status(
     let url = url::try_create_url(url::Path::P, scheme.as_deref(), host.as_str(), port)?;
     log::info!("getting blockchain status via {url} for {blockchain_id}");
 
-    let mut data = jsonrpc::Request::default();
-    data.method = String::from("platform.getBlockchainStatus");
-    let mut params = HashMap::new();
-    params.insert(String::from("blockchainID"), blockchain_id.to_string());
-    data.params = Some(params);
+    let method = String::from("platform.getBlockchainStatus");
+    let params = HashMap::from([(String::from("blockchainID"), blockchain_id.to_string())]).into();
+
+    let data = jsonrpc::Request {
+        method,
+        params,
+        ..Default::default()
+    };
+
     let d = data.encode_json().map_err(|e| Error::Other {
         message: format!("failed encode_json '{}'", e),
         retryable: false,

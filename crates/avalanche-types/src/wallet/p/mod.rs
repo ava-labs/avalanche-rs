@@ -404,10 +404,10 @@ where
             ));
         }
 
-        return Err(Error::Other {
+        Err(Error::Other {
             message: "empty get tx result".to_string(),
             retryable: false,
-        });
+        })
     }
 
     /// Subnet validators must validate the primary network.

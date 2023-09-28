@@ -26,15 +26,11 @@ pub struct Id([u8; LEN]);
 
 impl Default for Id {
     fn default() -> Self {
-        Self::default()
+        Self::empty()
     }
 }
 
 impl Id {
-    pub fn default() -> Self {
-        Id([0; LEN])
-    }
-
     pub fn empty() -> Self {
         Id([0; LEN])
     }

@@ -58,12 +58,6 @@ pub struct Spec {
 
 impl Default for Spec {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl Spec {
-    pub fn default() -> Self {
         Self {
             rpc_endpoint_kind: String::from(RPC_ENDPOINT_KIND_NETWORK_RUNNER_RPC_SERVER),
             rpc_endpoints: Vec::new(),
@@ -92,17 +86,17 @@ impl Spec {
             status: None,
         }
     }
+}
 
+impl Spec {
     /// Converts to string in YAML format.
     pub fn encode_yaml(&self) -> io::Result<String> {
         match serde_yaml::to_string(&self) {
             Ok(s) => Ok(s),
-            Err(e) => {
-                return Err(Error::new(
-                    ErrorKind::Other,
-                    format!("failed to serialize Spec to YAML {}", e),
-                ));
-            }
+            Err(e) => Err(Error::new(
+                ErrorKind::Other,
+                format!("failed to serialize Spec to YAML {}", e),
+            )),
         }
     }
 
@@ -135,15 +129,14 @@ impl Spec {
             ));
         }
 
-        let f = File::open(&file_path).map_err(|e| {
-            return Error::new(
+        let f = File::open(file_path).map_err(|e| {
+            Error::new(
                 ErrorKind::Other,
                 format!("failed to open {} ({})", file_path, e),
-            );
+            )
         })?;
-        serde_yaml::from_reader(f).map_err(|e| {
-            return Error::new(ErrorKind::InvalidInput, format!("invalid YAML: {}", e));
-        })
+        serde_yaml::from_reader(f)
+            .map_err(|e| Error::new(ErrorKind::InvalidInput, format!("invalid YAML: {}", e)))
     }
 
     /// Validates the spec.

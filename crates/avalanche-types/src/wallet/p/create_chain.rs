@@ -149,7 +149,7 @@ where
             subnet_auth,
             ..Default::default()
         };
-        tx.sign(vec![signers, subnet_signers].concat()).await?;
+        tx.sign([signers, subnet_signers].concat()).await?;
 
         if self.dry_mode {
             return Ok(tx.base_tx.metadata.unwrap().id);

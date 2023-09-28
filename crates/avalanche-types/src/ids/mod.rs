@@ -41,15 +41,11 @@ pub struct Id([u8; LEN]);
 
 impl Default for Id {
     fn default() -> Self {
-        Self::default()
+        Self::empty()
     }
 }
 
 impl Id {
-    pub fn default() -> Self {
-        Id([0; LEN])
-    }
-
     pub fn empty() -> Self {
         Id([0; LEN])
     }
@@ -342,9 +338,9 @@ fn test_serialize() {
         ids: Vec<Id>,
     }
     let d = Data {
-        id: id.clone(),
-        id2: Some(id.clone()),
-        ids: vec![id.clone(), id.clone(), id.clone(), id.clone(), id.clone()],
+        id,
+        id2: Some(id),
+        ids: vec![id, id, id, id, id],
     };
 
     let yaml_encoded = serde_yaml::to_string(&d).unwrap();

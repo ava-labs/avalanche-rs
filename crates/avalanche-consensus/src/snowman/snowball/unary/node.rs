@@ -145,7 +145,7 @@ impl Node {
 
             // this node was only voting over one bit (case #2)
             // e.g., inserting "1" to "0" returns a binary choice
-            if self.decided_prefix() as i64 == self.common_prefix() - 1 {
+            if self.decided_prefix() == self.common_prefix() - 1 {
                 match bit {
                     bits::Bit::Zero => {
                         b.child0 = self.child.clone();
@@ -301,7 +301,7 @@ impl Node {
         // Now that I have passed my votes to my child,
         // I don't need to reset them
         self.should_reset.set(false);
-        return (snowball::Node::Unary(self.clone()), true);
+        (snowball::Node::Unary(self.clone()), true)
     }
 }
 

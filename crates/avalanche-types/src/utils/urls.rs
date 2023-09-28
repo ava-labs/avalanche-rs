@@ -2,6 +2,7 @@ use std::io::{self, Error, ErrorKind};
 
 use url::Url;
 
+#[allow(clippy::type_complexity)]
 pub fn extract_scheme_host_port_path_chain_alias(
     s: &str,
 ) -> io::Result<(
@@ -18,6 +19,7 @@ pub fn extract_scheme_host_port_path_chain_alias(
     parse_url(s)
 }
 
+#[allow(clippy::type_complexity)]
 fn parse_url(
     s: &str,
 ) -> io::Result<(
@@ -27,7 +29,7 @@ fn parse_url(
     Option<String>,
     Option<String>,
 )> {
-    let url = Url::parse(&s).map_err(|e| {
+    let url = Url::parse(s).map_err(|e| {
         Error::new(
             ErrorKind::InvalidInput,
             format!("failed Url::parse '{}'", e),
@@ -40,11 +42,7 @@ fn parse_url(
         return Err(Error::new(ErrorKind::InvalidInput, "no host found"));
     };
 
-    let port = if let Some(port) = url.port() {
-        Some(port)
-    } else {
-        None // e.g., DNS
-    };
+    let port = url.port();
 
     let (path, chain_alias) = if url.path().is_empty() || url.path() == "/" {
         (None, None)

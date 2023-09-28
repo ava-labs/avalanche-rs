@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/avm#ExportTx>
 ///
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/avm#UnsignedTx>
-#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone)]
+#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone, Default)]
 pub struct Tx {
     /// The transaction ID is empty for unsigned tx
     /// as long as "avax.BaseTx.Metadata" is "None".
@@ -24,22 +24,7 @@ pub struct Tx {
     pub fx_creds: Vec<fx::Credential>,
 }
 
-impl Default for Tx {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
 impl Tx {
-    pub fn default() -> Self {
-        Self {
-            base_tx: txs::Tx::default(),
-            destination_chain_id: ids::Id::default(),
-            destination_chain_transferable_outputs: None,
-            fx_creds: Vec::new(),
-        }
-    }
-
     pub fn new(base_tx: txs::Tx) -> Self {
         Self {
             base_tx,
@@ -228,11 +213,12 @@ impl Tx {
                 sigs.push(Vec::from(sig));
             }
 
-            let mut cred = key::secp256k1::txs::Credential::default();
-            cred.signatures = sigs;
+            let cred = key::secp256k1::txs::Credential { signatures: sigs };
 
-            let mut fx_cred = fx::Credential::default();
-            fx_cred.cred = cred;
+            let fx_cred = fx::Credential {
+                cred,
+                ..Default::default()
+            };
 
             // add a new credential to "Tx"
             self.fx_creds.push(fx_cred);

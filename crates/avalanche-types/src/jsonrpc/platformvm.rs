@@ -28,12 +28,6 @@ pub struct IssueTxRequest {
 
 impl Default for IssueTxRequest {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl IssueTxRequest {
-    pub fn default() -> Self {
         Self {
             jsonrpc: String::from(super::DEFAULT_VERSION),
             id: super::DEFAULT_ID,
@@ -41,6 +35,9 @@ impl IssueTxRequest {
             params: None,
         }
     }
+}
+
+impl IssueTxRequest {
     pub fn encode_json(&self) -> io::Result<String> {
         serde_json::to_string(&self)
             .map_err(|e| Error::new(ErrorKind::Other, format!("failed to serialize JSON {}", e)))
@@ -68,12 +65,6 @@ pub struct IssueTxResponse {
 
 impl Default for IssueTxResponse {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl IssueTxResponse {
-    pub fn default() -> Self {
         Self {
             jsonrpc: "2.0".to_string(),
             id: 1,
@@ -92,12 +83,6 @@ pub struct IssueTxResult {
 
 impl Default for IssueTxResult {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl IssueTxResult {
-    pub fn default() -> Self {
         Self {
             tx_id: ids::Id::empty(),
         }
@@ -150,12 +135,6 @@ pub struct GetTxResponse {
 
 impl Default for GetTxResponse {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl GetTxResponse {
-    pub fn default() -> Self {
         Self {
             jsonrpc: "2.0".to_string(),
             id: 1,
@@ -166,25 +145,10 @@ impl GetTxResponse {
 }
 
 /// ref. <https://docs.avax.network/apis/avalanchego/apis/p-chain/#platformgettx>
-#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone)]
+#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone, Default)]
 pub struct GetTxResult {
     pub tx: platformvm::txs::Tx,
     pub encoding: String,
-}
-
-impl Default for GetTxResult {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl GetTxResult {
-    pub fn default() -> Self {
-        Self {
-            tx: platformvm::txs::Tx::default(),
-            encoding: String::new(),
-        }
-    }
 }
 
 /// RUST_LOG=debug cargo test --package avalanche-types --lib -- jsonrpc::platformvm::test_get_tx --exact --show-output
@@ -273,12 +237,6 @@ pub struct GetTxStatusResponse {
 
 impl Default for GetTxStatusResponse {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl GetTxStatusResponse {
-    pub fn default() -> Self {
         Self {
             jsonrpc: "2.0".to_string(),
             id: 1,
@@ -298,12 +256,6 @@ pub struct GetTxStatusResult {
 
 impl Default for GetTxStatusResult {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl GetTxStatusResult {
-    pub fn default() -> Self {
         Self {
             status: platformvm::txs::status::Status::Unknown(String::new()),
         }
@@ -354,22 +306,10 @@ pub struct GetHeightResponse {
 
 /// ref. <https://docs.avax.network/build/avalanchego-apis/p-chain/#platformgetheight>
 #[serde_as]
-#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone)]
+#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone, Default)]
 pub struct GetHeightResult {
     #[serde_as(as = "DisplayFromStr")]
     pub height: u64,
-}
-
-impl Default for GetHeightResult {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl GetHeightResult {
-    pub fn default() -> Self {
-        Self { height: 0 }
-    }
 }
 
 /// RUST_LOG=debug cargo test --package avalanche-types --lib -- jsonrpc::platformvm::test_get_height --exact --show-output
@@ -414,12 +354,6 @@ pub struct GetUtxosRequest {
 
 impl Default for GetUtxosRequest {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl GetUtxosRequest {
-    pub fn default() -> Self {
         Self {
             jsonrpc: String::from(super::DEFAULT_VERSION),
             id: super::DEFAULT_ID,
@@ -427,7 +361,9 @@ impl GetUtxosRequest {
             params: None,
         }
     }
+}
 
+impl GetUtxosRequest {
     pub fn encode_json(&self) -> io::Result<String> {
         serde_json::to_string(&self)
             .map_err(|e| Error::new(ErrorKind::Other, format!("failed to serialize JSON {}", e)))
@@ -460,6 +396,7 @@ pub struct GetUtxosResponse {
 #[serde_as]
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
+#[derive(Default)]
 pub struct GetUtxosResult {
     #[serde_as(as = "DisplayFromStr")]
     pub num_fetched: u32,
@@ -472,23 +409,6 @@ pub struct GetUtxosResult {
     pub end_index: Option<super::EndIndex>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub encoding: Option<String>,
-}
-
-impl Default for GetUtxosResult {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl GetUtxosResult {
-    pub fn default() -> Self {
-        Self {
-            num_fetched: 0,
-            utxos: None,
-            end_index: None,
-            encoding: None,
-        }
-    }
 }
 
 /// RUST_LOG=debug cargo test --package avalanche-types --lib -- jsonrpc::platformvm::test_get_utxos_empty --exact --show-output
@@ -595,7 +515,7 @@ pub struct GetBalanceResponse {
 
 /// ref. <https://docs.avax.network/build/avalanchego-apis/p-chain/#platformgetbalance>
 #[serde_as]
-#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone)]
+#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone, Default)]
 pub struct GetBalanceResult {
     #[serde_as(as = "DisplayFromStr")]
     pub balance: u64,
@@ -619,26 +539,6 @@ pub struct GetBalanceResult {
 
     #[serde(rename = "utxoIDs", skip_serializing_if = "Option::is_none")]
     pub utxo_ids: Option<Vec<txs::utxo::Id>>,
-}
-
-impl Default for GetBalanceResult {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl GetBalanceResult {
-    pub fn default() -> Self {
-        Self {
-            balance: 0,
-            unlocked: 0,
-            locked_stakeable: None,
-            locked_not_stakeable: None,
-            balances: None,
-            unlockeds: None,
-            utxo_ids: None,
-        }
-    }
 }
 
 /// RUST_LOG=debug cargo test --package avalanche-types --lib -- jsonrpc::platformvm::test_get_balance --exact --show-output
@@ -734,12 +634,6 @@ pub struct GetCurrentValidatorsResponse {
 
 impl Default for GetCurrentValidatorsResponse {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl GetCurrentValidatorsResponse {
-    pub fn default() -> Self {
         Self {
             jsonrpc: "2.0".to_string(),
             id: 1,
@@ -751,22 +645,10 @@ impl GetCurrentValidatorsResponse {
 
 /// ref. <https://docs.avax.network/apis/avalanchego/apis/p-chain#platformgetcurrentvalidators>
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/platformvm#ClientPermissionlessValidator>
-#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Default)]
 pub struct GetCurrentValidatorsResult {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub validators: Option<Vec<ApiPrimaryValidator>>,
-}
-
-impl Default for GetCurrentValidatorsResult {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl GetCurrentValidatorsResult {
-    pub fn default() -> Self {
-        Self { validators: None }
-    }
 }
 
 /// ref. <https://docs.avax.network/apis/avalanchego/apis/p-chain#platformgetpendingvalidators>
@@ -871,12 +753,6 @@ pub struct ApiPrimaryValidator {
 
 impl Default for ApiPrimaryValidator {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl ApiPrimaryValidator {
-    pub fn default() -> Self {
         Self {
             tx_id: ids::Id::empty(),
             start_time: 0,
@@ -900,29 +776,13 @@ impl ApiPrimaryValidator {
 
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/platformvm#APIOwner>
 #[serde_as]
-#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone)]
+#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone, Default)]
 pub struct ApiOwner {
     #[serde_as(as = "DisplayFromStr")]
     pub locktime: u64,
     #[serde_as(as = "DisplayFromStr")]
     pub threshold: u32,
     pub addresses: Vec<String>,
-}
-
-impl Default for ApiOwner {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl ApiOwner {
-    pub fn default() -> Self {
-        Self {
-            locktime: 0,
-            threshold: 0,
-            addresses: Vec::new(),
-        }
-    }
 }
 
 /// ref. <https://docs.avax.network/apis/avalanchego/apis/p-chain#platformgetcurrentvalidators>
@@ -956,12 +816,6 @@ pub struct ApiPrimaryDelegator {
 
 impl Default for ApiPrimaryDelegator {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl ApiPrimaryDelegator {
-    pub fn default() -> Self {
         Self {
             tx_id: ids::Id::empty(),
             start_time: 0,
@@ -1195,7 +1049,7 @@ fn test_get_pending_validators() {
 
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/platformvm#APIUTXO>
 #[serde_as]
-#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone)]
+#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone, Default)]
 pub struct ApiUtxo {
     #[serde_as(as = "DisplayFromStr")]
     pub locktime: u64,
@@ -1204,23 +1058,6 @@ pub struct ApiUtxo {
 
     pub address: String,
     pub message: Option<String>,
-}
-
-impl Default for ApiUtxo {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl ApiUtxo {
-    pub fn default() -> Self {
-        Self {
-            locktime: 0,
-            amount: 0,
-            address: String::new(),
-            message: None,
-        }
-    }
 }
 
 /// ref. <https://docs.avax.network/apis/avalanchego/apis/p-chain#platformgetsubnets>
@@ -1237,22 +1074,10 @@ pub struct GetSubnetsResponse {
 }
 
 /// ref. <https://docs.avax.network/apis/avalanchego/apis/p-chain#platformgetsubnets>
-#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone)]
+#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone, Default)]
 pub struct GetSubnetsResult {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub subnets: Option<Vec<Subnet>>,
-}
-
-impl Default for GetSubnetsResult {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl GetSubnetsResult {
-    pub fn default() -> Self {
-        Self { subnets: None }
-    }
 }
 
 #[serde_as]
@@ -1269,12 +1094,6 @@ pub struct Subnet {
 
 impl Default for Subnet {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl Subnet {
-    pub fn default() -> Self {
         Self {
             id: ids::Id::empty(),
             control_keys: None,
@@ -1325,7 +1144,6 @@ fn test_get_subnets() {
                     ids::short::Id::from_str("Aiz4eEt5xv9t4NCnAWaQJFNz5ABqLtJkR").unwrap(),
                 ]),
                 threshold: 2,
-                ..Subnet::default()
             }]),
         }),
         error: None,
@@ -1347,22 +1165,10 @@ pub struct GetBlockchainsResponse {
 }
 
 /// ref. <https://docs.avax.network/apis/avalanchego/apis/p-chain#platformgetblockchains>
-#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone)]
+#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone, Default)]
 pub struct GetBlockchainsResult {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub blockchains: Option<Vec<Blockchain>>,
-}
-
-impl Default for GetBlockchainsResult {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl GetBlockchainsResult {
-    pub fn default() -> Self {
-        Self { blockchains: None }
-    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone, PartialOrd, Ord, Hash)]
@@ -1377,12 +1183,6 @@ pub struct Blockchain {
 
 impl Default for Blockchain {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl Blockchain {
-    pub fn default() -> Self {
         Self {
             id: ids::Id::empty(),
             name: String::new(),
@@ -1448,7 +1248,6 @@ fn test_get_blockchains() {
                     .unwrap(),
                     vm_id: ids::Id::from_str("srEXiWaHuhNyGwPUi444Tu47ZEDwxTWrbQiuD7FmgSAQ6X7Dy")
                         .unwrap(),
-                    ..Blockchain::default()
                 },
                 Blockchain {
                     id: ids::Id::from_str("27sJotKt62mibBwKFAwxvCKn8KEbdvk4Bn3nFSVJSZebrxMfdU")
@@ -1457,7 +1256,6 @@ fn test_get_blockchains() {
                     subnet_id: ids::Id::empty(),
                     vm_id: ids::Id::from_str("mgj786NP7uDwBCcq6YwThhaN8FLyybkCa4zBWTQbNgmK6k9A6")
                         .unwrap(),
-                    ..Blockchain::default()
                 },
                 Blockchain {
                     id: ids::Id::from_str("2oYMBNV4eNHyqk2fjjV5nVQLDbtmNJzq5s3qs3Lo6ftnC6FByM")
@@ -1466,7 +1264,6 @@ fn test_get_blockchains() {
                     subnet_id: ids::Id::empty(),
                     vm_id: ids::Id::from_str("jvYyfQTxGMJLuGWa55kdP2p2zSUYsQ5Raupu4TW34ZAUBAbtq")
                         .unwrap(),
-                    ..Blockchain::default()
                 },
             ]),
         }),
@@ -1489,12 +1286,6 @@ pub struct GetBlockchainStatusRequest {
 
 impl Default for GetBlockchainStatusRequest {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl GetBlockchainStatusRequest {
-    pub fn default() -> Self {
         Self {
             jsonrpc: String::from(super::DEFAULT_VERSION),
             id: super::DEFAULT_ID,
@@ -1502,7 +1293,9 @@ impl GetBlockchainStatusRequest {
             params: None,
         }
     }
+}
 
+impl GetBlockchainStatusRequest {
     pub fn encode_json(&self) -> io::Result<String> {
         serde_json::to_string(&self)
             .map_err(|e| Error::new(ErrorKind::Other, format!("failed to serialize JSON {}", e)))
@@ -1529,12 +1322,6 @@ pub struct GetBlockchainStatusResponse {
 
 impl Default for GetBlockchainStatusResponse {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl GetBlockchainStatusResponse {
-    pub fn default() -> Self {
         Self {
             jsonrpc: "2.0".to_string(),
             id: 1,
@@ -1545,23 +1332,9 @@ impl GetBlockchainStatusResponse {
 }
 
 /// ref. <https://docs.avax.network/apis/avalanchego/apis/p-chain#platformissuetx>
-#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone)]
+#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone, Default)]
 pub struct GetBlockchainStatusResult {
     pub status: String,
-}
-
-impl Default for GetBlockchainStatusResult {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl GetBlockchainStatusResult {
-    pub fn default() -> Self {
-        Self {
-            status: String::new(),
-        }
-    }
 }
 
 /// RUST_LOG=debug cargo test --package avalanche-types --lib -- jsonrpc::platformvm::test_get_blockchain_status --exact --show-output

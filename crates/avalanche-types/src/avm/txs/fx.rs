@@ -11,12 +11,6 @@ pub struct Credential {
 
 impl Default for Credential {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl Credential {
-    pub fn default() -> Self {
         Self {
             fx_id: ids::Id::empty(),
             cred: key::secp256k1::txs::Credential::default(),

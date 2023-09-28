@@ -134,19 +134,19 @@ fn test_encode_hex_with_checksum() {
     let d: Vec<u8> = Vec::new();
     let hashed = encode_hex_with_checksum(&d);
     assert_eq!(hashed, "7852b855");
-    let decoded = decode_hex_with_checksum(&hashed.as_bytes()).unwrap();
+    let decoded = decode_hex_with_checksum(hashed.as_bytes()).unwrap();
     assert_eq!(d, decoded);
 
     let d: Vec<u8> = vec![0];
     let hashed = encode_hex_with_checksum(&d);
     assert_eq!(hashed, "0017afa01d");
-    let decoded = decode_hex_with_checksum(&hashed.as_bytes()).unwrap();
+    let decoded = decode_hex_with_checksum(hashed.as_bytes()).unwrap();
     assert_eq!(d, decoded);
 
     let d: Vec<u8> = vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 255];
     let hashed = encode_hex_with_checksum(&d);
     assert_eq!(hashed, "00010203040506070809ff4482539c");
-    let decoded = decode_hex_with_checksum(&hashed.as_bytes()).unwrap();
+    let decoded = decode_hex_with_checksum(hashed.as_bytes()).unwrap();
     assert_eq!(d, decoded);
 
     let d: Vec<u8> = vec![
@@ -158,7 +158,7 @@ fn test_encode_hex_with_checksum() {
         hashed,
         "0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20b7a612c9"
     );
-    let decoded = decode_hex_with_checksum(&hashed.as_bytes()).unwrap();
+    let decoded = decode_hex_with_checksum(hashed.as_bytes()).unwrap();
     assert_eq!(d, decoded);
 }
 

@@ -466,8 +466,7 @@ where
 
             let (parent_kahn, previously_seen) = {
                 let kahn = self.kahn_nodes.borrow_mut().remove(&parent_blk_id);
-                if kahn.is_some() {
-                    let kahn = kahn.unwrap();
+                if let Some(kahn) = kahn {
                     kahn.votes.add_count(&vote, num_votes);
 
                     // if the parent block already had registered votes,
@@ -762,13 +761,14 @@ where
             .as_ref()
             .expect("unexpected None children for SnowmanBlock");
         let mut borrowed_mut_children = children.borrow_mut();
-        let child_blk = borrowed_mut_children.get_mut(&preference).expect(
-            format!(
-                "missing child in SnowmanBlock for preference {}",
-                preference
-            )
-            .as_str(),
-        );
+        let child_blk = borrowed_mut_children
+            .get_mut(&preference)
+            .unwrap_or_else(|| {
+                panic!(
+                    "missing child in SnowmanBlock for preference {}",
+                    preference
+                )
+            });
 
         log::info!("accepting the block {}", preference);
         child_blk.borrow_mut().accept()?;
@@ -937,7 +937,7 @@ fn test_topological_initialize() {
     assert_eq!(tp.preference(), genesis_id);
     assert_eq!(tp.height(), genesis_height);
 
-    assert_eq!(tp.finalized(), true);
+    assert!(tp.finalized());
 }
 
 /// RUST_LOG=debug cargo test --package avalanche-consensus --lib -- snowman::topological::test_topological_num_processing --exact --show-output
@@ -977,7 +977,7 @@ fn test_topological_num_processing() {
     let blk_id = Id::empty().prefix(&[1]).unwrap();
     let blk = TestBlock::new(
         TestDecidable::new(blk_id, Status::Processing),
-        genesis_id.clone(),
+        genesis_id,
         Ok(()),
         Bytes::new(),
         genesis_height + 1,
@@ -3012,7 +3012,7 @@ fn test_topological_error_on_decided_block() {
     assert!(res.is_err());
     match res {
         Ok(_) => panic!("unexpected Ok"),
-        Err(e) => assert!(e.contains(&"duplicate block add")),
+        Err(e) => assert!(e.contains("duplicate block add")),
     }
 }
 
@@ -3073,7 +3073,7 @@ fn test_topological_error_on_add_duplicate_block_id() {
     assert!(res.is_err());
     match res {
         Ok(_) => panic!("unexpected Ok"),
-        Err(e) => assert!(e.contains(&"duplicate block add")),
+        Err(e) => assert!(e.contains("duplicate block add")),
     }
 }
 

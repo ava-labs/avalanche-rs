@@ -14,7 +14,7 @@ use serde_with::serde_as;
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/components/verify#Verifiable>
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/secp256k1fx#Credential>
 #[serde_as]
-#[derive(Debug, Serialize, Deserialize, Eq, Clone)]
+#[derive(Debug, Serialize, Deserialize, Eq, Clone, Default)]
 pub struct Credential {
     /// Signatures, each must be length of 65.
     /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/utils/crypto#SECP256K1RSigLen>
@@ -22,19 +22,7 @@ pub struct Credential {
     pub signatures: Vec<Vec<u8>>,
 }
 
-impl Default for Credential {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
 impl Credential {
-    pub fn default() -> Self {
-        Self {
-            signatures: Vec::new(),
-        }
-    }
-
     pub fn new(sigs: Vec<Vec<u8>>) -> Self {
         Self { signatures: sigs }
     }
@@ -233,28 +221,14 @@ impl PartialEq for SigIndices {
 
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/platformvm/fx#Owner>
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/secp256k1fx#OutputOwners>
-#[derive(Debug, Serialize, Deserialize, Eq, Clone)]
+#[derive(Debug, Serialize, Deserialize, Eq, Clone, Default)]
 pub struct OutputOwners {
     pub locktime: u64,
     pub threshold: u32,
     pub addresses: Vec<short::Id>,
 }
 
-impl Default for OutputOwners {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
 impl OutputOwners {
-    pub fn default() -> Self {
-        Self {
-            locktime: 0,
-            threshold: 0,
-            addresses: Vec::new(),
-        }
-    }
-
     pub fn new(locktime: u64, threshold: u32, addrs: &[short::Id]) -> Self {
         Self {
             locktime,
@@ -306,27 +280,27 @@ fn test_sort_output_owners() {
             locktime: i as u64,
             threshold: i as u32,
             addresses: vec![
-                short::Id::from_slice(&vec![i as u8, 1, 2, 3]),
-                short::Id::from_slice(&vec![i as u8, 2, 2, 3]),
+                short::Id::from_slice(&[i as u8, 1, 2, 3]),
+                short::Id::from_slice(&[i as u8, 2, 2, 3]),
             ],
         });
         owners.push(OutputOwners {
             locktime: i as u64,
             threshold: i as u32,
             addresses: vec![
-                short::Id::from_slice(&vec![i as u8, 1, 2, 3]),
-                short::Id::from_slice(&vec![i as u8, 1, 2, 3]),
+                short::Id::from_slice(&[i as u8, 1, 2, 3]),
+                short::Id::from_slice(&[i as u8, 1, 2, 3]),
             ],
         });
         owners.push(OutputOwners {
             locktime: i as u64,
             threshold: i as u32,
-            addresses: vec![short::Id::from_slice(&vec![i as u8, 2, 2, 3])],
+            addresses: vec![short::Id::from_slice(&[i as u8, 2, 2, 3])],
         });
         owners.push(OutputOwners {
             locktime: i as u64,
             threshold: i as u32,
-            addresses: vec![short::Id::from_slice(&vec![i as u8, 1, 2, 3])],
+            addresses: vec![short::Id::from_slice(&[i as u8, 1, 2, 3])],
         });
     }
     assert!(!cmp_manager::is_sorted_and_unique(&owners));
@@ -337,27 +311,27 @@ fn test_sort_output_owners() {
         sorted_owners.push(OutputOwners {
             locktime: i as u64,
             threshold: i as u32,
-            addresses: vec![short::Id::from_slice(&vec![i as u8, 1, 2, 3])],
+            addresses: vec![short::Id::from_slice(&[i as u8, 1, 2, 3])],
         });
         sorted_owners.push(OutputOwners {
             locktime: i as u64,
             threshold: i as u32,
-            addresses: vec![short::Id::from_slice(&vec![i as u8, 2, 2, 3])],
+            addresses: vec![short::Id::from_slice(&[i as u8, 2, 2, 3])],
         });
         sorted_owners.push(OutputOwners {
             locktime: i as u64,
             threshold: i as u32,
             addresses: vec![
-                short::Id::from_slice(&vec![i as u8, 1, 2, 3]),
-                short::Id::from_slice(&vec![i as u8, 1, 2, 3]),
+                short::Id::from_slice(&[i as u8, 1, 2, 3]),
+                short::Id::from_slice(&[i as u8, 1, 2, 3]),
             ],
         });
         sorted_owners.push(OutputOwners {
             locktime: i as u64,
             threshold: i as u32,
             addresses: vec![
-                short::Id::from_slice(&vec![i as u8, 1, 2, 3]),
-                short::Id::from_slice(&vec![i as u8, 2, 2, 3]),
+                short::Id::from_slice(&[i as u8, 1, 2, 3]),
+                short::Id::from_slice(&[i as u8, 2, 2, 3]),
             ],
         });
     }
@@ -366,24 +340,12 @@ fn test_sort_output_owners() {
 }
 
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/secp256k1fx#Input>
-#[derive(Debug, Serialize, Deserialize, Eq, Clone)]
+#[derive(Debug, Serialize, Deserialize, Eq, Clone, Default)]
 pub struct Input {
     pub sig_indices: Vec<u32>,
 }
 
-impl Default for Input {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
 impl Input {
-    pub fn default() -> Self {
-        Self {
-            sig_indices: Vec::new(),
-        }
-    }
-
     pub fn new(sig_indices: Vec<u32>) -> Self {
         Self { sig_indices }
     }

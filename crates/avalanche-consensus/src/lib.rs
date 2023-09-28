@@ -56,13 +56,7 @@ pub struct Parameters {
 
 impl Default for Parameters {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl Parameters {
-    /// ref. "avalanchego/config/flags.go"
-    pub fn default() -> Self {
+        // ref. "avalanchego/config/flags.go"
         Self {
             k: 20,
             alpha: 15,

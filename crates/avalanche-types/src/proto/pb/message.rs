@@ -2,15 +2,15 @@
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Message {
-    #[prost(oneof="message::Message", tags="1")]
+    #[prost(oneof = "message::Message", tags = "1")]
     pub message: ::core::option::Option<message::Message>,
 }
 /// Nested message and enum types in `Message`.
 pub mod message {
     #[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Oneof)]
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Message {
-        #[prost(message, tag="1")]
+        #[prost(message, tag = "1")]
         Tx(super::Tx),
     }
 }
@@ -18,7 +18,7 @@ pub mod message {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Tx {
     /// The byte representation of this transaction.
-    #[prost(bytes="bytes", tag="1")]
+    #[prost(bytes = "bytes", tag = "1")]
     pub tx: ::prost::bytes::Bytes,
 }
 /// Encoded file descriptor set for the `message` package

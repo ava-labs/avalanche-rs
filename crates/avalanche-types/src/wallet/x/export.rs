@@ -131,7 +131,7 @@ where
         let outputs: Vec<txs::transferable::Output> = vec![
             // receiver
             txs::transferable::Output {
-                asset_id: self.inner.inner.avax_asset_id.clone(),
+                asset_id: self.inner.inner.avax_asset_id,
                 transfer_output: Some(key::secp256k1::txs::transfer::Output {
                     amount: self.amount,
                     output_owners: key::secp256k1::txs::OutputOwners {
@@ -171,7 +171,7 @@ where
 
                 inputs.push(txs::transferable::Input {
                     utxo_id: utxo.utxo_id.clone(),
-                    asset_id: utxo.asset_id.clone(),
+                    asset_id: utxo.asset_id,
                     transfer_input: Some(input),
                     ..Default::default()
                 });
@@ -187,7 +187,7 @@ where
                 if remaining_amount > 0 {
                     // this input had extra value, so some must be returned
                     change_outputs.push(txs::transferable::Output {
-                        asset_id: self.inner.inner.avax_asset_id.clone(),
+                        asset_id: self.inner.inner.avax_asset_id,
                         transfer_output: Some(key::secp256k1::txs::transfer::Output {
                             amount: remaining_amount,
                             output_owners: key::secp256k1::txs::OutputOwners {
@@ -221,12 +221,12 @@ where
         let mut tx = avm::txs::export::Tx {
             base_tx: txs::Tx {
                 network_id: self.inner.inner.network_id,
-                blockchain_id: self.inner.inner.blockchain_id_x.clone(),
+                blockchain_id: self.inner.inner.blockchain_id_x,
                 transferable_outputs: Some(change_outputs),
                 transferable_inputs: Some(inputs.clone()),
                 ..Default::default()
             },
-            destination_chain_id: self.destination_blockchain_id.clone(),
+            destination_chain_id: self.destination_blockchain_id,
             destination_chain_transferable_outputs: Some(outputs),
             ..Default::default()
         };

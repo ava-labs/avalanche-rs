@@ -25,12 +25,6 @@ pub struct Id {
 
 impl Default for Id {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl Id {
-    pub fn default() -> Self {
         Self {
             tx_id: ids::Id::empty(),
             output_index: 0,
@@ -38,7 +32,9 @@ impl Id {
             id: ids::Id::empty(),
         }
     }
+}
 
+impl Id {
     pub fn new(tx_id: &[u8], output_index: u32, symbol: bool) -> Result<Self> {
         let tx_id = ids::Id::from_slice(tx_id);
         let prefixes: Vec<u64> = vec![output_index as u64];
@@ -81,12 +77,12 @@ fn test_sort_utxo_ids() {
     let mut utxos: Vec<Id> = Vec::new();
     for i in (0..10).rev() {
         utxos.push(Id {
-            tx_id: ids::Id::from_slice(&vec![i as u8, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
+            tx_id: ids::Id::from_slice(&[i as u8, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
             output_index: (i + 1) as u32,
             ..Id::default()
         });
         utxos.push(Id {
-            tx_id: ids::Id::from_slice(&vec![i as u8, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
+            tx_id: ids::Id::from_slice(&[i as u8, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
             output_index: i as u32,
             ..Id::default()
         });
@@ -97,12 +93,12 @@ fn test_sort_utxo_ids() {
     let mut sorted_utxos: Vec<Id> = Vec::new();
     for i in 0..10 {
         sorted_utxos.push(Id {
-            tx_id: ids::Id::from_slice(&vec![i as u8, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
+            tx_id: ids::Id::from_slice(&[i as u8, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
             output_index: i as u32,
             ..Id::default()
         });
         sorted_utxos.push(Id {
-            tx_id: ids::Id::from_slice(&vec![i as u8, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
+            tx_id: ids::Id::from_slice(&[i as u8, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
             output_index: (i + 1) as u32,
             ..Id::default()
         });
@@ -156,12 +152,6 @@ pub struct Utxo {
 
 impl Default for Utxo {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl Utxo {
-    pub fn default() -> Self {
         Self {
             utxo_id: Id::default(),
             asset_id: ids::Id::empty(),
@@ -169,7 +159,9 @@ impl Utxo {
             stakeable_lock_out: None,
         }
     }
+}
 
+impl Utxo {
     /// Hex-encodes the Utxo with the prepended "0x".
     pub fn to_hex(&self) -> Result<String> {
         let packer = self.pack(codec::VERSION)?;
@@ -283,8 +275,10 @@ impl Utxo {
                 // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/secp256k1fx#TransferOutput
                 let _type_id_secp256k1fx_transfer_output = packer.unpack_u32()?;
 
-                let mut so = platformvm::txs::StakeableLockOut::default();
-                so.locktime = stakeable_lock_out_locktime;
+                let so = platformvm::txs::StakeableLockOut {
+                    locktime: stakeable_lock_out_locktime,
+                    ..Default::default()
+                };
 
                 Some(so)
             } else {

@@ -16,7 +16,7 @@ where
     let s = String::deserialize(deserializer)?;
     let s = s.trim_start_matches("0x");
 
-    U256::from_str_radix(&s, 16).map_err(serde::de::Error::custom)
+    U256::from_str_radix(s, 16).map_err(serde::de::Error::custom)
 }
 
 pub struct Hex0xU256(U256);
@@ -38,7 +38,7 @@ impl<'de> DeserializeAs<'de, U256> for Hex0xU256 {
         let s = String::deserialize(deserializer)?;
         let s = s.trim_start_matches("0x");
 
-        U256::from_str_radix(&s, 16).map_err(serde::de::Error::custom)
+        U256::from_str_radix(s, 16).map_err(serde::de::Error::custom)
     }
 }
 

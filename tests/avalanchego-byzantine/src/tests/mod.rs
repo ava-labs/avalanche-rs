@@ -169,7 +169,7 @@ async fn byzantine() {
 
         conflicting_inputs.push(txs::transferable::Input {
             utxo_id: utxo.utxo_id.clone(),
-            asset_id: utxo.asset_id.clone(),
+            asset_id: utxo.asset_id,
             transfer_input: Some(input),
             ..Default::default()
         });
@@ -195,7 +195,7 @@ async fn byzantine() {
         let outputs = vec![
             // receiver
             txs::transferable::Output {
-                asset_id: asset_id.clone(),
+                asset_id,
                 transfer_output: Some(key::secp256k1::txs::transfer::Output {
                     amount: x_transfer_amount,
                     output_owners: key::secp256k1::txs::OutputOwners {
@@ -208,7 +208,7 @@ async fn byzantine() {
             },
             // sender
             txs::transferable::Output {
-                asset_id: asset_id.clone(),
+                asset_id,
                 transfer_output: Some(key::secp256k1::txs::transfer::Output {
                     amount: x_bal - x_transfer_amount - tx_fee,
                     output_owners: key::secp256k1::txs::OutputOwners {
@@ -222,7 +222,7 @@ async fn byzantine() {
         ];
         base_txs.push(txs::Tx {
             network_id,
-            blockchain_id: x_chain_blockchain_id.clone(),
+            blockchain_id: x_chain_blockchain_id,
             transferable_outputs: Some(outputs),
             transferable_inputs: Some(conflicting_inputs.clone()),
             ..Default::default()
@@ -247,7 +247,7 @@ async fn byzantine() {
     }
     let mut vtx = vertex::Vertex {
         codec_version: 0,
-        chain_id: x_chain_blockchain_id.clone(),
+        chain_id: x_chain_blockchain_id,
         height: 0,
         epoch: 0,
         parent_ids: Vec::new(),
@@ -298,7 +298,7 @@ async fn byzantine() {
 
     log::info!("sending test push query message");
     let msg = message::push_query::Message::default()
-        .chain_id(x_chain_blockchain_id.clone())
+        .chain_id(x_chain_blockchain_id)
         .request_id(random_manager::u32())
         .deadline(random_manager::u64())
         .container(vtx_bytes.as_ref().to_vec());

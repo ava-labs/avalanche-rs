@@ -40,6 +40,6 @@ fn main() {
     }
 
     let d = serde_json::to_vec(&infos).unwrap();
-    let mut f = File::create(&file_path).unwrap();
+    let mut f = File::create(file_path).unwrap();
     f.write_all(&d).unwrap();
 }
