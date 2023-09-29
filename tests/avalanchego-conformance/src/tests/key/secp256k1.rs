@@ -174,7 +174,7 @@ async fn load() {
     let cli = Client::new(&ep).await;
 
     let key_files =
-        vec!["../../crates/avalanche-types/artifacts/test.insecure.secp256k1.key.infos.json"];
+        ["../../crates/avalanche-types/artifacts/test.insecure.secp256k1.key.infos.json"];
     for key_file in key_files.iter() {
         log::info!("reading key file {}", key_file);
         let d = read_vec(key_file).expect("failed to read key json file");

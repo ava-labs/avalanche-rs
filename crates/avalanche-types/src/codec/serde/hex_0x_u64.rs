@@ -15,7 +15,7 @@ where
     let s = String::deserialize(deserializer)?;
     let s = s.trim_start_matches("0x");
 
-    u64::from_str_radix(&s, 16).map_err(serde::de::Error::custom)
+    u64::from_str_radix(s, 16).map_err(serde::de::Error::custom)
 }
 
 pub struct Hex0xU64(u64);
@@ -37,7 +37,7 @@ impl<'de> DeserializeAs<'de, u64> for Hex0xU64 {
         let s = String::deserialize(deserializer)?;
         let s = s.trim_start_matches("0x");
 
-        u64::from_str_radix(&s, 16).map_err(serde::de::Error::custom)
+        u64::from_str_radix(s, 16).map_err(serde::de::Error::custom)
     }
 }
 

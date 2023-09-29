@@ -14,7 +14,7 @@ pub struct Signer {
 
 impl Signer {
     pub fn new(inner: super::Key, chain_id: primitive_types::U256) -> Result<Self> {
-        let address: Address = inner.to_public_key().to_h160().into();
+        let address: Address = inner.to_public_key().to_h160();
         Ok(Self {
             inner,
             chain_id,
@@ -34,7 +34,7 @@ impl Signer {
 }
 
 #[async_trait]
-impl<'a> ethers_signers::Signer for Signer {
+impl ethers_signers::Signer for Signer {
     type Error = aws_manager::errors::Error;
 
     /// Implements "eth_sign" using "ethers_core::utils::hash_message".

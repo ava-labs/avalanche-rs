@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/platformvm/txs#CreateSubnetTx>
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/platformvm/txs#Tx>
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/platformvm/txs#UnsignedTx>
-#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone)]
+#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone, Default)]
 pub struct Tx {
     /// The transaction ID is empty for unsigned tx
     /// as long as "avax.BaseTx.Metadata" is "None".
@@ -17,21 +17,7 @@ pub struct Tx {
     pub creds: Vec<key::secp256k1::txs::Credential>,
 }
 
-impl Default for Tx {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
 impl Tx {
-    pub fn default() -> Self {
-        Self {
-            base_tx: txs::Tx::default(),
-            owner: key::secp256k1::txs::OutputOwners::default(),
-            creds: Vec::new(),
-        }
-    }
-
     pub fn new(base_tx: txs::Tx) -> Self {
         Self {
             base_tx,
@@ -112,8 +98,7 @@ impl Tx {
                 sigs.push(Vec::from(sig));
             }
 
-            let mut cred = key::secp256k1::txs::Credential::default();
-            cred.signatures = sigs;
+            let cred = key::secp256k1::txs::Credential { signatures: sigs };
 
             // add a new credential to "Tx"
             self.creds.push(cred);

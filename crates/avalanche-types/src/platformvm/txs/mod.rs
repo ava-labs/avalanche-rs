@@ -19,27 +19,12 @@ use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 
 /// ref. <https://docs.avax.network/apis/avalanchego/apis/p-chain#platformgettx>
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone, Default)]
 pub struct Tx {
     #[serde(rename = "unsignedTx")]
     pub unsigned_tx: UnsignedTx,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub credentials: Option<Vec<key::secp256k1::txs::Credential>>,
-}
-
-impl Default for Tx {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl Tx {
-    pub fn default() -> Self {
-        Self {
-            unsigned_tx: UnsignedTx::default(),
-            credentials: None,
-        }
-    }
 }
 
 /// ref. <https://docs.avax.network/apis/avalanchego/apis/p-chain#platformgettx>
@@ -66,12 +51,6 @@ pub struct UnsignedTx {
 
 impl Default for UnsignedTx {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl UnsignedTx {
-    pub fn default() -> Self {
         Self {
             network_id: 0,
             blockchain_id: ids::Id::empty(),
@@ -166,26 +145,13 @@ fn test_json_deserialize() {
 }
 
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/platformvm#StakeableLockIn>
-#[derive(Debug, Serialize, Deserialize, Eq, Clone)]
+#[derive(Debug, Serialize, Deserialize, Eq, Clone, Default)]
 pub struct StakeableLockIn {
     pub locktime: u64,
     pub transfer_input: key::secp256k1::txs::transfer::Input,
 }
 
-impl Default for StakeableLockIn {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
 impl StakeableLockIn {
-    pub fn default() -> Self {
-        Self {
-            locktime: 0,
-            transfer_input: key::secp256k1::txs::transfer::Input::default(),
-        }
-    }
-
     pub fn type_name() -> String {
         "platformvm.StakeableLockIn".to_string()
     }
@@ -290,26 +256,13 @@ fn test_sort_stakeable_lock_ins() {
 }
 
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/platformvm#StakeableLockOut>
-#[derive(Debug, Serialize, Deserialize, Eq, Clone)]
+#[derive(Debug, Serialize, Deserialize, Eq, Clone, Default)]
 pub struct StakeableLockOut {
     pub locktime: u64,
     pub transfer_output: key::secp256k1::txs::transfer::Output,
 }
 
-impl Default for StakeableLockOut {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
 impl StakeableLockOut {
-    pub fn default() -> Self {
-        Self {
-            locktime: 0,
-            transfer_output: key::secp256k1::txs::transfer::Output::default(),
-        }
-    }
-
     pub fn type_name() -> String {
         "platformvm.StakeableLockOut".to_string()
     }
@@ -355,10 +308,9 @@ fn test_sort_stakeable_lock_outs() {
                     locktime: (i + 1) as u64,
                     threshold: (i + 1) as u32,
                     addresses: vec![
-                        short::Id::from_slice(&vec![i as u8, 1, 2, 3, 4, 5]),
-                        short::Id::from_slice(&vec![i as u8, 2, 2, 3, 4, 5]),
+                        short::Id::from_slice(&[i as u8, 1, 2, 3, 4, 5]),
+                        short::Id::from_slice(&[i as u8, 2, 2, 3, 4, 5]),
                     ],
-                    ..key::secp256k1::txs::OutputOwners::default()
                 },
             },
         });
@@ -370,10 +322,9 @@ fn test_sort_stakeable_lock_outs() {
                     locktime: (i + 1) as u64,
                     threshold: (i + 1) as u32,
                     addresses: vec![
-                        short::Id::from_slice(&vec![i as u8, 1, 2, 3, 4, 5]),
-                        short::Id::from_slice(&vec![i as u8, 1, 2, 3, 4, 5]),
+                        short::Id::from_slice(&[i as u8, 1, 2, 3, 4, 5]),
+                        short::Id::from_slice(&[i as u8, 1, 2, 3, 4, 5]),
                     ],
-                    ..key::secp256k1::txs::OutputOwners::default()
                 },
             },
         });
@@ -384,8 +335,7 @@ fn test_sort_stakeable_lock_outs() {
                 output_owners: key::secp256k1::txs::OutputOwners {
                     locktime: (i + 1) as u64,
                     threshold: (i + 1) as u32,
-                    addresses: vec![short::Id::from_slice(&vec![i as u8, 1, 2, 3, 4, 5])],
-                    ..key::secp256k1::txs::OutputOwners::default()
+                    addresses: vec![short::Id::from_slice(&[i as u8, 1, 2, 3, 4, 5])],
                 },
             },
         });
@@ -396,8 +346,7 @@ fn test_sort_stakeable_lock_outs() {
                 output_owners: key::secp256k1::txs::OutputOwners {
                     locktime: (i + 1) as u64,
                     threshold: i as u32,
-                    addresses: vec![short::Id::from_slice(&vec![i as u8, 1, 2, 3, 4, 5])],
-                    ..key::secp256k1::txs::OutputOwners::default()
+                    addresses: vec![short::Id::from_slice(&[i as u8, 1, 2, 3, 4, 5])],
                 },
             },
         });
@@ -408,8 +357,7 @@ fn test_sort_stakeable_lock_outs() {
                 output_owners: key::secp256k1::txs::OutputOwners {
                     locktime: i as u64,
                     threshold: i as u32,
-                    addresses: vec![short::Id::from_slice(&vec![i as u8, 1, 2, 3, 4, 5])],
-                    ..key::secp256k1::txs::OutputOwners::default()
+                    addresses: vec![short::Id::from_slice(&[i as u8, 1, 2, 3, 4, 5])],
                 },
             },
         });
@@ -420,8 +368,7 @@ fn test_sort_stakeable_lock_outs() {
                 output_owners: key::secp256k1::txs::OutputOwners {
                     locktime: i as u64,
                     threshold: i as u32,
-                    addresses: vec![short::Id::from_slice(&vec![i as u8, 1, 2, 3, 4, 5])],
-                    ..key::secp256k1::txs::OutputOwners::default()
+                    addresses: vec![short::Id::from_slice(&[i as u8, 1, 2, 3, 4, 5])],
                 },
             },
         });
@@ -438,8 +385,7 @@ fn test_sort_stakeable_lock_outs() {
                 output_owners: key::secp256k1::txs::OutputOwners {
                     locktime: i as u64,
                     threshold: i as u32,
-                    addresses: vec![short::Id::from_slice(&vec![i as u8, 1, 2, 3, 4, 5])],
-                    ..key::secp256k1::txs::OutputOwners::default()
+                    addresses: vec![short::Id::from_slice(&[i as u8, 1, 2, 3, 4, 5])],
                 },
             },
         });
@@ -450,8 +396,7 @@ fn test_sort_stakeable_lock_outs() {
                 output_owners: key::secp256k1::txs::OutputOwners {
                     locktime: i as u64,
                     threshold: i as u32,
-                    addresses: vec![short::Id::from_slice(&vec![i as u8, 1, 2, 3, 4, 5])],
-                    ..key::secp256k1::txs::OutputOwners::default()
+                    addresses: vec![short::Id::from_slice(&[i as u8, 1, 2, 3, 4, 5])],
                 },
             },
         });
@@ -462,8 +407,7 @@ fn test_sort_stakeable_lock_outs() {
                 output_owners: key::secp256k1::txs::OutputOwners {
                     locktime: (i + 1) as u64,
                     threshold: i as u32,
-                    addresses: vec![short::Id::from_slice(&vec![i as u8, 1, 2, 3, 4, 5])],
-                    ..key::secp256k1::txs::OutputOwners::default()
+                    addresses: vec![short::Id::from_slice(&[i as u8, 1, 2, 3, 4, 5])],
                 },
             },
         });
@@ -474,23 +418,7 @@ fn test_sort_stakeable_lock_outs() {
                 output_owners: key::secp256k1::txs::OutputOwners {
                     locktime: (i + 1) as u64,
                     threshold: (i + 1) as u32,
-                    addresses: vec![short::Id::from_slice(&vec![i as u8, 1, 2, 3, 4, 5])],
-                    ..key::secp256k1::txs::OutputOwners::default()
-                },
-            },
-        });
-        sorted_outs.push(StakeableLockOut {
-            locktime: i as u64,
-            transfer_output: key::secp256k1::txs::transfer::Output {
-                amount: (i + 1) as u64,
-                output_owners: key::secp256k1::txs::OutputOwners {
-                    locktime: (i + 1) as u64,
-                    threshold: (i + 1) as u32,
-                    addresses: vec![
-                        short::Id::from_slice(&vec![i as u8, 1, 2, 3, 4, 5]),
-                        short::Id::from_slice(&vec![i as u8, 1, 2, 3, 4, 5]),
-                    ],
-                    ..key::secp256k1::txs::OutputOwners::default()
+                    addresses: vec![short::Id::from_slice(&[i as u8, 1, 2, 3, 4, 5])],
                 },
             },
         });
@@ -502,10 +430,23 @@ fn test_sort_stakeable_lock_outs() {
                     locktime: (i + 1) as u64,
                     threshold: (i + 1) as u32,
                     addresses: vec![
-                        short::Id::from_slice(&vec![i as u8, 1, 2, 3, 4, 5]),
-                        short::Id::from_slice(&vec![i as u8, 2, 2, 3, 4, 5]),
+                        short::Id::from_slice(&[i as u8, 1, 2, 3, 4, 5]),
+                        short::Id::from_slice(&[i as u8, 1, 2, 3, 4, 5]),
                     ],
-                    ..key::secp256k1::txs::OutputOwners::default()
+                },
+            },
+        });
+        sorted_outs.push(StakeableLockOut {
+            locktime: i as u64,
+            transfer_output: key::secp256k1::txs::transfer::Output {
+                amount: (i + 1) as u64,
+                output_owners: key::secp256k1::txs::OutputOwners {
+                    locktime: (i + 1) as u64,
+                    threshold: (i + 1) as u32,
+                    addresses: vec![
+                        short::Id::from_slice(&[i as u8, 1, 2, 3, 4, 5]),
+                        short::Id::from_slice(&[i as u8, 2, 2, 3, 4, 5]),
+                    ],
                 },
             },
         });
@@ -527,12 +468,6 @@ pub struct Validator {
 
 impl Default for Validator {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl Validator {
-    pub fn default() -> Self {
         Self {
             node_id: node::Id::empty(),
             start: 0,

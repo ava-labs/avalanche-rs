@@ -24,12 +24,6 @@ pub struct Config {
 
 impl Default for Config {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl Config {
-    pub fn default() -> Self {
         Self {
             rounds: DEFAULT_ROUNDS,
             check_acceptance: DEFAULT_CHECK_ACCEPTANCE,
@@ -167,7 +161,7 @@ async fn make_single_export(
     let tx_id = w
         .x()
         .export()
-        .destination_blockchain_id(w.blockchain_id_p.clone())
+        .destination_blockchain_id(w.blockchain_id_p)
         .amount(x_bal / 10)
         .check_acceptance(check_acceptance)
         .issue()
@@ -236,7 +230,7 @@ async fn make_single_export(
     let tx_id = w
         .p()
         .import()
-        .source_blockchain_id(w.blockchain_id_x.clone())
+        .source_blockchain_id(w.blockchain_id_x)
         .check_acceptance(check_acceptance)
         .issue()
         .await

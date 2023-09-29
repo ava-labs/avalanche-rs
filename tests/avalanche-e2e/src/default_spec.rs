@@ -141,35 +141,33 @@ pub async fn execute(opts: flags::Options, sub_opts: Options) -> io::Result<()> 
                     .clone()
                     .to_info(sub_opts.network_id)
                     .unwrap()
+            } else if sub_opts.sign_with_kms_aws {
+                let shared_config = aws_manager::load_config(None, None, None).await;
+                let kms_manager = kms::Manager::new(&shared_config);
+
+                let mut tags = HashMap::new();
+                tags.insert(String::from("Name"), format!("avalanche-e2e-kms-key-{i}"));
+
+                let key = avalanche_types::key::secp256k1::kms::aws::Key::create(
+                    kms_manager.clone(),
+                    tags,
+                )
+                .await
+                .unwrap();
+
+                let key_info = key.to_info(sub_opts.network_id).unwrap();
+                println!("key_info: {}", key_info);
+                key_info
+            } else if i < avalanche_types::key::secp256k1::TEST_KEYS.len() {
+                avalanche_types::key::secp256k1::TEST_KEYS[i]
+                    .clone()
+                    .to_info(sub_opts.network_id)
+                    .unwrap()
             } else {
-                if sub_opts.sign_with_kms_aws {
-                    let shared_config = aws_manager::load_config(None, None, None).await;
-                    let kms_manager = kms::Manager::new(&shared_config);
-
-                    let mut tags = HashMap::new();
-                    tags.insert(String::from("Name"), format!("avalanche-e2e-kms-key-{i}"));
-
-                    let key = avalanche_types::key::secp256k1::kms::aws::Key::create(
-                        kms_manager.clone(),
-                        tags,
-                    )
-                    .await
-                    .unwrap();
-
-                    let key_info = key.to_info(sub_opts.network_id).unwrap();
-                    println!("key_info: {}", key_info);
-                    key_info
-                } else if i < avalanche_types::key::secp256k1::TEST_KEYS.len() {
-                    avalanche_types::key::secp256k1::TEST_KEYS[i]
-                        .clone()
-                        .to_info(sub_opts.network_id)
-                        .unwrap()
-                } else {
-                    avalanche_types::key::secp256k1::private_key::Key::generate()
-                        .expect("unexpected key generate failure")
-                        .to_info(sub_opts.network_id)
-                        .unwrap()
-                }
+                avalanche_types::key::secp256k1::private_key::Key::generate()
+                    .expect("unexpected key generate failure")
+                    .to_info(sub_opts.network_id)
+                    .unwrap()
             }
         };
         key_infos.push(ki);

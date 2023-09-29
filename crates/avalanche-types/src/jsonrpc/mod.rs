@@ -36,12 +36,6 @@ pub struct Request {
 
 impl Default for Request {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl Request {
-    pub fn default() -> Self {
         Self {
             jsonrpc: String::from(DEFAULT_VERSION),
             id: DEFAULT_ID,
@@ -49,7 +43,9 @@ impl Request {
             params: None,
         }
     }
+}
 
+impl Request {
     pub fn encode_json(&self) -> io::Result<String> {
         serde_json::to_string(&self)
             .map_err(|e| Error::new(ErrorKind::Other, format!("failed to serialize JSON {}", e)))
@@ -70,12 +66,6 @@ pub struct RequestWithParamsArray {
 
 impl Default for RequestWithParamsArray {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl RequestWithParamsArray {
-    pub fn default() -> Self {
         Self {
             jsonrpc: String::from(DEFAULT_VERSION),
             id: DEFAULT_ID,
@@ -83,7 +73,9 @@ impl RequestWithParamsArray {
             params: None,
         }
     }
+}
 
+impl RequestWithParamsArray {
     pub fn encode_json(&self) -> io::Result<String> {
         serde_json::to_string(&self)
             .map_err(|e| Error::new(ErrorKind::Other, format!("failed to serialize JSON {}", e)))
@@ -104,12 +96,6 @@ pub struct RequestWithParamsHashMapArray {
 
 impl Default for RequestWithParamsHashMapArray {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl RequestWithParamsHashMapArray {
-    pub fn default() -> Self {
         Self {
             jsonrpc: String::from(DEFAULT_VERSION),
             id: DEFAULT_ID,
@@ -117,7 +103,9 @@ impl RequestWithParamsHashMapArray {
             params: None,
         }
     }
+}
 
+impl RequestWithParamsHashMapArray {
     pub fn encode_json(&self) -> io::Result<String> {
         serde_json::to_string(&self)
             .map_err(|e| Error::new(ErrorKind::Other, format!("failed to serialize JSON {}", e)))
@@ -138,12 +126,6 @@ pub struct RequestWithParamsHashMapToArray {
 
 impl Default for RequestWithParamsHashMapToArray {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl RequestWithParamsHashMapToArray {
-    pub fn default() -> Self {
         Self {
             jsonrpc: String::from(DEFAULT_VERSION),
             id: DEFAULT_ID,
@@ -151,7 +133,9 @@ impl RequestWithParamsHashMapToArray {
             params: None,
         }
     }
+}
 
+impl RequestWithParamsHashMapToArray {
     pub fn encode_json(&self) -> io::Result<String> {
         serde_json::to_string(&self)
             .map_err(|e| Error::new(ErrorKind::Other, format!("failed to serialize JSON {}", e)))
@@ -169,27 +153,11 @@ pub struct EndIndex {
 
 /// e.g., {"jsonrpc":"2.0","error":{"code":-32000,"message":"problem decoding transaction: invalid input checksum","data":null},"id":1}
 /// e.g., {"jsonrpc":"2.0","error":{"code":-32000,"message":"problem decoding transaction: missing 0x prefix to hex encoding","data":null},"id":1}
-#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone)]
+#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone, Default)]
 pub struct ResponseError {
     pub code: i32,
     pub message: String,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<String>,
-}
-
-impl Default for ResponseError {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl ResponseError {
-    pub fn default() -> Self {
-        Self {
-            code: 0,
-            message: String::new(),
-            data: None,
-        }
-    }
 }

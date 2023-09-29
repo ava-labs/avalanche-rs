@@ -12,7 +12,7 @@ use serde_with::serde_as;
 /// ref. "avalanchego"/vms/platformvm/signer.ProofOfPossession"
 /// ref. <https://docs.avax.network/build/avalanchego-apis/info/#infogetnodeid>
 #[serde_as]
-#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone)]
+#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone, Default)]
 pub struct ProofOfPossession {
     #[serde(rename = "publicKey")]
     #[serde_as(as = "Hex0xBytes")]
@@ -23,22 +23,6 @@ pub struct ProofOfPossession {
 
     #[serde(skip)]
     pub pubkey: Option<public_key::Key>,
-}
-
-impl Default for ProofOfPossession {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl ProofOfPossession {
-    pub fn default() -> Self {
-        Self {
-            public_key: Vec::new(),
-            proof_of_possession: Vec::new(),
-            pubkey: None,
-        }
-    }
 }
 
 impl ProofOfPossession {

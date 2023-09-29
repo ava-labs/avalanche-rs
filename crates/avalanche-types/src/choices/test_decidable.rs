@@ -22,12 +22,6 @@ pub struct TestDecidable {
 
 impl Default for TestDecidable {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl TestDecidable {
-    pub fn default() -> Self {
         Self {
             id: Id::empty(),
 

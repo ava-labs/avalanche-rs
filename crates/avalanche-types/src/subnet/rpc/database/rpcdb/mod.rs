@@ -2,7 +2,7 @@
 pub mod client;
 pub mod server;
 
-use std::{collections::HashMap, io};
+use std::collections::HashMap;
 
 use lazy_static::lazy_static;
 

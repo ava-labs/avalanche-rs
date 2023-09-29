@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/components/avax#TransferableOut>
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/secp256k1fx#TransferOutput>
 /// ref. <https://docs.avax.network/apis/avalanchego/apis/p-chain#platformgettx>
-#[derive(Debug, Serialize, Deserialize, Eq, Clone)]
+#[derive(Debug, Serialize, Deserialize, Eq, Clone, Default)]
 pub struct Output {
     pub amount: u64,
 
@@ -19,20 +19,7 @@ pub struct Output {
     pub output_owners: key::secp256k1::txs::OutputOwners,
 }
 
-impl Default for Output {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
 impl Output {
-    pub fn default() -> Self {
-        Self {
-            amount: 0,
-            output_owners: key::secp256k1::txs::OutputOwners::default(),
-        }
-    }
-
     pub fn new(amount: u64, output_owners: key::secp256k1::txs::OutputOwners) -> Self {
         Self {
             amount,
@@ -109,10 +96,9 @@ fn test_sort_transfer_outputs() {
                 locktime: (i + 1) as u64,
                 threshold: (i + 1) as u32,
                 addresses: vec![
-                    short::Id::from_slice(&vec![i as u8, 1, 2, 3, 4, 5]),
-                    short::Id::from_slice(&vec![i as u8, 2, 2, 3, 4, 5]),
+                    short::Id::from_slice(&[i as u8, 1, 2, 3, 4, 5]),
+                    short::Id::from_slice(&[i as u8, 2, 2, 3, 4, 5]),
                 ],
-                ..key::secp256k1::txs::OutputOwners::default()
             },
         });
         outputs.push(Output {
@@ -121,10 +107,9 @@ fn test_sort_transfer_outputs() {
                 locktime: (i + 1) as u64,
                 threshold: (i + 1) as u32,
                 addresses: vec![
-                    short::Id::from_slice(&vec![i as u8, 1, 2, 3, 4, 5]),
-                    short::Id::from_slice(&vec![i as u8, 1, 2, 3, 4, 5]),
+                    short::Id::from_slice(&[i as u8, 1, 2, 3, 4, 5]),
+                    short::Id::from_slice(&[i as u8, 1, 2, 3, 4, 5]),
                 ],
-                ..key::secp256k1::txs::OutputOwners::default()
             },
         });
         outputs.push(Output {
@@ -132,8 +117,7 @@ fn test_sort_transfer_outputs() {
             output_owners: key::secp256k1::txs::OutputOwners {
                 locktime: (i + 1) as u64,
                 threshold: (i + 1) as u32,
-                addresses: vec![short::Id::from_slice(&vec![i as u8, 1, 2, 3, 4, 5])],
-                ..key::secp256k1::txs::OutputOwners::default()
+                addresses: vec![short::Id::from_slice(&[i as u8, 1, 2, 3, 4, 5])],
             },
         });
         outputs.push(Output {
@@ -141,8 +125,7 @@ fn test_sort_transfer_outputs() {
             output_owners: key::secp256k1::txs::OutputOwners {
                 locktime: (i + 1) as u64,
                 threshold: i as u32,
-                addresses: vec![short::Id::from_slice(&vec![i as u8, 1, 2, 3, 4, 5])],
-                ..key::secp256k1::txs::OutputOwners::default()
+                addresses: vec![short::Id::from_slice(&[i as u8, 1, 2, 3, 4, 5])],
             },
         });
         outputs.push(Output {
@@ -150,8 +133,7 @@ fn test_sort_transfer_outputs() {
             output_owners: key::secp256k1::txs::OutputOwners {
                 locktime: i as u64,
                 threshold: i as u32,
-                addresses: vec![short::Id::from_slice(&vec![i as u8, 1, 2, 3, 4, 5])],
-                ..key::secp256k1::txs::OutputOwners::default()
+                addresses: vec![short::Id::from_slice(&[i as u8, 1, 2, 3, 4, 5])],
             },
         });
     }
@@ -165,8 +147,7 @@ fn test_sort_transfer_outputs() {
             output_owners: key::secp256k1::txs::OutputOwners {
                 locktime: i as u64,
                 threshold: i as u32,
-                addresses: vec![short::Id::from_slice(&vec![i as u8, 1, 2, 3, 4, 5])],
-                ..key::secp256k1::txs::OutputOwners::default()
+                addresses: vec![short::Id::from_slice(&[i as u8, 1, 2, 3, 4, 5])],
             },
         });
         sorted_outputs.push(Output {
@@ -174,8 +155,7 @@ fn test_sort_transfer_outputs() {
             output_owners: key::secp256k1::txs::OutputOwners {
                 locktime: (i + 1) as u64,
                 threshold: i as u32,
-                addresses: vec![short::Id::from_slice(&vec![i as u8, 1, 2, 3, 4, 5])],
-                ..key::secp256k1::txs::OutputOwners::default()
+                addresses: vec![short::Id::from_slice(&[i as u8, 1, 2, 3, 4, 5])],
             },
         });
         sorted_outputs.push(Output {
@@ -183,20 +163,7 @@ fn test_sort_transfer_outputs() {
             output_owners: key::secp256k1::txs::OutputOwners {
                 locktime: (i + 1) as u64,
                 threshold: (i + 1) as u32,
-                addresses: vec![short::Id::from_slice(&vec![i as u8, 1, 2, 3, 4, 5])],
-                ..key::secp256k1::txs::OutputOwners::default()
-            },
-        });
-        sorted_outputs.push(Output {
-            amount: i as u64,
-            output_owners: key::secp256k1::txs::OutputOwners {
-                locktime: (i + 1) as u64,
-                threshold: (i + 1) as u32,
-                addresses: vec![
-                    short::Id::from_slice(&vec![i as u8, 1, 2, 3, 4, 5]),
-                    short::Id::from_slice(&vec![i as u8, 1, 2, 3, 4, 5]),
-                ],
-                ..key::secp256k1::txs::OutputOwners::default()
+                addresses: vec![short::Id::from_slice(&[i as u8, 1, 2, 3, 4, 5])],
             },
         });
         sorted_outputs.push(Output {
@@ -205,10 +172,20 @@ fn test_sort_transfer_outputs() {
                 locktime: (i + 1) as u64,
                 threshold: (i + 1) as u32,
                 addresses: vec![
-                    short::Id::from_slice(&vec![i as u8, 1, 2, 3, 4, 5]),
-                    short::Id::from_slice(&vec![i as u8, 2, 2, 3, 4, 5]),
+                    short::Id::from_slice(&[i as u8, 1, 2, 3, 4, 5]),
+                    short::Id::from_slice(&[i as u8, 1, 2, 3, 4, 5]),
                 ],
-                ..key::secp256k1::txs::OutputOwners::default()
+            },
+        });
+        sorted_outputs.push(Output {
+            amount: i as u64,
+            output_owners: key::secp256k1::txs::OutputOwners {
+                locktime: (i + 1) as u64,
+                threshold: (i + 1) as u32,
+                addresses: vec![
+                    short::Id::from_slice(&[i as u8, 1, 2, 3, 4, 5]),
+                    short::Id::from_slice(&[i as u8, 2, 2, 3, 4, 5]),
+                ],
             },
         });
     }
@@ -220,27 +197,14 @@ fn test_sort_transfer_outputs() {
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/components/avax#TransferableIn>
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/secp256k1fx#TransferInput>
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/secp256k1fx#Input>
-#[derive(Debug, Serialize, Deserialize, Eq, Clone)]
+#[derive(Debug, Serialize, Deserialize, Eq, Clone, Default)]
 pub struct Input {
     pub amount: u64,
     #[serde(rename = "signatureIndices")]
     pub sig_indices: Vec<u32>,
 }
 
-impl Default for Input {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
 impl Input {
-    pub fn default() -> Self {
-        Self {
-            amount: 0,
-            sig_indices: Vec::new(),
-        }
-    }
-
     pub fn new(amount: u64, sig_indices: Vec<u32>) -> Self {
         Self {
             amount,

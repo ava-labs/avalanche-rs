@@ -13,7 +13,7 @@ use blst::min_pk::SecretKey;
 use lazy_static::lazy_static;
 use zeroize::Zeroize;
 
-#[cfg(all(not(windows)))]
+#[cfg(not(windows))]
 use ring::rand::{SecureRandom, SystemRandom};
 
 /// The size (in bytes) of a secret key.
@@ -26,7 +26,7 @@ pub const LEN: usize = 32;
 #[derive(Debug, Clone, Zeroize)]
 pub struct Key(SecretKey);
 
-#[cfg(all(not(windows)))]
+#[cfg(not(windows))]
 fn secure_random() -> &'static dyn SecureRandom {
     use std::ops::Deref;
     lazy_static! {
@@ -48,7 +48,7 @@ lazy_static! {
 
 impl Key {
     /// Generates a private key from random bytes.
-    #[cfg(all(not(windows)))]
+    #[cfg(not(windows))]
     pub fn generate() -> io::Result<Self> {
         let mut b = [0u8; LEN];
         secure_random()
@@ -64,13 +64,13 @@ impl Key {
         Ok(Self(sk))
     }
 
-    #[cfg(all(windows))]
+    #[cfg(windows)]
     pub fn generate() -> io::Result<Self> {
         unimplemented!("not implemented")
     }
 
     /// Generates and writes the key to a file.
-    #[cfg(all(not(windows)))]
+    #[cfg(not(windows))]
     pub fn generate_to_file(key_path: &str) -> io::Result<Self> {
         log::info!("generating staking signer key file to {}", key_path);
         if Path::new(key_path).exists() {
@@ -94,7 +94,7 @@ impl Key {
         Ok(sk)
     }
 
-    #[cfg(all(windows))]
+    #[cfg(windows)]
     pub fn generate_to_file(key_path: &str) -> io::Result<Self> {
         unimplemented!("not implemented")
     }

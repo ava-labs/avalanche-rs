@@ -271,7 +271,7 @@ fn test_bag_set_threshold() {
     assert_eq!(bag.mode_frequency(), 3);
     assert_eq!(bag.threshold(), 3);
     assert_eq!(bag.met_threshold().len(), 1);
-    assert_eq!(bag.met_threshold().contains(&id1), true);
+    assert!(bag.met_threshold().contains(&id1));
 }
 
 /// RUST_LOG=debug cargo test --package avalanche-types --lib -- ids::bag::test_bag_filter --exact --show-output
@@ -359,14 +359,14 @@ impl Unique {
     pub fn difference(&self, diff: &Unique) {
         for (id, v) in self.0.borrow().iter() {
             if let Some(vv) = diff.0.borrow().get(id) {
-                v.borrow_mut().difference(vv.borrow().clone());
+                v.borrow_mut().difference(*vv.borrow());
             }
         }
     }
 
     pub fn get_set(&self, id: &Id) -> bits::Set64 {
         if let Some(v) = self.0.borrow().get(id) {
-            v.borrow().clone()
+            *v.borrow()
         } else {
             bits::Set64::new()
         }
@@ -379,7 +379,7 @@ impl Unique {
     pub fn list(&self) -> Vec<Id> {
         let mut ids: Vec<Id> = Vec::new();
         for (id, _) in self.0.borrow().iter() {
-            ids.push(id.clone())
+            ids.push(*id)
         }
         ids
     }

@@ -22,13 +22,19 @@ pub async fn issue_tx(http_rpc: &str, tx: &str) -> Result<avm::IssueTxResponse> 
     let url = url::try_create_url(url::Path::X, scheme.as_deref(), host.as_str(), port)?;
     log::info!("issuing a transaction via {url}");
 
-    let mut data = avm::IssueTxRequest::default();
-    data.method = String::from("avm.issueTx");
+    let method = String::from("avm.issueTx");
     let params = avm::IssueTxParams {
         tx: prefix_manager::prepend_0x(tx),
         encoding: String::from("hex"), // don't use "cb58"
+    }
+    .into();
+
+    let data = avm::IssueTxRequest {
+        method,
+        params,
+        ..Default::default()
     };
-    data.params = Some(params);
+
     let d = data.encode_json().map_err(|e| Error::Other {
         message: format!("failed encode_json '{}'", e),
         retryable: false,
@@ -87,11 +93,13 @@ pub async fn get_tx_status(http_rpc: &str, tx_id: &str) -> Result<avm::GetTxStat
     let url = url::try_create_url(url::Path::X, scheme.as_deref(), host.as_str(), port)?;
     log::info!("getting tx status via {url}");
 
-    let mut data = jsonrpc::Request::default();
-    data.method = String::from("avm.getTxStatus");
-    let mut params = HashMap::new();
-    params.insert(String::from("txID"), String::from(tx_id));
-    data.params = Some(params);
+    let method = String::from("avm.getTxStatus");
+    let params = HashMap::from([(String::from("txID"), String::from(tx_id))]).into();
+    let data = jsonrpc::Request {
+        method,
+        params,
+        ..Default::default()
+    };
     let d = data.encode_json().map_err(|e| Error::Other {
         message: format!("failed encode_json '{}'", e),
         retryable: false,
@@ -150,12 +158,17 @@ pub async fn get_balance(http_rpc: &str, xaddr: &str) -> Result<avm::GetBalanceR
     let url = url::try_create_url(url::Path::X, scheme.as_deref(), host.as_str(), port)?;
     log::info!("getting balance via {url} for {xaddr}");
 
-    let mut data = jsonrpc::Request::default();
-    data.method = String::from("avm.getBalance");
-    let mut params = HashMap::new();
-    params.insert(String::from("assetID"), String::from("AVAX"));
-    params.insert(String::from("address"), xaddr.to_string());
-    data.params = Some(params);
+    let method = String::from("avm.getBalance");
+    let params = HashMap::from([
+        (String::from("assetID"), String::from("AVAX")),
+        (String::from("address"), xaddr.to_string()),
+    ])
+    .into();
+    let data = jsonrpc::Request {
+        method,
+        params,
+        ..Default::default()
+    };
     let d = data.encode_json().map_err(|e| Error::Other {
         message: format!("failed encode_json '{}'", e),
         retryable: false,
@@ -217,11 +230,14 @@ pub async fn get_asset_description(
     let url = url::try_create_url(url::Path::X, scheme.as_deref(), host.as_str(), port)?;
     log::info!("getting asset description via {url}");
 
-    let mut data = jsonrpc::Request::default();
-    data.method = String::from("avm.getAssetDescription");
-    let mut params = HashMap::new();
-    params.insert(String::from("assetID"), String::from(asset_id));
-    data.params = Some(params);
+    let method = String::from("avm.getAssetDescription");
+    let params = HashMap::from([(String::from("assetID"), String::from(asset_id))]).into();
+
+    let data = jsonrpc::Request {
+        method,
+        params,
+        ..Default::default()
+    };
     let d = data.encode_json().map_err(|e| Error::Other {
         message: format!("failed encode_json '{}'", e),
         retryable: false,
@@ -281,14 +297,17 @@ pub async fn get_utxos(http_rpc: &str, xaddr: &str) -> Result<avm::GetUtxosRespo
     let url = url::try_create_url(url::Path::X, scheme.as_deref(), host.as_str(), port)?;
     log::info!("getting UTXOs via {url} for {xaddr}");
 
-    let mut data = avm::GetUtxosRequest::default();
-    data.method = String::from("avm.getUTXOs");
-    let params = avm::GetUtxosParams {
-        addresses: vec![xaddr.to_string()],
-        limit: 1024,
-        encoding: String::from("hex"), // don't use "cb58"
+    let data = avm::GetUtxosRequest {
+        method: String::from("avm.getUTXOs"),
+        params: avm::GetUtxosParams {
+            addresses: vec![xaddr.to_string()],
+            limit: 1024,
+            encoding: String::from("hex"), // don't use "cb58"
+        }
+        .into(),
+        ..Default::default()
     };
-    data.params = Some(params);
+
     let d = data.encode_json().map_err(|e| Error::Other {
         message: format!("failed encode_json '{}'", e),
         retryable: false,
@@ -347,10 +366,12 @@ pub async fn issue_stop_vertex(http_rpc: &str) -> Result<()> {
     let url = url::try_create_url(url::Path::X, scheme.as_deref(), host.as_str(), port)?;
     log::info!("issuing a stop vertex transaction via {url}");
 
-    let mut data = avm::IssueStopVertexRequest::default();
-    data.method = String::from("avm.issueStopVertex");
-    let params = avm::IssueStopVertexParams {};
-    data.params = Some(params);
+    let data = avm::IssueStopVertexRequest {
+        method: String::from("avm.issueStopVertex"),
+        params: avm::IssueStopVertexParams.into(),
+        ..Default::default()
+    };
+
     let d = data.encode_json().map_err(|e| Error::Other {
         message: format!("failed encode_json '{}'", e),
         retryable: false,

@@ -27,12 +27,6 @@ pub struct Config {
 
 impl Default for Config {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl Config {
-    pub fn default() -> Self {
         Self {
             rounds: DEFAULT_ROUNDS,
             gas_price: None,
@@ -127,6 +121,7 @@ pub async fn run(spec: Arc<RwLock<Spec>>) -> io::Result<()> {
 }
 
 /// Set "permute_keys" to "true" to randomly distribute funds from second runs.
+#[allow(clippy::too_many_arguments)]
 async fn make_single_transfer(
     network_id: u32,
     chain_id: primitive_types::U256,

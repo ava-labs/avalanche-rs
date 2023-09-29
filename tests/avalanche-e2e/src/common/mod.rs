@@ -43,14 +43,14 @@ pub async fn load_keys_with_balance(
     let mut c_balances: Vec<primitive_types::U256> = Vec::new();
 
     for k in cloned_key_infos.iter() {
-        let x_addr = k.addresses.get(&network_id).clone().unwrap().x.clone();
+        let x_addr = k.addresses.get(&network_id).unwrap().x.clone();
         let resp = avalanche_sdk_x::get_balance(rpc_ep, &x_addr).await?;
         let x_bal = resp.result.unwrap().balance;
 
         x_addrs.push(x_addr.clone());
         x_balances.push(x_bal);
 
-        let p_addr = k.addresses.get(&network_id).clone().unwrap().p.clone();
+        let p_addr = k.addresses.get(&network_id).unwrap().p.clone();
         let resp = avalanche_sdk_p::get_balance(rpc_ep, &p_addr).await?;
         let p_bal = resp.result.unwrap().balance;
 
@@ -65,7 +65,7 @@ pub async fn load_keys_with_balance(
         .await?;
 
         c_addrs.push(c_addr.clone());
-        c_balances.push(c_bal.clone());
+        c_balances.push(c_bal);
 
         // On the X-Chain, one AVAX is 10^9  units.
         // On the P-Chain, one AVAX is 10^9  units.

@@ -30,22 +30,9 @@ pub struct GetNetworkNameResponse {
 /// ref. <https://docs.avax.network/build/avalanchego-apis/info/#infogetnetworkname>
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
+#[derive(Default)]
 pub struct GetNetworkNameResult {
     pub network_name: String,
-}
-
-impl Default for GetNetworkNameResult {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl GetNetworkNameResult {
-    pub fn default() -> Self {
-        Self {
-            network_name: String::new(),
-        }
-    }
 }
 
 /// ref. <https://docs.avax.network/build/avalanchego-apis/info/#infogetnetworkid>
@@ -72,12 +59,6 @@ pub struct GetNetworkIdResult {
 
 impl Default for GetNetworkIdResult {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl GetNetworkIdResult {
-    pub fn default() -> Self {
         Self { network_id: 1 }
     }
 }
@@ -126,24 +107,10 @@ pub struct GetBlockchainIdResponse {
 }
 
 /// ref. <https://docs.avax.network/build/avalanchego-apis/info/#infogetblockchainid>
-#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone)]
+#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone, Default)]
 pub struct GetBlockchainIdResult {
     #[serde(rename = "blockchainID")]
     pub blockchain_id: ids::Id,
-}
-
-impl Default for GetBlockchainIdResult {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl GetBlockchainIdResult {
-    pub fn default() -> Self {
-        Self {
-            blockchain_id: ids::Id::default(),
-        }
-    }
 }
 
 /// RUST_LOG=debug cargo test --package avalanche-types --lib -- jsonrpc::info::test_get_blockchain_id --exact --show-output
@@ -193,7 +160,7 @@ pub struct GetNodeIdResponse {
 }
 
 /// ref. <https://docs.avax.network/build/avalanchego-apis/info/#infogetnodeid>
-#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone)]
+#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone, Default)]
 pub struct GetNodeIdResult {
     #[serde(rename = "nodeID")]
     pub node_id: node::Id,
@@ -201,20 +168,6 @@ pub struct GetNodeIdResult {
     pub node_pop: Option<bls::ProofOfPossession>,
 }
 
-impl Default for GetNodeIdResult {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl GetNodeIdResult {
-    pub fn default() -> Self {
-        Self {
-            node_id: node::Id::default(),
-            node_pop: None,
-        }
-    }
-}
 /// RUST_LOG=debug cargo test --package avalanche-types --lib -- jsonrpc::info::test_get_node_id --exact --show-output
 #[test]
 fn test_get_node_id() {
@@ -303,12 +256,6 @@ pub struct GetNodeIpResult {
 
 impl Default for GetNodeIpResult {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl GetNodeIpResult {
-    pub fn default() -> Self {
         Self {
             ip: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 9651),
         }
@@ -438,21 +385,10 @@ pub struct GetVmsResponse {
 /// ref. <https://docs.avax.network/build/avalanchego-apis/info/#infogetvms>
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
+#[derive(Default)]
 pub struct GetVmsResult {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub vms: Option<HashMap<String, Vec<String>>>,
-}
-
-impl Default for GetVmsResult {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl GetVmsResult {
-    pub fn default() -> Self {
-        Self { vms: None }
-    }
 }
 
 /// ref. <https://docs.avax.network/build/avalanchego-apis/info/#infoisbootstrapped>
@@ -471,22 +407,9 @@ pub struct IsBootstrappedResponse {
 /// ref. <https://docs.avax.network/build/avalanchego-apis/info/#infoisbootstrapped>
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
+#[derive(Default)]
 pub struct IsBootstrappedResult {
     pub is_bootstrapped: bool,
-}
-
-impl Default for IsBootstrappedResult {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl IsBootstrappedResult {
-    pub fn default() -> Self {
-        Self {
-            is_bootstrapped: false,
-        }
-    }
 }
 
 /// ref. <https://docs.avax.network/build/avalanchego-apis/info/#infogettxfee>
@@ -506,6 +429,7 @@ pub struct GetTxFeeResponse {
 #[serde_as]
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
+#[derive(Default)]
 pub struct GetTxFeeResult {
     #[serde_as(as = "DisplayFromStr")]
     pub tx_fee: u64,
@@ -525,28 +449,6 @@ pub struct GetTxFeeResult {
     pub add_subnet_validator_fee: u64,
     #[serde_as(as = "DisplayFromStr")]
     pub add_subnet_delegator_fee: u64,
-}
-
-impl Default for GetTxFeeResult {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl GetTxFeeResult {
-    pub fn default() -> Self {
-        Self {
-            tx_fee: 0,
-            create_asset_tx_fee: 0,
-            create_subnet_tx_fee: 0,
-            transform_subnet_tx_fee: 0,
-            create_blockchain_tx_fee: 0,
-            add_primary_network_validator_fee: 0,
-            add_primary_network_delegator_fee: 0,
-            add_subnet_validator_fee: 0,
-            add_subnet_delegator_fee: 0,
-        }
-    }
 }
 
 /// RUST_LOG=debug cargo test --package avalanche-types --lib -- jsonrpc::info::test_get_tx_fee --exact --show-output
@@ -622,12 +524,6 @@ pub struct UptimeResult {
 
 impl Default for UptimeResult {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl UptimeResult {
-    pub fn default() -> Self {
         Self {
             rewarding_stake_percentage: 0_f64,
             weighted_average_percentage: 0_f64,
@@ -681,12 +577,6 @@ pub struct PeersRequest {
 
 impl Default for PeersRequest {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl PeersRequest {
-    pub fn default() -> Self {
         Self {
             jsonrpc: String::from(super::DEFAULT_VERSION),
             id: super::DEFAULT_ID,
@@ -694,7 +584,9 @@ impl PeersRequest {
             params: None,
         }
     }
+}
 
+impl PeersRequest {
     pub fn encode_json(&self) -> io::Result<String> {
         serde_json::to_string(&self)
             .map_err(|e| Error::new(ErrorKind::Other, format!("failed to serialize JSON {}", e)))
@@ -724,27 +616,13 @@ pub struct PeersResponse {
 #[serde_as]
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
+#[derive(Default)]
 pub struct PeersResult {
     #[serde(rename = "numPeers")]
     #[serde_as(as = "DisplayFromStr")]
     pub num_peers: u64,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub peers: Option<Vec<Peer>>,
-}
-
-impl Default for PeersResult {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl PeersResult {
-    pub fn default() -> Self {
-        Self {
-            num_peers: 0,
-            peers: None,
-        }
-    }
 }
 
 /// TODO: add "benched"
@@ -774,12 +652,6 @@ pub struct Peer {
 
 impl Default for Peer {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl Peer {
-    pub fn default() -> Self {
         Self {
             ip: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080),
             public_ip: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080),
@@ -903,10 +775,8 @@ fn test_peers() {
                         "29uVeLPJB1eQJkzRemU8g8wZDw5uJRqpab5U2mX9euieVwiEbL",
                     )
                     .unwrap()],
-                    ..Peer::default()
                 },
             ]),
-            ..PeersResult::default()
         }),
         error: None,
     };

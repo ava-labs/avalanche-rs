@@ -11,19 +11,10 @@ use serde::{self, Deserialize, Serialize};
 /// ref. <https://docs.rs/zerocopy/latest/zerocopy/trait.AsBytes.html#safety>
 #[derive(Debug, Clone, Deserialize, Serialize, Eq)]
 #[repr(transparent)]
+#[derive(Default)]
 pub struct Data(Vec<u8>);
 
-impl Default for Data {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
 impl Data {
-    pub fn default() -> Self {
-        Data(Vec::new())
-    }
-
     pub fn from_slice(d: &[u8]) -> Self {
         Data(Vec::from(d))
     }

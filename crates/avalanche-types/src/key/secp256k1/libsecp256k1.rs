@@ -36,7 +36,7 @@ impl PrivateKey {
     pub fn signing_key(&self) -> Result<k256::ecdsa::SigningKey> {
         let b = self.to_bytes();
         let ga = k256::elliptic_curve::generic_array::GenericArray::from_slice(&b);
-        k256::ecdsa::SigningKey::from_bytes(&ga).map_err(|e| Error::Other {
+        k256::ecdsa::SigningKey::from_bytes(ga).map_err(|e| Error::Other {
             message: format!("failed k256::ecdsa::SigningKey::from_bytes '{}'", e),
             retryable: false,
         })
@@ -55,7 +55,7 @@ impl PrivateKey {
     pub fn to_hex(&self) -> String {
         // ref. https://github.com/rust-bitcoin/rust-secp256k1/pull/396
         let b = self.0.secret_bytes();
-        let enc = hex::encode(&b);
+        let enc = hex::encode(b);
 
         let mut s = String::from(key::secp256k1::private_key::HEX_ENCODE_PREFIX);
         s.push_str(&enc);
@@ -168,7 +168,7 @@ impl PublicKey {
     /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/utils/hashing#PubkeyBytesToAddress>
     pub fn to_short_bytes(&self) -> Result<Vec<u8>> {
         let compressed = self.to_compressed_bytes();
-        hash::sha256_ripemd160(&compressed).map_err(|e| Error::Other {
+        hash::sha256_ripemd160(compressed).map_err(|e| Error::Other {
             message: format!("failed hash::sha256_ripemd160 ({})", e),
             retryable: false,
         })
@@ -179,7 +179,7 @@ impl PublicKey {
     /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/utils/hashing#PubkeyBytesToAddress>
     pub fn to_short_id(&self) -> Result<crate::ids::short::Id> {
         let compressed = self.to_compressed_bytes();
-        short::Id::from_public_key_bytes(&compressed).map_err(|e| Error::Other {
+        short::Id::from_public_key_bytes(compressed).map_err(|e| Error::Other {
             message: format!("failed short::Id::from_public_key_bytes ({})", e),
             retryable: false,
         })
@@ -275,7 +275,7 @@ fn test_key() {
         .try_init();
 
     let msg: Vec<u8> = random_manager::secure_bytes(100).unwrap();
-    let hashed = hash::sha256(&msg);
+    let hashed = hash::sha256(msg);
 
     let pk1 = key::secp256k1::private_key::Key::generate().unwrap();
     let pk1 = pk1.to_libsecp256k1().unwrap();

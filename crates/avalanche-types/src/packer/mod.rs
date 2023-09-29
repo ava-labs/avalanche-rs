@@ -553,7 +553,7 @@ impl Packer {
         let total = self.unpack_u32()?;
         let mut rs: Vec<Vec<u8>> = Vec::new();
         for _ in 0..total {
-            let b = self.unpack_bytes(n as usize)?;
+            let b = self.unpack_bytes(n)?;
             rs.push(b);
         }
         Ok(rs)
@@ -627,7 +627,7 @@ impl Packer {
 /// ref. "avalanchego/utils/wrappers.TestPackerExpand"
 #[test]
 fn test_expand() {
-    let s = vec![0x01];
+    let s = [0x01];
     let b = BytesMut::from(&s[..]);
     let packer = Packer {
         max_size: 0,
@@ -637,7 +637,7 @@ fn test_expand() {
     };
     assert!(packer.expand(1).is_err());
 
-    let s = vec![0x01, 0x02, 0x03];
+    let s = [0x01, 0x02, 0x03];
     let b = BytesMut::from(&s[..]);
     let packer = Packer {
         max_size: 0,
@@ -666,7 +666,7 @@ fn test_packer_from_bytes() {
 
     let b = packer.take_bytes();
     assert_eq!(&b[..], b"\x01\x02\x03\x10");
-    let expected = vec![0x01, 0x02, 0x03, 0x10];
+    let expected = [0x01, 0x02, 0x03, 0x10];
     assert_eq!(&b[..], &expected[..]);
 }
 
@@ -685,7 +685,7 @@ fn test_pack_byte() {
 
     let b = packer.take_bytes();
     assert_eq!(&b[..], b"\x01");
-    let expected = vec![0x01];
+    let expected = [0x01];
     assert_eq!(&b[..], &expected[..]);
     assert_eq!(packer.bytes_len(), 0);
     assert_eq!(packer.get_offset(), 1);
@@ -695,7 +695,7 @@ fn test_pack_byte() {
 
     let packer = Packer::new_with_header(5, 0);
     packer.pack_byte(0x01).unwrap();
-    let expected = vec![0x00, 0x00, 0x00, 0x01, 0x01];
+    let expected = [0x00, 0x00, 0x00, 0x01, 0x01];
     assert_eq!(&packer.take_bytes()[..], &expected[..]);
 }
 
@@ -703,7 +703,7 @@ fn test_pack_byte() {
 /// ref. "avalanchego/utils/wrappers.TestPackerUnpackByte"
 #[test]
 fn test_unpack_byte() {
-    let s = vec![0x01];
+    let s = [0x01];
     let b = BytesMut::from(&s[..]);
     let packer = Packer {
         max_size: 0,
@@ -733,12 +733,12 @@ fn test_pack_u16() {
 
     let b = packer.take_bytes();
     assert_eq!(&b[..], b"\x01\x02");
-    let expected = vec![0x01, 0x02];
+    let expected = [0x01, 0x02];
     assert_eq!(&b[..], &expected[..]);
 
     let packer = Packer::new_with_header(4 + U16_LEN, 0);
     packer.pack_u16(0x0102).unwrap();
-    let expected = vec![0x00, 0x00, 0x00, 0x02, 0x01, 0x02];
+    let expected = [0x00, 0x00, 0x00, 0x02, 0x01, 0x02];
     assert_eq!(&packer.take_bytes()[..], &expected[..]);
 }
 
@@ -777,7 +777,7 @@ fn test_pack_u16_short() {
     assert!(packer.pack_u16(1).is_err());
 
     let b = packer.take_bytes();
-    let expected = vec![0x00, 17];
+    let expected = [0x00, 17];
     assert_eq!(&b[..], &expected[..]);
 
     let s: Vec<u8> = vec![0x00, 17];
@@ -794,7 +794,7 @@ fn test_pack_u16_short() {
 
     let packer = Packer::new_with_header(4 + U16_LEN, 0);
     packer.pack_u16(17).unwrap();
-    let expected = vec![0x00, 0x00, 0x00, 0x02, 0x00, 17];
+    let expected = [0x00, 0x00, 0x00, 0x02, 0x00, 17];
     assert_eq!(&packer.take_bytes()[..], &expected[..]);
 }
 
@@ -814,7 +814,7 @@ fn test_pack_u32() {
 
     let b = packer.take_bytes();
     assert_eq!(&b[..], b"\x01\x02\x03\x04");
-    let expected = vec![0x01, 0x02, 0x03, 0x04];
+    let expected = [0x01, 0x02, 0x03, 0x04];
     assert_eq!(&b[..], &expected[..]);
 }
 
@@ -853,12 +853,12 @@ fn test_pack_u64() {
 
     let b = packer.take_bytes();
     assert_eq!(&b[..], b"\x01\x02\x03\x04\x05\x06\x07\x08");
-    let expected = vec![0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08];
+    let expected = [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08];
     assert_eq!(&b[..], &expected[..]);
 
     let packer = Packer::new_with_header(4 + U64_LEN, 0);
     packer.pack_u64(0x0102030405060708).unwrap();
-    let expected = vec![
+    let expected = [
         0x00, 0x00, 0x00, 0x08, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
     ];
     assert_eq!(&packer.take_bytes()[..], &expected[..]);
@@ -901,7 +901,7 @@ fn test_pack_bool() {
 
     let b = packer.take_bytes();
     assert_eq!(&b[..], b"\x00\x01\x00");
-    let expected = vec![0x00, 0x01, 0x00];
+    let expected = [0x00, 0x01, 0x00];
     assert_eq!(&b[..], &expected[..]);
 
     let b = BytesMut::from(&expected[..]);
@@ -911,15 +911,15 @@ fn test_pack_bool() {
         header: false,
         offset: Cell::new(0),
     };
-    assert_eq!(packer.unpack_bool().unwrap(), false);
-    assert_eq!(packer.unpack_bool().unwrap(), true);
-    assert_eq!(packer.unpack_bool().unwrap(), false);
+    assert!(!packer.unpack_bool().unwrap());
+    assert!(packer.unpack_bool().unwrap());
+    assert!(!packer.unpack_bool().unwrap());
 
     let packer = Packer::new_with_header(4 + 3, 0);
     packer.pack_bool(false).unwrap();
     packer.pack_bool(true).unwrap();
     packer.pack_bool(false).unwrap();
-    let expected = vec![0x00, 0x00, 0x00, 0x03, 0x00, 0x01, 0x00];
+    let expected = [0x00, 0x00, 0x00, 0x03, 0x00, 0x01, 0x00];
     assert_eq!(&packer.take_bytes()[..], &expected[..]);
 }
 
@@ -928,7 +928,7 @@ fn test_pack_bool() {
 /// ref. "avalanchego/utils/wrappers.TestPackerUnpackBool"
 #[test]
 fn test_unpack_bool() {
-    let s = vec![0x01];
+    let s = [0x01];
     let b = BytesMut::from(&s[..]);
     let packer = Packer {
         max_size: 0,
@@ -964,13 +964,13 @@ fn test_pack_bytes() {
 
     let b = packer.take_bytes();
     assert_eq!(&b[..], b"AvaxAvax");
-    let expected = vec![65, 118, 97, 120, 65, 118, 97, 120];
+    let expected = [65, 118, 97, 120, 65, 118, 97, 120];
     assert_eq!(&b[..], &expected[..]);
 
     let packer = Packer::new_with_header(4 + 8, 0);
     packer.pack_bytes(s.as_bytes()).unwrap();
     packer.pack_bytes(s.as_bytes()).unwrap();
-    let expected = vec![0x00, 0x00, 0x00, 0x08, 65, 118, 97, 120, 65, 118, 97, 120];
+    let expected = [0x00, 0x00, 0x00, 0x08, 65, 118, 97, 120, 65, 118, 97, 120];
     assert_eq!(&packer.take_bytes()[..], &expected[..]);
 }
 
@@ -1012,12 +1012,12 @@ fn test_pack_bytes_with_header() {
 
     let b = packer.take_bytes();
     assert_eq!(&b[..], b"\x00\x00\x00\x04Avax");
-    let expected = vec![0x00, 0x00, 0x00, 0x04, 65, 118, 97, 120];
+    let expected = [0x00, 0x00, 0x00, 0x04, 65, 118, 97, 120];
     assert_eq!(&b[..], &expected[..]);
 
     let packer = Packer::new_with_header(4 + 8, 0);
     packer.pack_bytes_with_header(s.as_bytes()).unwrap();
-    let expected = vec![
+    let expected = [
         0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x04, 65, 118, 97, 120,
     ];
     assert_eq!(&packer.take_bytes()[..], &expected[..]);
@@ -1056,34 +1056,25 @@ fn test_pack_2d_bytes() {
     let s1 = "Avax";
     let s2 = "Evax";
     packer
-        .pack_2d_bytes(Vec::from(vec![
-            Vec::from(s1.as_bytes()),
-            Vec::from(s2.as_bytes()),
-        ]))
+        .pack_2d_bytes(vec![Vec::from(s1.as_bytes()), Vec::from(s2.as_bytes())])
         .unwrap();
     assert_eq!(packer.bytes_len(), 12);
 
     // beyond max size
     assert!(packer
-        .pack_2d_bytes(Vec::from(vec![
-            Vec::from(s1.as_bytes()),
-            Vec::from(s2.as_bytes()),
-        ]))
+        .pack_2d_bytes(vec![Vec::from(s1.as_bytes()), Vec::from(s2.as_bytes()),])
         .is_err());
 
     let b = packer.take_bytes();
     assert_eq!(&b[..], b"\x00\x00\x00\x02AvaxEvax");
-    let expected = vec![0x00, 0x00, 0x00, 0x02, 65, 118, 97, 120, 69, 118, 97, 120];
+    let expected = [0x00, 0x00, 0x00, 0x02, 65, 118, 97, 120, 69, 118, 97, 120];
     assert_eq!(&b[..], &expected[..]);
 
     let packer = Packer::new_with_header(4 + 12, 0);
     packer
-        .pack_2d_bytes(Vec::from(vec![
-            Vec::from(s1.as_bytes()),
-            Vec::from(s2.as_bytes()),
-        ]))
+        .pack_2d_bytes(vec![Vec::from(s1.as_bytes()), Vec::from(s2.as_bytes())])
         .unwrap();
-    let expected = vec![
+    let expected = [
         0x00, 0x00, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x02, 65, 118, 97, 120, 69, 118, 97, 120,
     ];
     assert_eq!(&packer.take_bytes()[..], &expected[..]);
@@ -1104,10 +1095,7 @@ fn test_unpack_2d_bytes() {
     let b = packer.unpack_2d_bytes(4).unwrap();
     assert_eq!(
         &b[..],
-        Vec::from(vec![
-            Vec::from("Avax".as_bytes()),
-            Vec::from("Evax".as_bytes()),
-        ])
+        vec![Vec::from("Avax".as_bytes()), Vec::from("Evax".as_bytes()),]
     );
     assert_eq!(packer.get_offset(), 12);
     assert!(packer.unpack_2d_bytes(4).is_err());
@@ -1128,10 +1116,7 @@ fn test_pack_2d_bytes_with_header() {
     let s1 = "Avax";
     let s2 = "Evax";
     packer
-        .pack_2d_bytes_with_header(Vec::from(vec![
-            Vec::from(s1.as_bytes()),
-            Vec::from(s2.as_bytes()),
-        ]))
+        .pack_2d_bytes_with_header(vec![Vec::from(s1.as_bytes()), Vec::from(s2.as_bytes())])
         .unwrap();
     assert_eq!(packer.bytes_len(), 20); // 4*3 + 4*2
 
@@ -1140,7 +1125,7 @@ fn test_pack_2d_bytes_with_header() {
         &b[..],
         b"\x00\x00\x00\x02\x00\x00\x00\x04Avax\x00\x00\x00\x04Evax"
     );
-    let expected = vec![
+    let expected = [
         0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x04, 65, 118, 97, 120, 0x00, 0x00, 0x00, 0x04,
         69, 118, 97, 120,
     ];
@@ -1148,12 +1133,9 @@ fn test_pack_2d_bytes_with_header() {
 
     let packer = Packer::new_with_header(4 + 20, 0);
     packer
-        .pack_2d_bytes_with_header(Vec::from(vec![
-            Vec::from(s1.as_bytes()),
-            Vec::from(s2.as_bytes()),
-        ]))
+        .pack_2d_bytes_with_header(vec![Vec::from(s1.as_bytes()), Vec::from(s2.as_bytes())])
         .unwrap();
-    let expected = vec![
+    let expected = [
         0x00, 0x00, 0x00, 20, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x04, 65, 118, 97, 120,
         0x00, 0x00, 0x00, 0x04, 69, 118, 97, 120,
     ];
@@ -1177,10 +1159,7 @@ fn test_unpack_2d_bytes_with_header() {
     let b = packer.unpack_2d_bytes_with_header().unwrap();
     assert_eq!(
         &b[..],
-        Vec::from(vec![
-            Vec::from("Avax".as_bytes()),
-            Vec::from("Evax".as_bytes()),
-        ])
+        vec![Vec::from("Avax".as_bytes()), Vec::from("Evax".as_bytes()),]
     );
     assert_eq!(packer.get_offset(), 20);
     assert!(packer.unpack_2d_bytes_with_header().is_err());
@@ -1197,7 +1176,7 @@ fn test_pack_2d_bytes_with_header_123() {
         header: false,
         offset: Cell::new(0),
     };
-    packer.pack_2d_bytes_with_header(Vec::from(vec![])).unwrap();
+    packer.pack_2d_bytes_with_header(vec![]).unwrap();
     assert_eq!(packer.bytes_len(), 4);
     assert!(packer.unpack_2d_bytes_with_header().is_err());
 
@@ -1209,12 +1188,12 @@ fn test_pack_2d_bytes_with_header_123() {
         offset: Cell::new(0),
     };
     packer
-        .pack_2d_bytes_with_header(Vec::from(vec![vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10]]))
+        .pack_2d_bytes_with_header(vec![vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
         .unwrap();
     assert_eq!(packer.bytes_len(), 4 + 4 + 10);
 
     let b = packer.take_bytes();
-    let expected = vec![0, 0, 0, 1, 0, 0, 0, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    let expected = [0, 0, 0, 1, 0, 0, 0, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
     assert_eq!(&b[..], &expected[..]);
 
     let s: Vec<u8> = vec![0, 0, 0, 1, 0, 0, 0, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
@@ -1226,7 +1205,7 @@ fn test_pack_2d_bytes_with_header_123() {
         offset: Cell::new(0),
     };
     let b = packer.unpack_2d_bytes_with_header().unwrap();
-    assert_eq!(&b[..], Vec::from(vec![vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10]]));
+    assert_eq!(&b[..], vec![vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10]]);
     assert_eq!(packer.get_offset(), 4 + 4 + 10);
 
     // case 3; two dimensions
@@ -1237,15 +1216,15 @@ fn test_pack_2d_bytes_with_header_123() {
         offset: Cell::new(0),
     };
     packer
-        .pack_2d_bytes_with_header(Vec::from(vec![
+        .pack_2d_bytes_with_header(vec![
             vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
             vec![11, 12, 3, 4, 5, 6, 7, 8, 9, 10],
-        ]))
+        ])
         .unwrap();
     assert_eq!(packer.bytes_len(), 4 + 4 + 10 + 4 + 10);
 
     let b = packer.take_bytes();
-    let expected = vec![
+    let expected = [
         0, 0, 0, 2, 0, 0, 0, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0, 0, 0, 10, 11, 12, 3, 4, 5, 6, 7,
         8, 9, 10,
     ];
@@ -1265,10 +1244,10 @@ fn test_pack_2d_bytes_with_header_123() {
     let b = packer.unpack_2d_bytes_with_header().unwrap();
     assert_eq!(
         &b[..],
-        Vec::from(vec![
+        vec![
             vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
             vec![11, 12, 3, 4, 5, 6, 7, 8, 9, 10],
-        ])
+        ]
     );
     assert_eq!(packer.get_offset(), 4 + 4 + 10 + 4 + 10);
 }
@@ -1293,11 +1272,11 @@ fn test_pack_str() {
 
     let b = packer.take_bytes();
     assert_eq!(&b[..], b"\x00\x04Avax");
-    let expected = vec![0x00, 0x04, 65, 118, 97, 120];
+    let expected = [0x00, 0x04, 65, 118, 97, 120];
     assert_eq!(&b[..], &expected[..]);
 
     let packer = Packer::new_with_header(4 + 6, 0);
     packer.pack_str(s).unwrap();
-    let expected = vec![0x00, 0x00, 0x00, 0x06, 0x00, 0x04, 65, 118, 97, 120];
+    let expected = [0x00, 0x00, 0x00, 0x06, 0x00, 0x04, 65, 118, 97, 120];
     assert_eq!(&packer.take_bytes()[..], &expected[..]);
 }

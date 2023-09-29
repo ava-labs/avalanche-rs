@@ -46,7 +46,7 @@ async fn build_vertex() {
     let mut req = BuildVertexRequest {
         codec_version: 0,
         chain_id: vtx.chain_id.clone().as_ref().to_vec(),
-        height: vtx.height.clone(),
+        height: vtx.height,
         epoch: 0,
         parent_ids: parent_ids_copied,
         txs: txs_copied,

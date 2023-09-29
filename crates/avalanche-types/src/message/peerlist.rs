@@ -29,12 +29,6 @@ pub struct Message {
 
 impl Default for Message {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl Message {
-    pub fn default() -> Self {
         Message {
             msg: p2p::PeerList {
                 claimed_ip_ports: Vec::new(),
@@ -42,7 +36,9 @@ impl Message {
             gzip_compress: false,
         }
     }
+}
 
+impl Message {
     #[must_use]
     pub fn claimed_ip_ports(mut self, claimed_ip_ports: Vec<ClaimedIpPort>) -> Self {
         let mut ips: Vec<p2p::ClaimedIpPort> = Vec::with_capacity(claimed_ip_ports.len());
@@ -172,7 +168,7 @@ fn test_message() {
     ]);
 
     let data1 = msg1_with_no_compression.serialize().unwrap();
-    let msg1_with_no_compression_deserialized = Message::deserialize(&data1).unwrap();
+    let msg1_with_no_compression_deserialized = Message::deserialize(data1).unwrap();
     assert_eq!(
         msg1_with_no_compression,
         msg1_with_no_compression_deserialized
@@ -182,6 +178,6 @@ fn test_message() {
     assert_ne!(msg1_with_no_compression, msg2_with_compression);
 
     let data2 = msg2_with_compression.serialize().unwrap();
-    let msg2_with_compression_deserialized = Message::deserialize(&data2).unwrap();
+    let msg2_with_compression_deserialized = Message::deserialize(data2).unwrap();
     assert_eq!(msg1_with_no_compression, msg2_with_compression_deserialized);
 }

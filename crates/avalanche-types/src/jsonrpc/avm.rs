@@ -19,12 +19,6 @@ pub struct IssueTxRequest {
 
 impl Default for IssueTxRequest {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl IssueTxRequest {
-    pub fn default() -> Self {
         Self {
             jsonrpc: String::from(super::DEFAULT_VERSION),
             id: super::DEFAULT_ID,
@@ -32,7 +26,9 @@ impl IssueTxRequest {
             params: None,
         }
     }
+}
 
+impl IssueTxRequest {
     pub fn encode_json(&self) -> io::Result<String> {
         serde_json::to_string(&self)
             .map_err(|e| Error::new(ErrorKind::Other, format!("failed to serialize JSON {}", e)))
@@ -61,12 +57,6 @@ pub struct IssueTxResponse {
 
 impl Default for IssueTxResponse {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl IssueTxResponse {
-    pub fn default() -> Self {
         Self {
             jsonrpc: "2.0".to_string(),
             id: 1,
@@ -85,12 +75,6 @@ pub struct IssueTxResult {
 
 impl Default for IssueTxResult {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl IssueTxResult {
-    pub fn default() -> Self {
         Self {
             tx_id: ids::Id::empty(),
         }
@@ -143,12 +127,6 @@ pub struct GetTxStatusResponse {
 
 impl Default for GetTxStatusResponse {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl GetTxStatusResponse {
-    pub fn default() -> Self {
         Self {
             jsonrpc: "2.0".to_string(),
             id: 1,
@@ -168,12 +146,6 @@ pub struct GetTxStatusResult {
 
 impl Default for GetTxStatusResult {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl GetTxStatusResult {
-    pub fn default() -> Self {
         Self {
             status: choices::status::Status::Unknown(String::new()),
         }
@@ -224,12 +196,6 @@ pub struct GetUtxosRequest {
 
 impl Default for GetUtxosRequest {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl GetUtxosRequest {
-    pub fn default() -> Self {
         Self {
             jsonrpc: String::from(super::DEFAULT_VERSION),
             id: super::DEFAULT_ID,
@@ -237,7 +203,9 @@ impl GetUtxosRequest {
             params: None,
         }
     }
+}
 
+impl GetUtxosRequest {
     pub fn encode_json(&self) -> io::Result<String> {
         serde_json::to_string(&self)
             .map_err(|e| Error::new(ErrorKind::Other, format!("failed to serialize JSON {}", e)))
@@ -270,6 +238,7 @@ pub struct GetUtxosResponse {
 #[serde_as]
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
+#[derive(Default)]
 pub struct GetUtxosResult {
     #[serde_as(as = "DisplayFromStr")]
     pub num_fetched: u32,
@@ -282,23 +251,6 @@ pub struct GetUtxosResult {
     pub end_index: Option<super::EndIndex>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub encoding: Option<String>,
-}
-
-impl Default for GetUtxosResult {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl GetUtxosResult {
-    pub fn default() -> Self {
-        Self {
-            num_fetched: 0,
-            utxos: None,
-            end_index: None,
-            encoding: None,
-        }
-    }
 }
 
 /// RUST_LOG=debug cargo test --package avalanche-types --lib -- jsonrpc::avm::test_get_utxos_empty --exact --show-output
@@ -405,28 +357,13 @@ pub struct GetBalanceResponse {
 
 /// ref. <https://docs.avax.network/build/avalanchego-apis/x-chain#avmgetbalance>
 #[serde_as]
-#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone)]
+#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone, Default)]
 pub struct GetBalanceResult {
     #[serde_as(as = "DisplayFromStr")]
     pub balance: u64,
 
     #[serde(rename = "utxoIDs")]
     pub utxo_ids: Option<Vec<txs::utxo::Id>>,
-}
-
-impl Default for GetBalanceResult {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl GetBalanceResult {
-    pub fn default() -> Self {
-        Self {
-            balance: 0,
-            utxo_ids: None,
-        }
-    }
 }
 
 /// RUST_LOG=debug cargo test --package avalanche-types --lib -- jsonrpc::avm::test_get_balance --exact --show-output
@@ -488,7 +425,7 @@ pub struct GetAssetDescriptionResponse {
 
 /// ref. <https://docs.avax.network/build/avalanchego-apis/x-chain/#avmgetassetdescription>
 #[serde_as]
-#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone)]
+#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone, Default)]
 pub struct GetAssetDescriptionResult {
     #[serde(rename = "assetID")]
     pub asset_id: ids::Id,
@@ -498,23 +435,6 @@ pub struct GetAssetDescriptionResult {
 
     #[serde_as(as = "DisplayFromStr")]
     pub denomination: usize,
-}
-
-impl Default for GetAssetDescriptionResult {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl GetAssetDescriptionResult {
-    pub fn default() -> Self {
-        Self {
-            asset_id: ids::Id::default(),
-            name: String::new(),
-            symbol: String::new(),
-            denomination: 0,
-        }
-    }
 }
 
 /// RUST_LOG=debug cargo test --package avalanche-types --lib -- jsonrpc::avm::test_get_asset_description --exact --show-output
@@ -570,12 +490,6 @@ pub struct IssueStopVertexRequest {
 
 impl Default for IssueStopVertexRequest {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl IssueStopVertexRequest {
-    pub fn default() -> Self {
         Self {
             jsonrpc: String::from(super::DEFAULT_VERSION),
             id: super::DEFAULT_ID,
@@ -583,7 +497,9 @@ impl IssueStopVertexRequest {
             params: None,
         }
     }
+}
 
+impl IssueStopVertexRequest {
     pub fn encode_json(&self) -> io::Result<String> {
         serde_json::to_string(&self)
             .map_err(|e| Error::new(ErrorKind::Other, format!("failed to serialize JSON {}", e)))
@@ -592,4 +508,4 @@ impl IssueStopVertexRequest {
 
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct IssueStopVertexParams {}
+pub struct IssueStopVertexParams;

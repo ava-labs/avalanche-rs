@@ -23,8 +23,11 @@ pub async fn get_network_name(http_rpc: &str) -> Result<info::GetNetworkNameResp
     let url = url::try_create_url(url::Path::Info, scheme.as_deref(), host.as_str(), port)?;
     log::info!("getting network name for {url}");
 
-    let mut data = jsonrpc::RequestWithParamsArray::default();
-    data.method = String::from("info.getNetworkName");
+    let method = String::from("info.getNetworkName");
+    let data = jsonrpc::RequestWithParamsArray {
+        method,
+        ..Default::default()
+    };
     let d = data.encode_json().map_err(|e| Error::Other {
         message: format!("failed encode_json '{}'", e),
         retryable: false,
@@ -83,8 +86,11 @@ pub async fn get_network_id(http_rpc: &str) -> Result<info::GetNetworkIdResponse
     let url = url::try_create_url(url::Path::Info, scheme.as_deref(), host.as_str(), port)?;
     log::info!("getting network Id for {url}");
 
-    let mut data = jsonrpc::RequestWithParamsArray::default();
-    data.method = String::from("info.getNetworkID");
+    let method = String::from("info.getNetworkID");
+    let data = jsonrpc::RequestWithParamsArray {
+        method,
+        ..Default::default()
+    };
     let d = data.encode_json().map_err(|e| Error::Other {
         message: format!("failed encode_json '{}'", e),
         retryable: false,
@@ -146,12 +152,14 @@ pub async fn get_blockchain_id(
     let url = url::try_create_url(url::Path::Info, scheme.as_deref(), host.as_str(), port)?;
     log::info!("getting blockchain Id for {url}");
 
-    let mut data = jsonrpc::Request::default();
-    data.method = String::from("info.getBlockchainID");
+    let method = String::from("info.getBlockchainID");
+    let params = HashMap::from([(String::from("alias"), String::from(chain_alias))]).into();
 
-    let mut params = HashMap::new();
-    params.insert(String::from("alias"), String::from(chain_alias));
-    data.params = Some(params);
+    let data = jsonrpc::Request {
+        method,
+        params,
+        ..Default::default()
+    };
     let d = data.encode_json().map_err(|e| Error::Other {
         message: format!("failed encode_json '{}'", e),
         retryable: false,
@@ -209,8 +217,11 @@ pub async fn get_node_id(http_rpc: &str) -> Result<info::GetNodeIdResponse> {
         })?;
     let url = url::try_create_url(url::Path::Info, scheme.as_deref(), host.as_str(), port)?;
 
-    let mut data = jsonrpc::RequestWithParamsArray::default();
-    data.method = String::from("info.getNodeID");
+    let method = String::from("info.getNodeID");
+    let data = jsonrpc::RequestWithParamsArray {
+        method,
+        ..Default::default()
+    };
     let d = data.encode_json().map_err(|e| Error::Other {
         message: format!("failed encode_json '{}'", e),
         retryable: false,
@@ -273,16 +284,16 @@ pub async fn get_node_id(http_rpc: &str) -> Result<info::GetNodeIdResponse> {
 
             Ok(cloned_resp)
         } else {
-            return Err(Error::Other {
+            Err(Error::Other {
                 message: "no result.node_pop found".to_string(),
                 retryable: false,
-            });
+            })
         }
     } else {
-        return Err(Error::Other {
+        Err(Error::Other {
             message: "no result found".to_string(),
             retryable: false,
-        });
+        })
     }
 }
 
@@ -299,8 +310,11 @@ pub async fn get_node_version(http_rpc: &str) -> Result<info::GetNodeVersionResp
     let url = url::try_create_url(url::Path::Info, scheme.as_deref(), host.as_str(), port)?;
     log::info!("getting node version for {url}");
 
-    let mut data = jsonrpc::RequestWithParamsArray::default();
-    data.method = String::from("info.getNodeVersion");
+    let method = String::from("info.getNodeVersion");
+    let data = jsonrpc::RequestWithParamsArray {
+        method,
+        ..Default::default()
+    };
     let d = data.encode_json().map_err(|e| Error::Other {
         message: format!("failed encode_json '{}'", e),
         retryable: false,
@@ -359,8 +373,11 @@ pub async fn get_vms(http_rpc: &str) -> Result<info::GetVmsResponse> {
     let url = url::try_create_url(url::Path::Info, scheme.as_deref(), host.as_str(), port)?;
     log::info!("getting VMs for {url}");
 
-    let mut data = jsonrpc::RequestWithParamsArray::default();
-    data.method = String::from("info.getVMs");
+    let method = String::from("info.getVMs");
+    let data = jsonrpc::RequestWithParamsArray {
+        method,
+        ..Default::default()
+    };
     let d = data.encode_json().map_err(|e| Error::Other {
         message: format!("failed encode_json '{}'", e),
         retryable: false,
@@ -419,8 +436,11 @@ pub async fn is_bootstrapped(http_rpc: &str) -> Result<info::IsBootstrappedRespo
     let url = url::try_create_url(url::Path::Info, scheme.as_deref(), host.as_str(), port)?;
     log::info!("getting bootstrapped for {url}");
 
-    let mut data = jsonrpc::RequestWithParamsArray::default();
-    data.method = String::from("info.isBootstrapped");
+    let method = String::from("info.isBootstrapped");
+    let data = jsonrpc::RequestWithParamsArray {
+        method,
+        ..Default::default()
+    };
     let d = data.encode_json().map_err(|e| Error::Other {
         message: format!("failed encode_json '{}'", e),
         retryable: false,
@@ -481,8 +501,11 @@ pub async fn get_tx_fee(http_rpc: &str) -> Result<info::GetTxFeeResponse> {
     let url = url::try_create_url(url::Path::Info, scheme.as_deref(), host.as_str(), port)?;
     log::info!("getting tx fee for {url}");
 
-    let mut data = jsonrpc::RequestWithParamsArray::default();
-    data.method = String::from("info.getTxFee");
+    let method = String::from("info.getTxFee");
+    let data = jsonrpc::RequestWithParamsArray {
+        method,
+        ..Default::default()
+    };
     let d = data.encode_json().map_err(|e| Error::Other {
         message: format!("failed encode_json '{}'", e),
         retryable: false,
@@ -544,17 +567,19 @@ pub async fn peers(
     let url = url::try_create_url(url::Path::Info, scheme.as_deref(), host.as_str(), port)?;
     log::info!("getting peers for {url}");
 
-    let mut data = jsonrpc::RequestWithParamsHashMapToArray::default();
-    data.method = String::from("info.peers");
-    let mut ids = Vec::new();
-    if let Some(ss) = &node_ids {
-        for id in ss.iter() {
-            ids.push(id.to_string());
-        }
-    }
-    let mut params = HashMap::new();
-    params.insert(String::from("nodeIDs"), ids);
-    data.params = Some(params);
+    let method = String::from("info.peers");
+    let ids = node_ids
+        .iter()
+        .flat_map(|ids| ids.iter().map(|id| id.to_string()))
+        .collect::<Vec<String>>();
+    let params = HashMap::from([(String::from("nodeIDs"), ids)]).into();
+
+    let data = jsonrpc::RequestWithParamsHashMapToArray {
+        method,
+        params,
+        ..Default::default()
+    };
+
     let d = data.encode_json().map_err(|e| Error::Other {
         message: format!("failed encode_json '{}'", e),
         retryable: false,

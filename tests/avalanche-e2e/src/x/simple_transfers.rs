@@ -25,12 +25,6 @@ pub struct Config {
 
 impl Default for Config {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl Config {
-    pub fn default() -> Self {
         Self {
             rounds: DEFAULT_ROUNDS,
             check_acceptance: DEFAULT_CHECK_ACCEPTANCE,
