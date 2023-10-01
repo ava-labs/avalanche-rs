@@ -10,8 +10,9 @@ use rand::prelude::SliceRandom;
 use serde::{Deserialize, Serialize};
 use tokio::net::{TcpListener, TcpStream};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::select;
 use network::p2p::gossip::gossip::{Config, Gossiper};
-use tokio::sync::mpsc::{channel};
+use tokio::sync::mpsc::{channel, Receiver};
 use avalanche_types::ids::Id;
 use network::p2p::client::{AppResponseCallback, Client};
 use network::p2p::gossip::{Gossipable, Set};
@@ -30,29 +31,29 @@ impl Client for TestClient {
         todo!()
     }
 
-    async fn app_request_any(&mut self, request_bytes: Vec<u8>, on_response: AppResponseCallback) {
+    async fn app_request_any(&mut self, request_bytes: Vec<u8>, on_response: AppResponseCallback) -> Result<(), std::io::Error> {
         let mut stream = self.stream.lock().await;
-        stream.write_all(&*request_bytes).await.unwrap();
+        stream.write_all(&*request_bytes).await?;
 
         // Lock the listener and wait for a new connection
         let clone = self.listener.clone();
-        let mut listener = clone.try_lock().expect("Unable to lock listener");
+        let mut listener = clone.lock().await;
 
         let mut buf = [0u8; 1024];
         match listener.read(&mut buf).await {
             Ok(n) => {
                 if n == 0 {
-                    // Connection was closed
+                    debug!("Connection to the listener was closed");
+                    ()
                 }
-                // Handle received data here: buf[0..n]
 
                 on_response(buf[0..n].to_vec());
             }
             Err(e) => {
-                // Handle the error.
+                error!("Issue occured in app_request_any {:?}", e)
             }
         }
-
+        Ok(())
     }
 }
 
@@ -141,19 +142,22 @@ impl<T: Gossipable + Sync + Send + Clone + Hash + Debug + PartialEq + for<'de> D
     }
 }
 
-async fn fake_handler_server_logic(mut socket: TcpStream, client_socket: Arc<Mutex<TcpStream>>, handler: Handler<MockSet<TestGossipableType>>) {
+async fn fake_handler_server_logic(mut socket: TcpStream, client_socket: Arc<Mutex<TcpStream>>, handler: Handler<MockSet<TestGossipableType>>, mut stop_handler_rx: Receiver<()>) {
 
     // Initialize a buffer of size 1024.
     let mut buf = [0u8; 1024];
     loop {
-        let n = socket.read(&mut buf).await.unwrap();
-        // // Empty, wait 5 sec before next attempt
-        if n == 0 {
-            tokio::time::sleep(Duration::from_secs(5)).await;
+        select! {
+                result = socket.read(&mut buf) => {
+                    debug!("Handler tick");
+                match result {
+                    Ok(n) if n == 0 => {
+                                    tokio::time::sleep(Duration::from_secs(5)).await;
             break;
-        }
+                    }
 
-        // Fake test data.
+Ok(n) => {
+              // Fake test data.
         let node_id: avalanche_types::ids::node::Id = avalanche_types::ids::node::Id::from_slice(&random_manager::secure_bytes(20).unwrap());
         let res_bytes = match handler.app_gossip(node_id, buf[0..n].to_vec()).await {
             Ok(res) => { res}
@@ -170,7 +174,29 @@ async fn fake_handler_server_logic(mut socket: TcpStream, client_socket: Arc<Mut
         } else {
             let _ = guard.write_all(&res_bytes).await;
         }
+        }
+                    Err(err) => {
+                        error!("Error {:?}", err);
+                    }
+}
+
+
+                }
+                _ = stop_handler_rx.recv() => {
+                    debug!("Shutting down handler");
+                        let mut guard = client_socket.try_lock().expect("Lock of client_socket failed");
+
+                let mut temp_vec = Vec::new();
+            temp_vec.push(1);
+            guard.write_all(temp_vec.as_slice()).await;
+                    break;
+                }
+            }
+        let n = socket.read(&mut buf).await.unwrap();
+        // // Empty, wait 5 sec before next attempt
     }
+
+    debug!("Out of handler loop");
 }
 
 async fn start_fake_node(own_handler: String, own_client: String, other_handler: String, other_client: String, vec_gossip_local_client: Vec<TestGossipableType>, vec_gossip_remote_client: Vec<TestGossipableType>) {
@@ -212,12 +238,15 @@ async fn start_fake_node(own_handler: String, own_client: String, other_handler:
     // Clone listener and stream for use inside the spawned task.
     let own_handler_listener_clone = own_handler_listener.clone();
     let other_client_stream_clone = other_client_stream.clone();
+    let (stop_handler_tx, stop_handler_rx) = channel(1);
+
     // Spawn an asynchronous task that will handle incoming connections in a loop
     let handler_task = tokio::spawn(async move {
         // Accept incoming connections and spawn a new task to handle each connection
         let guard = own_handler_listener_clone.try_lock().expect("Error acquiring lock on listener_clone");
         let (listener_socket, _) = guard.accept().await.unwrap();
-        fake_handler_server_logic(listener_socket, other_client_stream_clone.clone(), handler.clone()).await;
+        fake_handler_server_logic(listener_socket, other_client_stream_clone.clone(), handler.clone(), stop_handler_rx).await;
+        debug!("HANDLER DONEZO");
     });
 
     {
@@ -239,6 +268,7 @@ async fn start_fake_node(own_handler: String, own_client: String, other_handler:
         let mut gossiper = Gossiper::new(config, set_clone, gossip_client.clone(), stop_rx);
 
         gossiper.gossip().await;
+        debug!("GOSSIP DONEZO");
     });
 
     // Sleep for a few seconds, make sure the whole process ran at least a couple of times
@@ -254,6 +284,12 @@ async fn start_fake_node(own_handler: String, own_client: String, other_handler:
             assert!(guard.set.contains(&gossip));
         }
     }
+    debug!("Sending stop signal to handler");
+
+    // Send the stop signal before awaiting the task.
+    if stop_handler_tx.send(()).await.is_err() {
+        eprintln!("Failed to send stop signal");
+    }
 
     debug!("Sending stop signal to gossiper");
 
@@ -261,13 +297,17 @@ async fn start_fake_node(own_handler: String, own_client: String, other_handler:
     if stop_tx.send(()).await.is_err() {
         eprintln!("Failed to send stop signal");
     }
+
+
     tokio::time::sleep(Duration::from_secs(2)).await;
 
     debug!("Checking if all things good");
 
     // Await the completion of the gossiping task
     let _ = gossip_task.await.expect("Gossip task failed");
+    debug!("Gossip task completed");
     let _ = handler_task.await.expect("Handler task failed");
+    debug!("Handler task completed");
 }
 
 
