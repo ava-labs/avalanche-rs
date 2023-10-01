@@ -200,8 +200,8 @@ mod test {
 
     impl<T: Gossipable + Sync + Send + Clone + Hash> Set for MockSet<T> {
         type Item = T;
-        fn add(&mut self, _gossipable: T) -> Result<(), Box<dyn Error>> {
-            self.set.push(_gossipable.clone());
+        fn add(&mut self, gossipable: T) -> Result<(), Box<dyn Error>> {
+            self.set.push(gossipable.clone());
             Ok(())
         }
 

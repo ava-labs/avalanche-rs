@@ -107,13 +107,13 @@ impl<T> MockSet<T> {
 
 impl<T: Gossipable + Sync + Send + Clone + Hash + Debug + PartialEq + for<'de> Deserialize<'de> + Serialize> Set for MockSet<T> {
     type Item = T;
-    fn add(&mut self, _gossipable: T) -> Result<(), Box<dyn Error>> {
+    fn add(&mut self, gossipable: T) -> Result<(), Box<dyn Error>> {
         // Just for our test purpose am checking manually if we insert an already known gossip.
 
-        if self.set.contains(&_gossipable) {
+        if self.set.contains(&gossipable) {
             error!("Cannot insert this item, already known");
         } else {
-            self.set.push(_gossipable.clone());
+            self.set.push(gossipable.clone());
         }
 
         Ok(())
