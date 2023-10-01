@@ -14,6 +14,7 @@ use tokio::select;
 use network::p2p::gossip::gossip::{Config, Gossiper};
 use tokio::sync::mpsc::{channel, Receiver};
 use avalanche_types::ids::Id;
+use avalanche_types::ids::node::Id as NodeId;
 use network::p2p::client::{AppResponseCallback, Client};
 use network::p2p::gossip::{Gossipable, Set};
 use network::p2p::gossip::handler::{Handler, HandlerConfig, new_handler};
@@ -158,7 +159,7 @@ async fn fake_handler_server_logic(mut socket: TcpStream, client_socket: Arc<Mut
 
 Ok(n) => {
               // Fake test data.
-        let node_id: avalanche_types::ids::node::Id = avalanche_types::ids::node::Id::from_slice(&random_manager::secure_bytes(20).unwrap());
+        let node_id: NodeId = NodeId::from_slice(&random_manager::secure_bytes(20).unwrap());
         let res_bytes = match handler.app_gossip(node_id, buf[0..n].to_vec()).await {
             Ok(res) => { res}
             Err(error) => { continue }
