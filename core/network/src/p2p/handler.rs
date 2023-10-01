@@ -41,7 +41,6 @@ impl Handler for NoOpHandler {
         Ok(vec![])
     }
     async fn app_request(&self, _: Id, _: Duration, _: Vec<u8>) -> Result<Vec<u8>, Box<dyn Error>> {
-        debug!("Ah non hein");
         Ok(vec![])
     }
     async fn cross_chain_app_request(&self, _: Id, _: Duration, _: Vec<u8>) -> Result<Vec<u8>, Box<dyn Error>> {

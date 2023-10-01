@@ -177,9 +177,7 @@ async fn fake_handler_server_logic(mut socket: TcpStream, client_socket: Arc<Mut
                             Err(error) => { error!("{:?}", error); continue }
                         };
 
-                        debug!("Before aa");
                         let mut stream = client_socket.lock().await;
-                        debug!("After aa {:?}", res_bytes);
 
                         if res_bytes.is_empty() {
                             // ToDo Whenever the handler return nothing , gossip part hang. Temp dev fix to get pass this
@@ -195,7 +193,6 @@ async fn fake_handler_server_logic(mut socket: TcpStream, client_socket: Arc<Mut
                             error!("Error {:?}", err);
                         }
                 }
-                debug!("End of handler tick run");
             }
             _ = stop_handler_rx.recv() => {
                 debug!("Shutting down handler");
@@ -207,8 +204,6 @@ async fn fake_handler_server_logic(mut socket: TcpStream, client_socket: Arc<Mut
             }
         }
     }
-
-    debug!("Out of handler loop");
 }
 
 async fn start_fake_node(own_handler: &str, own_client: &str, other_handler: &str, other_client: &str, vec_gossip_local_client: Vec<TestGossipableType>, vec_gossip_remote_client: Vec<TestGossipableType>)  -> Result<(), std::io::Error> {
@@ -257,7 +252,6 @@ async fn start_fake_node(own_handler: &str, own_client: &str, other_handler: &st
         let listener = own_handler_listener_clone.lock().await;
         let (listener_socket, _) = listener.accept().await.unwrap();
         fake_handler_server_logic(listener_socket, other_client_stream_clone.clone(), handler.clone(), stop_handler_rx).await;
-        debug!("HANDLER DONEZO");
     });
 
     {
@@ -279,7 +273,6 @@ async fn start_fake_node(own_handler: &str, own_client: &str, other_handler: &st
         let mut gossiper = Gossiper::new(config, set_clone, gossip_client.clone(), stop_rx);
 
         gossiper.gossip().await;
-        debug!("GOSSIP DONEZO");
     });
 
     // Sleep for a few seconds, make sure the whole process ran at least a couple of times
@@ -292,7 +285,6 @@ async fn start_fake_node(own_handler: &str, own_client: &str, other_handler: &st
         assert!(guard.set.len() == 6);
         // Need to find them all
         for gossip in vec_gossip_remote_client {
-            debug!("Checking if gossip {:?} is present in set {:?}", gossip, guard.set);
             assert!(guard.set.contains(&gossip));
         }
     }
@@ -308,13 +300,11 @@ async fn start_fake_node(own_handler: &str, own_client: &str, other_handler: &st
 
     // Send the stop signal before awaiting the task.
     if stop_tx.send(()).await.is_err() {
-        eprintln!("Failed to send stop signal");
+        error!("Failed to send stop signal");
     }
 
 
     tokio::time::sleep(Duration::from_secs(2)).await;
-
-    debug!("Checking if all things good");
 
     // Await the completion of the gossiping task
     let _ = gossip_task.await.expect("Gossip task failed");

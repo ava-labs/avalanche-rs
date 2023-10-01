@@ -57,7 +57,6 @@ impl<S> p2p::handler::Handler for Handler<S>
         };
 
         guard.iterate(&mut |gossipable : &S::Item| {
-            println!("Iterating in handler");
             if filter.contains(&gossipable) {
                 return true
             };
