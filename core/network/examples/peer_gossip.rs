@@ -31,8 +31,8 @@ impl Client for TestClient {
     }
 
     async fn app_request_any(&mut self, request_bytes: Vec<u8>, on_response: AppResponseCallback) {
-        let mut stream_guard = self.stream.lock().await;
-        stream_guard.write_all(&*request_bytes).await.unwrap();
+        let mut stream = self.stream.lock().await;
+        stream.write_all(&*request_bytes).await.unwrap();
 
         // Lock the listener and wait for a new connection
         let clone = self.listener.clone();
