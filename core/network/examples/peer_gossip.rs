@@ -26,12 +26,7 @@ pub struct TestClient {
 }
 
 #[async_trait]
-#[allow(unused_variables)]
 impl Client for TestClient {
-    async fn app_gossip(&mut self, request_bytes: Vec<u8>) {
-        todo!()
-    }
-
     async fn app_request_any(&mut self, request_bytes: &Vec<u8>, on_response: AppResponseCallback) -> Result<(), std::io::Error> {
         let mut stream = self.stream.lock().await;
         stream.write_all(request_bytes).await?;
@@ -55,6 +50,26 @@ impl Client for TestClient {
             }
         }
         Ok(())
+    }
+
+    async fn app_request(&mut self, request_bytes: Vec<u8>) -> Result<(), std::io::Error> {
+        todo!()
+    }
+
+    async fn app_gossip(&mut self, request_bytes: Vec<u8>) -> Result<(), std::io::Error> {
+        todo!()
+    }
+
+    async fn app_gossip_specific(&mut self, request_bytes: Vec<u8>) -> Result<(), std::io::Error> {
+        todo!()
+    }
+
+    async fn cross_chain_app_request(&mut self, request_bytes: Vec<u8>) -> Result<(), std::io::Error> {
+        todo!()
+    }
+
+    async fn prefix_message(&mut self, request_bytes: Vec<u8>) -> Result<(), std::io::Error> {
+        todo!()
     }
 }
 
