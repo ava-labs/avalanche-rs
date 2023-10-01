@@ -270,9 +270,10 @@ async fn start_fake_node(own_handler: String, own_client: String, other_handler:
     // Sleep for a few seconds, make sure the whole process ran at least a couple of times
     tokio::time::sleep(Duration::from_secs(2)).await;
 
+
     {
         let guard = set.lock().await;
-        // As we have 3 elements in our set pre-gossip loop execution in each one of our fake gossip server, we should end up with 6 gossip at the end of our test run.
+        // As we have 3 elements in our set (pre-gossip loop execution) in each one of our fake gossip server, we should end up with 6 gossip at the end of our test run.
         assert!(guard.set.len() == 6);
         // Need to find them all
         for gossip in vec_gossip_remote_client {
@@ -280,6 +281,7 @@ async fn start_fake_node(own_handler: String, own_client: String, other_handler:
             assert!(guard.set.contains(&gossip));
         }
     }
+
     debug!("Sending stop signal to handler");
 
     // Send the stop signal before awaiting the task.
