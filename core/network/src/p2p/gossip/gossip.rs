@@ -5,15 +5,13 @@ use avalanche_types::ids::Id;
 use log::{debug, error};
 use prost::Message;
 use std::error::Error;
-use std::hash::Hash;
-use std::ops::Deref;
 use tokio::sync::Mutex;
 use std::sync::Arc;
 use std::time::Duration;
 use serde::Serialize;
 use serde_json::to_vec;
 use tokio::select;
-use tokio::sync::mpsc::{channel, Receiver};
+use tokio::sync::mpsc::Receiver;
 use tokio::time::interval;
 
 pub struct Config {
@@ -108,6 +106,7 @@ impl<S> Gossiper<S>
                                 res
                             }
                             Err(e) => {
+                                error!("{:?}", e);
                                 return;
                             }
                         };
@@ -132,7 +131,7 @@ impl<S> Gossiper<S>
                 });
 
                 let mut guard = self.client.try_lock().expect("Failed to acquire a lock on client");
-                guard.app_request_any(msg_bytes.clone(), on_response).await;
+                let _ = guard.app_request_any(msg_bytes.clone(), on_response).await;
             }
         }
 

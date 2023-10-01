@@ -153,26 +153,26 @@ async fn fake_handler_server_logic(mut socket: TcpStream, client_socket: Arc<Mut
                 debug!("Handler tick");
                 match result {
                     Ok(n) if n == 0 => {
-                        break; // to check
+                        break; // to check, 0 means connection closed ?
                     }
                     Ok(n) => {
-                        let node_id: NodeId = NodeId::from_slice(&random_manager::secure_bytes(20).unwrap());
+                        let node_id: NodeId = NodeId::from_slice(&random_manager::secure_bytes(20).unwrap()); // Since we fake the network layer, we need to fake this as well
                         let res_bytes = match handler.app_gossip(node_id, buf[0..n].to_vec()).await {
                             Ok(res) => { res}
-                            Err(error) => { continue }
+                            Err(error) => { error!("{:?}", error); continue }
                         };
 
                         debug!("Before aa");
-                        let mut guard = client_socket.lock().await;
+                        let mut stream = client_socket.lock().await;
                         debug!("After aa {:?}", res_bytes);
 
                         if res_bytes.is_empty() {
                             // ToDo Whenever the handler return nothing , gossip part hang. Temp dev fix to get pass this
                             let mut temp_vec = Vec::new();
                             temp_vec.push(1);
-                            guard.write_all(temp_vec.as_slice()).await;
+                            let _ = stream.write_all(temp_vec.as_slice()).await; // todo check, feels ugly
                         } else {
-                            let _ = guard.write_all(&res_bytes).await;
+                            let _ = stream.write_all(&res_bytes).await;
                         }
 
                         }
@@ -184,10 +184,10 @@ async fn fake_handler_server_logic(mut socket: TcpStream, client_socket: Arc<Mut
             }
             _ = stop_handler_rx.recv() => {
                 debug!("Shutting down handler");
-                let mut guard = client_socket.try_lock().expect("Lock of client_socket failed");
+                let mut stream = client_socket.lock().await;
                 let mut temp_vec = Vec::new();
                 temp_vec.push(1);
-                guard.write_all(temp_vec.as_slice()).await;
+                let _ = stream.write_all(temp_vec.as_slice()).await; // todo check, feels ugly
                 break;
             }
         }
@@ -217,7 +217,7 @@ async fn start_fake_node(own_handler: String, own_client: String, other_handler:
     // Initialize the configuration for the handler and create a new handler
     let handler_config = HandlerConfig { namespace: "test".to_string(), target_response_size: 1000 };
 
-    let mut set = Arc::new(Mutex::new(MockSet { set: Vec::<TestGossipableType>::new() }));
+    let set = Arc::new(Mutex::new(MockSet { set: Vec::<TestGossipableType>::new() }));
     // Generating fake data and pushing to set
     {
         for gossip in &vec_gossip_local_client {

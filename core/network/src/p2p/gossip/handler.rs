@@ -1,16 +1,16 @@
 use std::error::Error;
 use std::fmt::Debug;
-use tokio::sync::{Mutex, MutexGuard, TryLockError};
+use tokio::sync::Mutex;
 use std::sync::Arc;
 use std::time::Duration;
 use async_trait::async_trait;
-use log::{debug, error};
+use log::error;
 use prost::Message;
 use avalanche_types::ids::node::Id;
 use crate::p2p;
 use crate::p2p::gossip::{Gossipable, Set};
 use crate::p2p::sdk::{PullGossipRequest, PullGossipResponse};
-use serde_json::{from_slice, to_vec};
+use serde_json::from_slice;
 
 pub struct HandlerConfig {
     pub namespace: String,
