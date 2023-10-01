@@ -10,6 +10,8 @@ use std::ops::Deref;
 use tokio::sync::Mutex;
 use std::sync::Arc;
 use std::time::Duration;
+use serde::Serialize;
+use serde_json::to_vec;
 use tokio::select;
 use tokio::sync::mpsc::{channel, Receiver};
 use tokio::time::interval;
@@ -50,7 +52,7 @@ impl<S> Gossiper<S>
         }
     }
 
-    pub async fn gossip(&mut self) {
+    pub async fn gossip(&mut self) where <S as Set>::Item: Clone, <S as Set>::Item: Serialize {
         let mut gossip_ticker = interval(self.config.frequency);
 
         loop {
@@ -71,7 +73,7 @@ impl<S> Gossiper<S>
         }
     }
 
-    async fn execute(&mut self) -> Result<(), Box<dyn Error>> {
+    async fn execute(&mut self) -> Result<(), Box<dyn Error>> where <S as Set>::Item: Clone, <S as Set>::Item: Serialize {
         //ToDo Dummy vec<u8> for now.
         let bloom = Vec::new();
 
@@ -86,47 +88,38 @@ impl<S> Gossiper<S>
         {
             let set_guard = self.set.lock().await;
 
-            let elem = set_guard.fetch_elements();
+            let elem = set_guard.fetch_all_elements();
 
-            let filter = elem.serialize().expect("Issue serializing elem");
-            request.filter = filter;
+            request.filter = to_vec(&elem)?;
+
+            // debug!("TTTTT {:?}", t);
             request.encode(&mut msg_bytes)?;
         }
 
-        debug!("Before going over the poll_size");
         for _ in 0..self.config.poll_size {
             {
-                debug!("poll_size");
                 let set = Arc::clone(&self.set.clone());
 
                 // Initialize the callback that will be used upon receiving a response from our gossip attempt
                 let on_response: AppResponseCallback = Arc::new({
                     move |response_bytes| {
-                        debug!("In AppResponseCallback -- beginning");
                         let response = match PullGossipResponse::decode(response_bytes.as_slice()) {
                             Ok(res) => {
-                                debug!("Decoded in AppResponseCallback -- {:?}", res);
                                 res
                             }
                             Err(e) => {
-                                error!("failed to unmarshal gossip response, error: {:?}", e);
                                 return;
                             }
                         };
 
                         // We iterate over the response's gossip
-                        debug!("There are {} gossips", response.gossip.len());
                         for bytes in response.gossip.iter() {
                             let mut gossipable: S::Item = S::Item::default();
-                            debug!("In AppResponseCallback -- deserialized gossipable -- {:?}", gossipable);
                             gossipable.deserialize(bytes).unwrap();
-                            debug!("In AppResponseCallback -- deserialized gossipable -- {:?}", gossipable);
 
                             let hash = gossipable.get_id();
-                            debug!("In AppResponseCallback -- let hash = gossipable.get_id(); -- {:?}", hash);
 
                             let mut set_guard = set.try_lock().expect("Failed to acquire lock on set");
-                            debug!("In AppResponseCallback -- set_guard = set.try_lock()");
                             if let Err(e) = set_guard.add(gossipable) {
                                 error!(
                             "failed to add gossip to the known set, id: {:?}, error: {:?}"
@@ -135,14 +128,11 @@ impl<S> Gossiper<S>
                                 continue;
                             }
                         }
-                        debug!("In AppResponseCallback -- ending");
                     }
                 });
 
                 let mut guard = self.client.try_lock().expect("Failed to acquire a lock on client");
-                debug!("After acquiring lock for client in execute");
                 guard.app_request_any(msg_bytes.clone(), on_response).await;
-                debug!("After app_request_any in execute");
             }
         }
 
@@ -216,7 +206,7 @@ mod test {
         }
 
         fn iterate(&self, _f: &mut dyn FnMut(&T) -> bool) {
-            unimplemented!()
+            todo!()
         }
     }
 
