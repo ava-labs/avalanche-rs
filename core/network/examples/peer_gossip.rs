@@ -217,15 +217,14 @@ async fn start_fake_node(own_handler: String, own_client: String, other_handler:
     // Initialize the configuration for the handler and create a new handler
     let handler_config = HandlerConfig { namespace: "test".to_string(), target_response_size: 1000 };
 
-    let set = Arc::new(Mutex::new(MockSet { set: Vec::<TestGossipableType>::new() }));
-    // Generating fake data and pushing to set
-    {
-        for gossip in &vec_gossip_local_client {
-            set.try_lock().expect("Failed to acquire lock").set.push(
-                gossip.clone()
-            );
-        }
+    let mut mock_set = MockSet { set: Vec::<TestGossipableType>::new() };
+    for gossip in &vec_gossip_local_client {
+        mock_set.set.push(
+            gossip.clone()
+        );
     }
+    let set = Arc::new(Mutex::new(mock_set ));
+
 
     let handler = new_handler(
         handler_config,
@@ -240,14 +239,14 @@ async fn start_fake_node(own_handler: String, own_client: String, other_handler:
     // Spawn an asynchronous task that will handle incoming connections in a loop
     let handler_task = tokio::spawn(async move {
         // Accept incoming connections and spawn a new task to handle each connection
-        let guard = own_handler_listener_clone.try_lock().expect("Error acquiring lock on listener_clone");
-        let (listener_socket, _) = guard.accept().await.unwrap();
+        let listener = own_handler_listener_clone.lock().await;
+        let (listener_socket, _) = listener.accept().await.unwrap();
         fake_handler_server_logic(listener_socket, other_client_stream_clone.clone(), handler.clone(), stop_handler_rx).await;
         debug!("HANDLER DONEZO");
     });
 
     {
-        assert_eq!(set.try_lock().expect("Failed to acquire lock").set.len().clone(), 3);
+        assert_eq!(set.lock().await.set.len().clone(), 3);
     }
 
     let (stop_tx, stop_rx) = channel(1);
@@ -256,7 +255,7 @@ async fn start_fake_node(own_handler: String, own_client: String, other_handler:
     let set_clone = set.clone();
     let gossip_task = tokio::spawn(async move {
         // Initialize a TestClient instance with the given stream and listener
-        let (stream, _) = own_client_listener_r.try_lock().expect("Failed to acquire lock").accept().await.expect("Fail");
+        let (stream, _) = own_client_listener_r.lock().await.accept().await.expect("Fail");
         let gossip_client = Arc::new(Mutex::new(TestClient { stream: other_handler_stream.clone(), listener: Arc::new(Mutex::new(stream)) }));
 
         // Create a channel for stopping the gossiper
