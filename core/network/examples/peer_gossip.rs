@@ -149,52 +149,48 @@ async fn fake_handler_server_logic(mut socket: TcpStream, client_socket: Arc<Mut
     let mut buf = [0u8; 1024];
     loop {
         select! {
-                result = socket.read(&mut buf) => {
-                    debug!("Handler tick");
+            result = socket.read(&mut buf) => {
+                debug!("Handler tick");
                 match result {
                     Ok(n) if n == 0 => {
-                                    tokio::time::sleep(Duration::from_secs(5)).await;
-            break;
+                        break; // to check
                     }
+                    Ok(n) => {
+                        let node_id: NodeId = NodeId::from_slice(&random_manager::secure_bytes(20).unwrap());
+                        let res_bytes = match handler.app_gossip(node_id, buf[0..n].to_vec()).await {
+                            Ok(res) => { res}
+                            Err(error) => { continue }
+                        };
 
-Ok(n) => {
-              // Fake test data.
-        let node_id: NodeId = NodeId::from_slice(&random_manager::secure_bytes(20).unwrap());
-        let res_bytes = match handler.app_gossip(node_id, buf[0..n].to_vec()).await {
-            Ok(res) => { res}
-            Err(error) => { continue }
-        };
+                        debug!("Before aa");
+                        let mut guard = client_socket.lock().await;
+                        debug!("After aa {:?}", res_bytes);
 
-        let mut guard = client_socket.try_lock().expect("Lock of client_socket failed");
+                        if res_bytes.is_empty() {
+                            // ToDo Whenever the handler return nothing , gossip part hang. Temp dev fix to get pass this
+                            let mut temp_vec = Vec::new();
+                            temp_vec.push(1);
+                            guard.write_all(temp_vec.as_slice()).await;
+                        } else {
+                            let _ = guard.write_all(&res_bytes).await;
+                        }
 
-        if res_bytes.is_empty() {
-            // ToDo Whenever the handler return nothing , gossip part hang. Temp dev fix to get pass this
-            let mut temp_vec = Vec::new();
-            temp_vec.push(1);
-            guard.write_all(temp_vec.as_slice()).await;
-        } else {
-            let _ = guard.write_all(&res_bytes).await;
-        }
-        }
-                    Err(err) => {
-                        error!("Error {:?}", err);
-                    }
-}
-
-
+                        }
+                        Err(err) => {
+                            error!("Error {:?}", err);
+                        }
                 }
-                _ = stop_handler_rx.recv() => {
-                    debug!("Shutting down handler");
-                        let mut guard = client_socket.try_lock().expect("Lock of client_socket failed");
-
-                let mut temp_vec = Vec::new();
-            temp_vec.push(1);
-            guard.write_all(temp_vec.as_slice()).await;
-                    break;
-                }
+                debug!("End of handler tick run");
             }
-        let n = socket.read(&mut buf).await.unwrap();
-        // // Empty, wait 5 sec before next attempt
+            _ = stop_handler_rx.recv() => {
+                debug!("Shutting down handler");
+                let mut guard = client_socket.try_lock().expect("Lock of client_socket failed");
+                let mut temp_vec = Vec::new();
+                temp_vec.push(1);
+                guard.write_all(temp_vec.as_slice()).await;
+                break;
+            }
+        }
     }
 
     debug!("Out of handler loop");
