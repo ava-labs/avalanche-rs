@@ -27,10 +27,6 @@ pub struct Gossiper<S: Set + 'static> {
     stop_rx: Receiver<()>,
 }
 
-unsafe impl<S: Set> Sync for Gossiper<S> {}
-
-unsafe impl<S: Set> Send for Gossiper<S> {}
-
 impl<S> Gossiper<S>
     where
         S: Set,
@@ -59,7 +55,7 @@ impl<S> Gossiper<S>
                     debug!("Gossip tick");
                     if let Err(e) = self.execute().await {
                         error!("Failed to Gossip : {:?}", e);
-                        //ToDo
+                        todo!();
 
                     }
                 }
@@ -83,56 +79,49 @@ impl<S> Gossiper<S>
         let mut msg_bytes = vec![];
 
         // We scope the lock here to avoid issue later on
-        {
-            let set_guard = self.set.lock().await;
+        let elem = self.set.lock().await.fetch_all_elements();
 
-            let elem = set_guard.fetch_all_elements();
+        request.filter = to_vec(&elem)?;
 
-            request.filter = to_vec(&elem)?;
+        request.encode(&mut msg_bytes)?;
 
-            // debug!("TTTTT {:?}", t);
-            request.encode(&mut msg_bytes)?;
-        }
 
         for _ in 0..self.config.poll_size {
-            {
-                let set = Arc::clone(&self.set.clone());
+            let set = Arc::clone(&self.set);
 
-                // Initialize the callback that will be used upon receiving a response from our gossip attempt
-                let on_response: AppResponseCallback = Arc::new({
-                    move |response_bytes| {
-                        let response = match PullGossipResponse::decode(response_bytes.as_slice()) {
-                            Ok(res) => {
-                                res
-                            }
-                            Err(e) => {
-                                error!("{:?}", e);
-                                return;
-                            }
-                        };
+            // Initialize the callback that will be used upon receiving a response from our gossip attempt
+            let on_response: AppResponseCallback = Arc::new(
+                move |response_bytes| {
+                    let response = match PullGossipResponse::decode(response_bytes.as_slice()) {
+                        Ok(res) => {
+                            res
+                        }
+                        Err(e) => {
+                            error!("{:?}", e);
+                            return;
+                        }
+                    };
 
-                        // We iterate over the response's gossip
-                        for bytes in response.gossip.iter() {
-                            let mut gossipable: S::Item = S::Item::default();
-                            gossipable.deserialize(bytes).unwrap();
+                    // We iterate over the response's gossip
+                    for bytes in response.gossip.iter() {
+                        let mut gossipable = S::Item::default();
+                        gossipable.deserialize(bytes).unwrap();
 
-                            let hash = gossipable.get_id();
+                        let hash = gossipable.get_id();
 
-                            let mut set_guard = set.try_lock().expect("Failed to acquire lock on set");
-                            if let Err(e) = set_guard.add(gossipable) {
-                                error!(
+                        let mut set_guard = set.try_lock().expect("Failed to acquire lock on set");
+                        if let Err(e) = set_guard.add(gossipable) {
+                            error!(
                             "failed to add gossip to the known set, id: {:?}, error: {:?}"
                             , hash, e
                         );
-                                continue;
-                            }
+                            continue;
                         }
                     }
                 });
 
-                let mut guard = self.client.try_lock().expect("Failed to acquire a lock on client");
-                let _ = guard.app_request_any(msg_bytes.clone(), on_response).await;
-            }
+            let mut guard = self.client.try_lock().expect("Failed to acquire a lock on client");
+            let _ = guard.app_request_any(&msg_bytes, on_response).await;
         }
 
         Ok(())

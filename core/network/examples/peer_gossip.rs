@@ -32,9 +32,9 @@ impl Client for TestClient {
         todo!()
     }
 
-    async fn app_request_any(&mut self, request_bytes: Vec<u8>, on_response: AppResponseCallback) -> Result<(), std::io::Error> {
+    async fn app_request_any(&mut self, request_bytes: &Vec<u8>, on_response: AppResponseCallback) -> Result<(), std::io::Error> {
         let mut stream = self.stream.lock().await;
-        stream.write_all(&*request_bytes).await?;
+        stream.write_all(request_bytes).await?;
 
         // Lock the listener and wait for a new connection
         let clone = self.listener.clone();
@@ -196,7 +196,7 @@ async fn fake_handler_server_logic(mut socket: TcpStream, client_socket: Arc<Mut
     debug!("Out of handler loop");
 }
 
-async fn start_fake_node(own_handler: String, own_client: String, other_handler: String, other_client: String, vec_gossip_local_client: Vec<TestGossipableType>, vec_gossip_remote_client: Vec<TestGossipableType>) {
+async fn start_fake_node(own_handler: &str, own_client: &str, other_handler: &str, other_client: &str, vec_gossip_local_client: Vec<TestGossipableType>, vec_gossip_remote_client: Vec<TestGossipableType>)  -> Result<(), std::io::Error> {
     // Initialize the configuration for the gossiper
     let config = Config {
         namespace: "test".to_string(),
@@ -206,13 +206,13 @@ async fn start_fake_node(own_handler: String, own_client: String, other_handler:
 
     // Create a TcpListener to receive messages on.
     // Wrapping it in Arc and Mutex to safely share it between threads.
-    let own_handler_listener = Arc::new(Mutex::new(TcpListener::bind(own_handler.clone()).await.unwrap()));
-    let own_client_listener_r = Arc::new(Mutex::new(TcpListener::bind(own_client.clone()).await.unwrap()));
+    let own_handler_listener = Arc::new(Mutex::new(TcpListener::bind(own_handler).await?));
+    let own_client_listener_r = Arc::new(Mutex::new(TcpListener::bind(own_client).await?));
 
     // Create a TcpStream to send messages to.
     // Wrapping it in Arc and Mutex to safely share it between threads.
-    let other_client_stream = Arc::new(Mutex::new(TcpStream::connect(other_client).await.unwrap()));
-    let other_handler_stream = Arc::new(Mutex::new(TcpStream::connect(other_handler.clone()).await.unwrap()));
+    let other_client_stream = Arc::new(Mutex::new(TcpStream::connect(other_client).await?));
+    let other_handler_stream = Arc::new(Mutex::new(TcpStream::connect(other_handler.clone()).await?));
 
     // Initialize the configuration for the handler and create a new handler
     let handler_config = HandlerConfig { namespace: "test".to_string(), target_response_size: 1000 };
@@ -306,6 +306,7 @@ async fn start_fake_node(own_handler: String, own_client: String, other_handler:
     debug!("Gossip task completed");
     let _ = handler_task.await.expect("Handler task failed");
     debug!("Handler task completed");
+    Ok(())
 }
 
 
@@ -328,8 +329,8 @@ async fn main() {
 
     // Start the client
     // listen on 8080 , send message to 8081
-    let client_01_handle = tokio::spawn(start_fake_node("127.0.0.1:8080".to_string(), "127.0.0.1:8081".to_string(), "127.0.0.1:8082".to_string(), "127.0.0.1:8083".to_string(), vec_gossip_client_01.clone(), vec_gossip_client_02.clone()));
-    let client_02_handle = tokio::spawn(start_fake_node("127.0.0.1:8082".to_string(), "127.0.0.1:8083".to_string(), "127.0.0.1:8080".to_string(), "127.0.0.1:8081".to_string(), vec_gossip_client_02.clone(), vec_gossip_client_01.clone()));
+    let client_01_handle = tokio::spawn(start_fake_node("127.0.0.1:8080", "127.0.0.1:8081", "127.0.0.1:8082", "127.0.0.1:8083", vec_gossip_client_01.clone(), vec_gossip_client_02.clone()));
+    let client_02_handle = tokio::spawn(start_fake_node("127.0.0.1:8082", "127.0.0.1:8083", "127.0.0.1:8080", "127.0.0.1:8081", vec_gossip_client_02.clone(), vec_gossip_client_01.clone()));
 
     // Wait for the server and client to complete
     client_01_handle.await.expect("Issue with client01");
