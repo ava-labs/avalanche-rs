@@ -1,24 +1,24 @@
+use async_trait::async_trait;
+use avalanche_types::ids::node::Id as NodeId;
+use avalanche_types::ids::Id;
+use log::{debug, error};
+use network::p2p::client::{AppResponseCallback, Client};
+use network::p2p::gossip::gossip::{Config, Gossiper};
+use network::p2p::gossip::handler::{new_handler, Handler, HandlerConfig};
+use network::p2p::gossip::{Gossipable, Set};
+use network::p2p::handler::Handler as TraitHandler;
+use rand::prelude::SliceRandom;
+use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::fmt::Debug;
 use std::hash::Hash;
-use tokio::sync::Mutex;
 use std::sync::Arc;
 use std::time::Duration;
-use async_trait::async_trait;
-use log::{debug, error};
-use rand::prelude::SliceRandom;
-use serde::{Deserialize, Serialize};
-use tokio::net::{TcpListener, TcpStream};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::net::{TcpListener, TcpStream};
 use tokio::select;
-use network::p2p::gossip::gossip::{Config, Gossiper};
 use tokio::sync::mpsc::{channel, Receiver};
-use avalanche_types::ids::Id;
-use avalanche_types::ids::node::Id as NodeId;
-use network::p2p::client::{AppResponseCallback, Client};
-use network::p2p::gossip::{Gossipable, Set};
-use network::p2p::gossip::handler::{Handler, HandlerConfig, new_handler};
-use network::p2p::handler::Handler as TraitHandler;
+use tokio::sync::Mutex;
 
 pub struct TestClient {
     pub stream: Arc<Mutex<TcpStream>>,
@@ -27,7 +27,11 @@ pub struct TestClient {
 
 #[async_trait]
 impl Client for TestClient {
-    async fn app_request_any(&mut self, request_bytes: &Vec<u8>, on_response: AppResponseCallback) -> Result<(), std::io::Error> {
+    async fn app_request_any(
+        &mut self,
+        request_bytes: &Vec<u8>,
+        on_response: AppResponseCallback,
+    ) -> Result<(), std::io::Error> {
         let mut stream = self.stream.lock().await;
         stream.write_all(request_bytes).await?;
 
@@ -52,23 +56,26 @@ impl Client for TestClient {
         Ok(())
     }
 
-    async fn app_request(&mut self, request_bytes: Vec<u8>) -> Result<(), std::io::Error> {
+    async fn app_request(&mut self, _: Vec<u8>) -> Result<(), std::io::Error> {
         todo!()
     }
 
-    async fn app_gossip(&mut self, request_bytes: Vec<u8>) -> Result<(), std::io::Error> {
+    async fn app_gossip(&mut self, _: Vec<u8>) -> Result<(), std::io::Error> {
         todo!()
     }
 
-    async fn app_gossip_specific(&mut self, request_bytes: Vec<u8>) -> Result<(), std::io::Error> {
+    async fn app_gossip_specific(&mut self, _: Vec<u8>) -> Result<(), std::io::Error> {
         todo!()
     }
 
-    async fn cross_chain_app_request(&mut self, request_bytes: Vec<u8>) -> Result<(), std::io::Error> {
+    async fn cross_chain_app_request(
+        &mut self,
+        _: Vec<u8>,
+    ) -> Result<(), std::io::Error> {
         todo!()
     }
 
-    async fn prefix_message(&mut self, request_bytes: Vec<u8>) -> Result<(), std::io::Error> {
+    async fn prefix_message(&mut self, _: Vec<u8>) -> Result<(), std::io::Error> {
         todo!()
     }
 }
@@ -121,7 +128,18 @@ impl<T> MockSet<T> {
     }
 }
 
-impl<T: Gossipable + Sync + Send + Clone + Hash + Debug + PartialEq + for<'de> Deserialize<'de> + Serialize> Set for MockSet<T> {
+impl<
+        T: Gossipable
+            + Sync
+            + Send
+            + Clone
+            + Hash
+            + Debug
+            + PartialEq
+            + for<'de> Deserialize<'de>
+            + Serialize,
+    > Set for MockSet<T>
+{
     type Item = T;
     fn add(&mut self, gossipable: T) -> Result<(), Box<dyn Error>> {
         // Just for our test purpose am checking manually if we insert an already known gossip.
@@ -142,7 +160,10 @@ impl<T: Gossipable + Sync + Send + Clone + Hash + Debug + PartialEq + for<'de> D
     fn iterate(&self, _f: &mut dyn FnMut(&T) -> bool) {
         for item in &self.set {
             if !_f(item) {
-                println!("Filter sent over network knows about this item already {:?}", item);
+                println!(
+                    "Filter sent over network knows about this item already {:?}",
+                    item
+                );
                 break;
             }
         }
@@ -150,7 +171,10 @@ impl<T: Gossipable + Sync + Send + Clone + Hash + Debug + PartialEq + for<'de> D
     }
 
     fn fetch_elements(&self) -> Self::Item {
-        self.set.choose(&mut rand::thread_rng()).cloned().expect("Set is empty")
+        self.set
+            .choose(&mut rand::thread_rng())
+            .cloned()
+            .expect("Set is empty")
     }
 
     fn fetch_all_elements(&self) -> Vec<Self::Item> {
@@ -158,8 +182,12 @@ impl<T: Gossipable + Sync + Send + Clone + Hash + Debug + PartialEq + for<'de> D
     }
 }
 
-async fn fake_handler_server_logic(mut socket: TcpStream, client_socket: Arc<Mutex<TcpStream>>, handler: Handler<MockSet<TestGossipableType>>, mut stop_handler_rx: Receiver<()>) {
-
+async fn fake_handler_server_logic(
+    mut socket: TcpStream,
+    client_socket: Arc<Mutex<TcpStream>>,
+    handler: Handler<MockSet<TestGossipableType>>,
+    mut stop_handler_rx: Receiver<()>,
+) {
     // Initialize a buffer of size 1024.
     let mut buf = [0u8; 1024];
     loop {
@@ -206,7 +234,14 @@ async fn fake_handler_server_logic(mut socket: TcpStream, client_socket: Arc<Mut
     }
 }
 
-async fn start_fake_node(own_handler: &str, own_client: &str, other_handler: &str, other_client: &str, vec_gossip_local_client: Vec<TestGossipableType>, vec_gossip_remote_client: Vec<TestGossipableType>)  -> Result<(), std::io::Error> {
+async fn start_fake_node(
+    own_handler: &str,
+    own_client: &str,
+    other_handler: &str,
+    other_client: &str,
+    vec_gossip_local_client: Vec<TestGossipableType>,
+    vec_gossip_remote_client: Vec<TestGossipableType>,
+) -> Result<(), std::io::Error> {
     // Initialize the configuration for the gossiper
     let config = Config {
         namespace: "test".to_string(),
@@ -222,24 +257,24 @@ async fn start_fake_node(own_handler: &str, own_client: &str, other_handler: &st
     // Create a TcpStream to send messages to.
     // Wrapping it in Arc and Mutex to safely share it between threads.
     let other_client_stream = Arc::new(Mutex::new(TcpStream::connect(other_client).await?));
-    let other_handler_stream = Arc::new(Mutex::new(TcpStream::connect(other_handler.clone()).await?));
+    let other_handler_stream =
+        Arc::new(Mutex::new(TcpStream::connect(other_handler.clone()).await?));
 
     // Initialize the configuration for the handler and create a new handler
-    let handler_config = HandlerConfig { namespace: "test".to_string(), target_response_size: 1000 };
+    let handler_config = HandlerConfig {
+        namespace: "test".to_string(),
+        target_response_size: 1000,
+    };
 
-    let mut mock_set = MockSet { set: Vec::<TestGossipableType>::new() };
+    let mut mock_set = MockSet {
+        set: Vec::<TestGossipableType>::new(),
+    };
     for gossip in &vec_gossip_local_client {
-        mock_set.set.push(
-            gossip.clone()
-        );
+        mock_set.set.push(gossip.clone());
     }
-    let set = Arc::new(Mutex::new(mock_set ));
+    let set = Arc::new(Mutex::new(mock_set));
 
-
-    let handler = new_handler(
-        handler_config,
-        set.clone(),
-    );
+    let handler = new_handler(handler_config, set.clone());
 
     // Clone listener and stream for use inside the spawned task.
     let own_handler_listener_clone = own_handler_listener.clone();
@@ -251,7 +286,13 @@ async fn start_fake_node(own_handler: &str, own_client: &str, other_handler: &st
         // Accept incoming connections and spawn a new task to handle each connection
         let listener = own_handler_listener_clone.lock().await;
         let (listener_socket, _) = listener.accept().await.unwrap();
-        fake_handler_server_logic(listener_socket, other_client_stream_clone.clone(), handler.clone(), stop_handler_rx).await;
+        fake_handler_server_logic(
+            listener_socket,
+            other_client_stream_clone.clone(),
+            handler.clone(),
+            stop_handler_rx,
+        )
+        .await;
     });
 
     {
@@ -264,8 +305,16 @@ async fn start_fake_node(own_handler: &str, own_client: &str, other_handler: &st
     let set_clone = set.clone();
     let gossip_task = tokio::spawn(async move {
         // Initialize a TestClient instance with the given stream and listener
-        let (stream, _) = own_client_listener_r.lock().await.accept().await.expect("Fail");
-        let gossip_client = Arc::new(Mutex::new(TestClient { stream: other_handler_stream.clone(), listener: Arc::new(Mutex::new(stream)) }));
+        let (stream, _) = own_client_listener_r
+            .lock()
+            .await
+            .accept()
+            .await
+            .expect("Fail");
+        let gossip_client = Arc::new(Mutex::new(TestClient {
+            stream: other_handler_stream.clone(),
+            listener: Arc::new(Mutex::new(stream)),
+        }));
 
         // Create a channel for stopping the gossiper
 
@@ -277,7 +326,6 @@ async fn start_fake_node(own_handler: &str, own_client: &str, other_handler: &st
 
     // Sleep for a few seconds, make sure the whole process ran at least a couple of times
     tokio::time::sleep(Duration::from_secs(2)).await;
-
 
     {
         let guard = set.lock().await;
@@ -303,7 +351,6 @@ async fn start_fake_node(own_handler: &str, own_client: &str, other_handler: &st
         error!("Failed to send stop signal");
     }
 
-
     tokio::time::sleep(Duration::from_secs(2)).await;
 
     // Await the completion of the gossiping task
@@ -314,7 +361,6 @@ async fn start_fake_node(own_handler: &str, own_client: &str, other_handler: &st
     Ok(())
 }
 
-
 #[tokio::main]
 async fn main() {
     env_logger::init_from_env(
@@ -323,22 +369,64 @@ async fn main() {
 
     let mut vec_gossip_client_01 = Vec::new();
     let mut vec_gossip_client_02 = Vec::new();
-    vec_gossip_client_01.push(TestGossipableType { id: Id::from_slice(&[52, 25, 83, 149, 20, 226, 168, 61, 17, 53, 152, 11, 220, 226, 218, 254, 53, 104, 51, 247, 106, 6, 9, 26, 81, 52, 108, 232, 251, 122, 245, 112]) });
-    vec_gossip_client_01.push(TestGossipableType { id: Id::from_slice(&[243, 156, 106, 56, 180, 213, 172, 165, 124, 118, 229, 60, 213, 183, 93, 241, 98, 214, 130, 235, 220, 45, 163, 151, 97, 64, 51, 126, 52, 164, 179, 23]) });
-    vec_gossip_client_01.push(TestGossipableType { id: Id::from_slice(&[213, 8, 151, 77, 221, 160, 231, 33, 231, 180, 49, 113, 38, 196, 52, 156, 252, 66, 78, 250, 21, 56, 75, 247, 245, 87, 69, 157, 127, 53, 205, 121]) });
+    vec_gossip_client_01.push(TestGossipableType {
+        id: Id::from_slice(&[
+            52, 25, 83, 149, 20, 226, 168, 61, 17, 53, 152, 11, 220, 226, 218, 254, 53, 104, 51,
+            247, 106, 6, 9, 26, 81, 52, 108, 232, 251, 122, 245, 112,
+        ]),
+    });
+    vec_gossip_client_01.push(TestGossipableType {
+        id: Id::from_slice(&[
+            243, 156, 106, 56, 180, 213, 172, 165, 124, 118, 229, 60, 213, 183, 93, 241, 98, 214,
+            130, 235, 220, 45, 163, 151, 97, 64, 51, 126, 52, 164, 179, 23,
+        ]),
+    });
+    vec_gossip_client_01.push(TestGossipableType {
+        id: Id::from_slice(&[
+            213, 8, 151, 77, 221, 160, 231, 33, 231, 180, 49, 113, 38, 196, 52, 156, 252, 66, 78,
+            250, 21, 56, 75, 247, 245, 87, 69, 157, 127, 53, 205, 121,
+        ]),
+    });
 
-    vec_gossip_client_02.push(TestGossipableType { id: Id::from_slice(&[60, 209, 244, 35, 53, 217, 132, 157, 105, 97, 191, 32, 74, 199, 107, 124, 168, 61, 86, 203, 71, 247, 202, 161, 23, 124, 185, 63, 158, 54, 122, 216]) });
-    vec_gossip_client_02.push(TestGossipableType { id: Id::from_slice(&[70, 203, 24, 230, 112, 82, 4, 22, 154, 173, 148, 189, 142, 217, 209, 191, 170, 242, 62, 213, 242, 133, 226, 200, 128, 87, 126, 157, 141, 78, 32, 67]) });
-    vec_gossip_client_02.push(TestGossipableType { id: Id::from_slice(&[51, 215, 234, 45, 201, 210, 176, 176, 229, 6, 151, 169, 125, 219, 45, 56, 144, 205, 27, 74, 17, 13, 231, 59, 42, 214, 12, 184, 171, 251, 191, 197]) });
-
+    vec_gossip_client_02.push(TestGossipableType {
+        id: Id::from_slice(&[
+            60, 209, 244, 35, 53, 217, 132, 157, 105, 97, 191, 32, 74, 199, 107, 124, 168, 61, 86,
+            203, 71, 247, 202, 161, 23, 124, 185, 63, 158, 54, 122, 216,
+        ]),
+    });
+    vec_gossip_client_02.push(TestGossipableType {
+        id: Id::from_slice(&[
+            70, 203, 24, 230, 112, 82, 4, 22, 154, 173, 148, 189, 142, 217, 209, 191, 170, 242, 62,
+            213, 242, 133, 226, 200, 128, 87, 126, 157, 141, 78, 32, 67,
+        ]),
+    });
+    vec_gossip_client_02.push(TestGossipableType {
+        id: Id::from_slice(&[
+            51, 215, 234, 45, 201, 210, 176, 176, 229, 6, 151, 169, 125, 219, 45, 56, 144, 205, 27,
+            74, 17, 13, 231, 59, 42, 214, 12, 184, 171, 251, 191, 197,
+        ]),
+    });
 
     // Start the client
     // listen on 8080 , send message to 8081
-    let client_01_handle = tokio::spawn(start_fake_node("127.0.0.1:8080", "127.0.0.1:8081", "127.0.0.1:8082", "127.0.0.1:8083", vec_gossip_client_01.clone(), vec_gossip_client_02.clone()));
-    let client_02_handle = tokio::spawn(start_fake_node("127.0.0.1:8082", "127.0.0.1:8083", "127.0.0.1:8080", "127.0.0.1:8081", vec_gossip_client_02.clone(), vec_gossip_client_01.clone()));
+    let client_01_handle = tokio::spawn(start_fake_node(
+        "127.0.0.1:8080",
+        "127.0.0.1:8081",
+        "127.0.0.1:8082",
+        "127.0.0.1:8083",
+        vec_gossip_client_01.clone(),
+        vec_gossip_client_02.clone(),
+    ));
+    let client_02_handle = tokio::spawn(start_fake_node(
+        "127.0.0.1:8082",
+        "127.0.0.1:8083",
+        "127.0.0.1:8080",
+        "127.0.0.1:8081",
+        vec_gossip_client_02.clone(),
+        vec_gossip_client_01.clone(),
+    ));
 
     // Wait for the server and client to complete
     client_01_handle.await.expect("Issue with client01");
     client_02_handle.await.expect("Issue with client02");
 }
-

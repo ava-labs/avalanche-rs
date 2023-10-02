@@ -6,5 +6,4 @@ fn main() {
         .build_client(true)
         .compile(&["./src/p2p/gossip/sdk.proto"], &["./src/p2p/gossip/"])
         .unwrap();
-
 }

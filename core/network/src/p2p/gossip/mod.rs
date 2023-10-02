@@ -1,9 +1,9 @@
 pub mod gossip;
 pub mod handler;
 
-use std::fmt::Debug;
-use serde::{Deserialize, Serialize};
 use avalanche_types::ids::Id;
+use serde::{Deserialize, Serialize};
+use std::fmt::Debug;
 
 pub trait Gossipable {
     fn get_id(&self) -> Id;
@@ -17,5 +17,7 @@ pub trait Set: Send + Sync {
     fn has(&self, gossipable: &Self::Item) -> bool;
     fn iterate(&self, f: &mut dyn FnMut(&Self::Item) -> bool);
     fn fetch_elements(&self) -> Self::Item;
-    fn fetch_all_elements(&self) -> Vec<Self::Item> where <Self as Set>::Item: Sized;
+    fn fetch_all_elements(&self) -> Vec<Self::Item>
+    where
+        <Self as Set>::Item: Sized;
 }

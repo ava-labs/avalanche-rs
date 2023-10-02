@@ -1,8 +1,7 @@
+use async_trait::async_trait;
+use avalanche_types::ids::node::Id;
 use std::error::Error;
 use std::time::Duration;
-use avalanche_types::ids::node::Id;
-use async_trait::async_trait;
-use log::debug;
 
 #[async_trait]
 pub trait Handler {
@@ -43,7 +42,12 @@ impl Handler for NoOpHandler {
     async fn app_request(&self, _: Id, _: Duration, _: Vec<u8>) -> Result<Vec<u8>, Box<dyn Error>> {
         Ok(vec![])
     }
-    async fn cross_chain_app_request(&self, _: Id, _: Duration, _: Vec<u8>) -> Result<Vec<u8>, Box<dyn Error>> {
+    async fn cross_chain_app_request(
+        &self,
+        _: Id,
+        _: Duration,
+        _: Vec<u8>,
+    ) -> Result<Vec<u8>, Box<dyn Error>> {
         Ok(vec![])
     }
 }
