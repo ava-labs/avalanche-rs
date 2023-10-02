@@ -31,17 +31,12 @@ pub fn new_handler<S: Set + Debug>(config: HandlerConfig, set: Arc<Mutex<S>>) ->
 }
 
 #[async_trait]
-#[allow(unused_variables)]
 impl<S> p2p::handler::Handler for Handler<S>
 where
     S: Set + Debug + for<'de> serde::Deserialize<'de>,
     S::Item: Default,
 {
-    async fn app_gossip(
-        &self,
-        node_id: Id,
-        gossip_bytes: Vec<u8>,
-    ) -> Result<Vec<u8>, Box<dyn Error>> {
+    async fn app_gossip(&self, _: Id, gossip_bytes: Vec<u8>) -> Result<Vec<u8>, Box<dyn Error>> {
         let request = PullGossipRequest::decode(gossip_bytes.as_slice())
             .expect("Failed to decode request_bytes into PullGossipRequest");
         //toDo look at this Box shennanigan here
@@ -123,9 +118,9 @@ where
 
     async fn cross_chain_app_request(
         &self,
-        chain_id: Id,
-        deadline: Duration,
-        request_bytes: Vec<u8>,
+        _: Id,
+        _: Duration,
+        _: Vec<u8>,
     ) -> Result<Vec<u8>, Box<dyn Error>> {
         todo!()
     }
