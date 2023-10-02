@@ -137,13 +137,13 @@ where
 
 #[cfg(test)]
 mod test {
-    use std::hash::Hash;
     use super::*;
     use crate::p2p::client::Client;
     use crate::p2p::client::NoOpClient;
     use crate::p2p::gossip::gossip::{Config, Gossiper};
     use crate::p2p::sdk::PullGossipResponse;
     use avalanche_types::ids::Id;
+    use std::hash::Hash;
     use std::sync::Arc;
     use std::time::Duration;
     use testing_logger;
@@ -212,7 +212,10 @@ mod test {
             todo!()
         }
 
-        fn fetch_all_elements(&self) -> Vec<Self::Item> where <Self as Set>::Item: Sized {
+        fn fetch_all_elements(&self) -> Vec<Self::Item>
+        where
+            <Self as Set>::Item: Sized,
+        {
             todo!()
         }
     }

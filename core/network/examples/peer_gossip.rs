@@ -68,10 +68,7 @@ impl Client for TestClient {
         todo!()
     }
 
-    async fn cross_chain_app_request(
-        &mut self,
-        _: Vec<u8>,
-    ) -> Result<(), std::io::Error> {
+    async fn cross_chain_app_request(&mut self, _: Vec<u8>) -> Result<(), std::io::Error> {
         todo!()
     }
 

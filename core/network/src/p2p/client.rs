@@ -25,11 +25,7 @@ pub struct NoOpClient;
 
 #[async_trait]
 impl Client for NoOpClient {
-    async fn app_request_any(
-        &mut self,
-        _: &Vec<u8>,
-        _: AppResponseCallback,
-    ) -> Result<(), Error> {
+    async fn app_request_any(&mut self, _: &Vec<u8>, _: AppResponseCallback) -> Result<(), Error> {
         todo!()
     }
 
