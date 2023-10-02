@@ -90,8 +90,7 @@ impl<S> Gossiper<S>
             let set = Arc::clone(&self.set);
 
             // Initialize the callback that will be used upon receiving a response from our gossip attempt
-            let on_response: AppResponseCallback = Arc::new(
-                move |response_bytes| {
+            let on_response: AppResponseCallback = Box::new(move |response_bytes| {
                     let response = match PullGossipResponse::decode(response_bytes.as_slice()) {
                         Ok(res) => {
                             res

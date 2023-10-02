@@ -2,7 +2,7 @@ use std::io::Error;
 use std::sync::Arc;
 use async_trait::async_trait;
 
-pub type AppResponseCallback = Arc<dyn Fn(Vec<u8>) + Send + Sync>;
+pub type AppResponseCallback = Box<dyn Fn(Vec<u8>) + Send + Sync + 'static>;
 
 #[async_trait]
 #[allow(unused_variables)]
