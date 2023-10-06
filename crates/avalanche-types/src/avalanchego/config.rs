@@ -240,6 +240,9 @@ pub struct Config {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tracing_enabled: Option<bool>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub process_context_file: Option<String>,
 }
 
 /// Default "config-file" path on the remote linux machines.
@@ -341,7 +344,9 @@ pub const DEFAULT_THROTTLER_OUTBOUND_VALIDATOR_ALLOC_SIZE: u64 = 32 * units::MIB
 /// ref. [DefaultOutboundThrottlerNodeMaxAtLargeBytes](https://github.com/ava-labs/avalanchego/blob/v1.9.11/config/flags.go)
 pub const DEFAULT_THROTTLER_OUTBOUND_NODE_MAX_AT_LARGE_BYTES: u64 = 2 * units::MIB;
 
-pub const DEFAULT_NETWORK_COMPRESSION_TYPE: &str = "gzip";
+pub const DEFAULT_NETWORK_COMPRESSION_TYPE: &str = "zstd";
+
+pub const DEFAULT_PROCESS_CONTEXT_FILE: &str = "/data/process.json";
 
 impl Default for Config {
     fn default() -> Self {
@@ -464,6 +469,8 @@ impl Config {
             network_compression_type: Some(DEFAULT_NETWORK_COMPRESSION_TYPE.to_string()),
 
             tracing_enabled: None,
+
+            process_context_file: Some(DEFAULT_PROCESS_CONTEXT_FILE.to_string()),
         }
     }
 
