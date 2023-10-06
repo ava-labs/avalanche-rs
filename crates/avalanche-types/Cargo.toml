@@ -20,7 +20,7 @@ cert-manager = "0.0.10" # https://github.com/gyuho/cert-manager
 chrono = "0.4.26"
 cmp-manager = "0.0.1"
 ecdsa = { version = "0.16.7", features = ["rfc6979", "verifying"] } # https://github.com/RustCrypto/elliptic-curves/tree/master/k256
-ethers-core = { version = "=2.0.7", features = ["eip712"] } # https://github.com/gakonst/ethers-rs/releases
+ethers-core = { version = "=2.0.10", features = ["eip712"] } # https://github.com/gakonst/ethers-rs/releases
 hex = "0.4.3"
 hmac = "0.12.1"
 hyper = { version = "0.14.26"}
@@ -40,7 +40,7 @@ serde_yaml = "0.9.25" # https://github.com/dtolnay/serde-yaml/releases
 sha2 = "0.10.6"
 sha3 = "0.10.8" # https://github.com/RustCrypto/hashes
 spki = "0.7.2" # https://github.com/RustCrypto/formats/tree/master/spki
-strum = "0.24.1"
+strum = "0.25.0"
 thiserror = "1.0.47"
 url = "2.4.0" # for "codec::serde::ip_port", "utils"
 zerocopy = { version = "0.7.11", features = ["derive"] }
