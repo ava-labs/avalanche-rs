@@ -344,7 +344,7 @@ pub const DEFAULT_THROTTLER_OUTBOUND_VALIDATOR_ALLOC_SIZE: u64 = 32 * units::MIB
 /// ref. [DefaultOutboundThrottlerNodeMaxAtLargeBytes](https://github.com/ava-labs/avalanchego/blob/v1.9.11/config/flags.go)
 pub const DEFAULT_THROTTLER_OUTBOUND_NODE_MAX_AT_LARGE_BYTES: u64 = 2 * units::MIB;
 
-pub const DEFAULT_NETWORK_COMPRESSION_TYPE: &str = "gzip";
+pub const DEFAULT_NETWORK_COMPRESSION_TYPE: &str = "zstd";
 
 pub const DEFAULT_PROCESS_CONTEXT_FILE: &str = "/data/process.json";
 
