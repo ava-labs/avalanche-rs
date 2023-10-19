@@ -274,7 +274,6 @@ where
 
             let resp_handler = vm::Handler {
                 prefix,
-                lock_options: http_handler.lock_option as u32,
                 server_addr: server_addr.to_string(),
             };
             resp_handlers.push(resp_handler);
@@ -325,7 +324,6 @@ where
 
             let resp_handler = vm::Handler {
                 prefix,
-                lock_options: http_handler.lock_option as u32,
                 server_addr: server_addr.to_string(),
             };
             resp_handlers.push(resp_handler);

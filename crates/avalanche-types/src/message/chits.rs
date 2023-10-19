@@ -18,6 +18,7 @@ impl Default for Message {
                 request_id: 0,
                 preferred_id: Bytes::new(),
                 accepted_id: Bytes::new(),
+                preferred_id_at_height: Bytes::new(),
             },
             gzip_compress: false,
         }

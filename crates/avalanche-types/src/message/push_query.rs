@@ -18,6 +18,7 @@ impl Default for Message {
                 deadline: 0,
                 container: prost::bytes::Bytes::new(),
                 engine_type: p2p::EngineType::Unspecified.into(),
+                requested_height: 0,
             },
             gzip_compress: false,
         }
