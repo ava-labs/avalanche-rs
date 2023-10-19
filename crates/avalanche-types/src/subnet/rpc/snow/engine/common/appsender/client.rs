@@ -19,7 +19,9 @@ pub struct AppSenderClient {
 impl AppSenderClient {
     pub fn new(client_conn: Channel) -> Self {
         Self {
-            inner: app_sender_client::AppSenderClient::new(client_conn),
+            inner: app_sender_client::AppSenderClient::new(client_conn)
+                .max_decoding_message_size(usize::MAX)
+                .max_encoding_message_size(usize::MAX),
         }
     }
 }

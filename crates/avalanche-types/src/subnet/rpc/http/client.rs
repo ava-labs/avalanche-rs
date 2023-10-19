@@ -12,7 +12,9 @@ pub struct Client {
 impl Client {
     pub fn new(client_conn: Channel) -> Box<dyn subnet::rpc::http::Handler + Send + Sync> {
         Box::new(Client {
-            inner: pb::http::http_client::HttpClient::new(client_conn),
+            inner: pb::http::http_client::HttpClient::new(client_conn)
+                .max_decoding_message_size(usize::MAX)
+                .max_encoding_message_size(usize::MAX),
         })
     }
 }

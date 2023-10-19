@@ -43,7 +43,9 @@ pub struct DatabaseClient {
 impl DatabaseClient {
     pub fn new(client_conn: Channel) -> BoxedDatabase {
         Box::new(Self {
-            inner: RpcDbDatabaseClient::new(client_conn),
+            inner: RpcDbDatabaseClient::new(client_conn)
+                .max_decoding_message_size(usize::MAX)
+                .max_encoding_message_size(usize::MAX),
             closed: Arc::new(AtomicBool::new(false)),
         })
     }

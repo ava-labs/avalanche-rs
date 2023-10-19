@@ -23,7 +23,9 @@ pub struct ValidatorStateClient {
 impl ValidatorStateClient {
     pub fn new(client_conn: Channel) -> Self {
         Self {
-            inner: validator_state_client::ValidatorStateClient::new(client_conn),
+            inner: validator_state_client::ValidatorStateClient::new(client_conn)
+                .max_decoding_message_size(usize::MAX)
+                .max_encoding_message_size(usize::MAX),
         }
     }
 }
