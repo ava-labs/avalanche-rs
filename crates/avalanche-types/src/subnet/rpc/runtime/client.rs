@@ -17,7 +17,9 @@ pub struct Client {
 impl Client {
     pub fn new(client_conn: Channel) -> Self {
         Self {
-            inner: RuntimeClient::new(client_conn),
+            inner: RuntimeClient::new(client_conn)
+                .max_decoding_message_size(usize::MAX)
+                .max_encoding_message_size(usize::MAX),
         }
     }
 }
