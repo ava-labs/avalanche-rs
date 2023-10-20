@@ -12,7 +12,7 @@ repository = "https://github.com/ava-labs/avalanchego-conformance-sdk"
 [dependencies]
 log = "0.4.20"
 prost = "0.12.1"
-tokio = { version = "1.32.0", features = ["fs", "rt-multi-thread"] } # https://github.com/tokio-rs/tokio/releases
+tokio = { version = "1.33.0", features = ["fs", "rt-multi-thread", "macros"] }
 tokio-stream = { version = "0.1.14", features = ["net"] }
 tonic = "0.10.2"
 
