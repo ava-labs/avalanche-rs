@@ -82,6 +82,11 @@ pub mod rpcdb {
     include!("rpcdb.rs");
     // @@protoc_insertion_point(rpcdb)
 }
+// @@protoc_insertion_point(attribute:sdk)
+pub mod sdk {
+    include!("sdk.rs");
+    // @@protoc_insertion_point(sdk)
+}
 // @@protoc_insertion_point(attribute:sharedmemory)
 pub mod sharedmemory {
     include!("sharedmemory.rs");

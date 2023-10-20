@@ -88,7 +88,7 @@ impl PrivateKey {
         assert_eq!(digest.len(), hash::SHA256_OUTPUT_LEN);
 
         let secp = libsecp256k1::Secp256k1::new();
-        let m = libsecp256k1::Message::from_slice(digest).map_err(|e| Error::Other {
+        let m = libsecp256k1::Message::from_digest_slice(digest).map_err(|e| Error::Other {
             message: format!("failed libsecp256k1::Message::from_slice {}", e),
             retryable: false,
         })?;
