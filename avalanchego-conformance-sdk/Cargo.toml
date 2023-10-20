@@ -11,7 +11,7 @@ repository = "https://github.com/ava-labs/avalanchego-conformance-sdk"
 
 [dependencies]
 log = "0.4.20"
-prost = "0.11.9"
+prost = "0.12.1"
 tokio = { version = "1.32.0", features = ["fs", "rt-multi-thread"] } # https://github.com/tokio-rs/tokio/releases
 tokio-stream = { version = "0.1.14", features = ["net"] }
 tonic = "0.10.2"
@@ -19,7 +19,7 @@ tonic = "0.10.2"
 [build-dependencies]
 # ref. https://github.com/hyperium/tonic/tags
 # ref. https://github.com/hyperium/tonic/tree/master/tonic-build
-tonic-build = "0.9.2"
+tonic-build = "0.10.2"
 
 [dev-dependencies]
 env_logger = "0.10.0"
