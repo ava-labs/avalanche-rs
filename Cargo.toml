@@ -11,8 +11,7 @@ members = [
 ]
 # by default, only document and build key library crates
 default-members = ["crates/avalanche-types", "crates/avalanche-consensus"]
-
-workspace.resolver = "2"
+resolver = "2"
 
 [workspace.package]
 version = "0.1.1"
