@@ -47,7 +47,7 @@ zerocopy = "0.6.3"
 zeroize = "1.6.0" # for "BLS
 
 # [OPTIONAL] for "libsecp256k1"
-secp256k1 = { version = "0.27.0", features = ["global-context", "rand-std", "recovery"], optional = true } # https://crates.io/crates/secp256k1
+secp256k1 = { version = "0.28.0", features = ["global-context", "rand-std", "recovery"], optional = true } # https://crates.io/crates/secp256k1
 
 # [OPTIONAL] for "kms_aws"
 aws-manager = { version = "0.30.2", features = ["kms"], optional = true } # https://github.com/gyuho/aws-manager/tags
