@@ -15,7 +15,7 @@ avalanche-types = { path = "../../crates/avalanche-types", features = ["jsonrpc_
 aws-manager = { version = "0.30.2", features = ["kms"] } # https://github.com/gyuho/aws-manager/tags
 clap = { version = "4.3.19", features = ["cargo", "derive"] } # https://github.com/clap-rs/clap/releases
 crossterm = "0.27.0"
-dialoguer = "0.10.4"
+dialoguer = "0.11.0"
 env_logger = "0.10.0"
 ethers = { version = "=2.0.7" } # https://github.com/gakonst/ethers-rs/releases
 ethers-core = { version = "=2.0.7", features = ["eip712"] } # https://github.com/gakonst/ethers-rs/releases
