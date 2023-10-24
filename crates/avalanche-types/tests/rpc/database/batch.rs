@@ -148,5 +148,5 @@ async fn batch_reset_test() {
     assert!(db.has(key).await.unwrap());
     let resp = db.get(key).await;
     assert!(resp.is_ok());
-    assert_eq!(resp.unwrap(), value.clone());
+    assert_eq!(resp.unwrap(), value);
 }
