@@ -37,7 +37,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .build()
         .expect("failed to build reflection service");
 
-    let greeter_svc = GreeterServer::new(MyGreeter::default());
+    let greeter_svc = GreeterServer::new(MyGreeter);
 
     utils::grpc::default_server()
         .add_service(reflection_svc)

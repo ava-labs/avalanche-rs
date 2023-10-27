@@ -505,14 +505,14 @@ impl Config {
     pub fn add_track_subnets(&mut self, ids: Option<String>) {
         let mut all_ids = BTreeSet::new();
         if let Some(existing) = &self.track_subnets {
-            let ss: Vec<&str> = existing.split(",").collect();
+            let ss: Vec<&str> = existing.split(',').collect();
             for id in ss {
                 all_ids.insert(id.trim().to_string());
             }
         }
 
         if let Some(new_ids) = &ids {
-            let ss: Vec<&str> = new_ids.split(",").collect();
+            let ss: Vec<&str> = new_ids.split(',').collect();
             for id in ss {
                 all_ids.insert(id.trim().to_string());
             }
@@ -576,7 +576,7 @@ impl Config {
             ));
         }
 
-        let f = File::open(&file_path).map_err(|e| {
+        let f = File::open(file_path).map_err(|e| {
             Error::new(
                 ErrorKind::Other,
                 format!("failed to open {} ({})", file_path, e),

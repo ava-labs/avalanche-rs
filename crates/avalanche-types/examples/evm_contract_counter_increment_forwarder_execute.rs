@@ -105,7 +105,7 @@ async fn main() -> io::Result<()> {
         .domain_verifying_contract(forwarder_contract_addr)
         //
         // gasless transaction signer
-        .from(no_gas_key_info.h160_address.clone())
+        .from(no_gas_key_info.h160_address)
         //
         // contract address that this gasless transaction will interact with
         .to(recipient_contract_addr)
@@ -149,11 +149,7 @@ async fn main() -> io::Result<()> {
         .await
         .unwrap();
     let gas_payer_evm_wallet = w
-        .evm(
-            &gas_payer_signer,
-            chain_rpc_url.as_str(),
-            U256::from(chain_id),
-        )
+        .evm(&gas_payer_signer, chain_rpc_url.as_str(), chain_id)
         .unwrap();
 
     let tx_id = gas_payer_evm_wallet

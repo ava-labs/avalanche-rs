@@ -24,7 +24,7 @@ fn main() -> io::Result<()> {
 
     let domain_verifying_contract = args().nth(4).expect("no domain_verifying_contract given");
     let domain_verifying_contract =
-        H160::from_str(&domain_verifying_contract.trim_start_matches("0x")).unwrap();
+        H160::from_str(domain_verifying_contract.trim_start_matches("0x")).unwrap();
     log::info!("domain_verifying_contract: {domain_verifying_contract}");
 
     let domain_separator = Tx::new()

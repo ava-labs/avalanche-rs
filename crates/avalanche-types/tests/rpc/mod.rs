@@ -32,7 +32,7 @@ async fn test_http_service() {
 
     let foo_request = generate_http_request("foo", "http://127.0.0.1:1234", &[]);
     let foo_resp = client.serve_http_simple(foo_request).await;
-    assert!(!foo_resp.is_err());
+    assert!(foo_resp.is_ok());
     let foo_resp = foo_resp.unwrap();
 
     assert!(foo_resp.status().is_success());
@@ -53,7 +53,7 @@ async fn test_http_service() {
 
     let bar_request = generate_http_request("bar", "http://127.0.0.1:1234", &["John"]);
     let bar_resp = client.serve_http_simple(bar_request).await;
-    assert!(!bar_resp.is_err());
+    assert!(bar_resp.is_ok());
     let bar_resp = bar_resp.unwrap();
 
     assert!(bar_resp.status().is_success());

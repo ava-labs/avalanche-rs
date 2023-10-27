@@ -158,7 +158,7 @@ impl From<&Vec<prometheus::proto::MetricFamily>> for MetricsFamilies {
 #[test]
 #[ignore]
 fn test_gather_process() {
-    let families = vec![
+    let families = [
         "process_cpu_seconds_total",
         "process_max_fds",
         "process_open_fds",
