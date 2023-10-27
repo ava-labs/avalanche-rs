@@ -12,7 +12,7 @@ readme = "README.md"
 
 [dependencies]
 avalanche-types = { path = "../../crates/avalanche-types", features = ["message"] }
-cert-manager = "0.0.10" # https://github.com/gyuho/cert-manager
+cert-manager = "0.0.11" # https://github.com/gyuho/cert-manager
 log = "0.4.20"
 rustls = { version = "0.21.5", features = ["logging", "dangerous_configuration"]} # https://github.com/rustls/rustls/tags
 hyper-rustls = "0.24.1"
