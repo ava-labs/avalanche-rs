@@ -47,9 +47,7 @@ async fn main() -> io::Result<()> {
         .build()
         .await
         .unwrap();
-    let evm_wallet = w
-        .evm(&signer, chain_rpc_url.as_str(), U256::from(chain_id))
-        .unwrap();
+    let evm_wallet = w.evm(&signer, chain_rpc_url.as_str(), chain_id).unwrap();
 
     // parsed function of "increment()"
     let func = Function {
