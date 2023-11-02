@@ -13,7 +13,7 @@ homepage = "https://avax.network"
 [dev-dependencies]
 avalanche-types = { path = "../../crates/avalanche-types", features = ["libsecp256k1", "message"] }
 avalanchego-conformance-sdk = { path = "../../avalanchego-conformance-sdk" }
-cert-manager = "0.0.10" # https://github.com/gyuho/cert-manager
+cert-manager = "0.0.11" # https://github.com/gyuho/cert-manager
 env_logger = "0.10.0"
 log = "0.4.20"
 random-manager = "0.0.5"
