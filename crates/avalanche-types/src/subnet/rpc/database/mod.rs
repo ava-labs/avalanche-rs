@@ -83,12 +83,12 @@ async fn clone_box_test() {
     // create box and mutate underlying hashmap
     let mut db = memdb::Database::new();
     let resp = db.put("foo".as_bytes(), "bar".as_bytes()).await;
-    assert!(!resp.is_err());
+    assert!(resp.is_ok());
 
     // clone and mutate
     let mut cloned_db = db.clone();
     let resp = cloned_db.delete("foo".as_bytes()).await;
-    assert!(!resp.is_err());
+    assert!(resp.is_ok());
 
     // verify mutation
     let resp = cloned_db.get("foo".as_bytes()).await;

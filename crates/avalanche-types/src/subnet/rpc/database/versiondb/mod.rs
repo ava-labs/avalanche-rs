@@ -262,66 +262,66 @@ async fn iterate_test() {
     let key2 = "z".as_bytes();
     let value2 = "world2".as_bytes();
 
-    let _ = db.put(key1, value1).await.unwrap();
-    let _ = db.commit().await.unwrap();
+    db.put(key1, value1).await.unwrap();
+    db.commit().await.unwrap();
 
     let mut iterator = db.new_iterator().await.unwrap();
-    assert_eq!(iterator.next().await.unwrap(), true);
+    assert!(iterator.next().await.unwrap());
     assert_eq!(iterator.key().await.unwrap(), key1);
     assert_eq!(iterator.value().await.unwrap(), value1);
-    assert_eq!(iterator.next().await.unwrap(), false);
+    assert!(!iterator.next().await.unwrap());
     assert!(iterator.key().await.unwrap().is_empty());
     assert!(iterator.value().await.unwrap().is_empty());
     assert!(iterator.error().await.is_ok());
 
-    let _ = db.put(key2, value2).await.unwrap();
+    db.put(key2, value2).await.unwrap();
 
     let mut iterator = db.new_iterator().await.unwrap();
-    assert_eq!(iterator.next().await.unwrap(), true);
+    assert!(iterator.next().await.unwrap());
     assert_eq!(iterator.key().await.unwrap(), key1);
     assert_eq!(iterator.value().await.unwrap(), value1);
-    assert_eq!(iterator.next().await.unwrap(), true);
+    assert!(iterator.next().await.unwrap());
     assert_eq!(iterator.key().await.unwrap(), key2);
     assert_eq!(iterator.value().await.unwrap(), value2);
-    assert_eq!(iterator.next().await.unwrap(), false);
+    assert!(!iterator.next().await.unwrap());
     assert!(iterator.key().await.unwrap().is_empty());
     assert!(iterator.value().await.unwrap().is_empty());
     assert!(iterator.error().await.is_ok());
 
-    let _ = db.delete(key1).await.unwrap();
+    db.delete(key1).await.unwrap();
 
     let mut iterator = db.new_iterator().await.unwrap();
-    assert_eq!(iterator.next().await.unwrap(), true);
+    assert!(iterator.next().await.unwrap());
     assert_eq!(iterator.key().await.unwrap(), key2);
     assert_eq!(iterator.value().await.unwrap(), value2);
-    assert_eq!(iterator.next().await.unwrap(), false);
+    assert!(!iterator.next().await.unwrap());
     assert!(iterator.key().await.unwrap().is_empty());
     assert!(iterator.value().await.unwrap().is_empty());
     assert!(iterator.error().await.is_ok());
 
-    let _ = db.commit().await.unwrap();
-    let _ = db.put(key2, value1).await.unwrap();
+    db.commit().await.unwrap();
+    db.put(key2, value1).await.unwrap();
 
     let mut iterator = db.new_iterator().await.unwrap();
-    assert_eq!(iterator.next().await.unwrap(), true);
+    assert!(iterator.next().await.unwrap());
     assert_eq!(iterator.key().await.unwrap(), key2);
     assert_eq!(iterator.value().await.unwrap(), value1);
-    assert_eq!(iterator.next().await.unwrap(), false);
+    assert!(!iterator.next().await.unwrap());
     assert!(iterator.key().await.unwrap().is_empty());
     assert!(iterator.value().await.unwrap().is_empty());
     assert!(iterator.error().await.is_ok());
 
-    let _ = db.commit().await.unwrap();
-    let _ = db.put(key1, value2).await.unwrap();
+    db.commit().await.unwrap();
+    db.put(key1, value2).await.unwrap();
 
     let mut iterator = db.new_iterator().await.unwrap();
-    assert_eq!(iterator.next().await.unwrap(), true);
+    assert!(iterator.next().await.unwrap());
     assert_eq!(iterator.key().await.unwrap(), key1);
     assert_eq!(iterator.value().await.unwrap(), value2);
-    assert_eq!(iterator.next().await.unwrap(), true);
+    assert!(iterator.next().await.unwrap());
     assert_eq!(iterator.key().await.unwrap(), key2);
     assert_eq!(iterator.value().await.unwrap(), value1);
-    assert_eq!(iterator.next().await.unwrap(), false);
+    assert!(!iterator.next().await.unwrap());
     assert!(iterator.key().await.unwrap().is_empty());
     assert!(iterator.value().await.unwrap().is_empty());
     assert!(iterator.error().await.is_ok());

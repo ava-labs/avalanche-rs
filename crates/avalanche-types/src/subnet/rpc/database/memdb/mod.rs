@@ -202,19 +202,19 @@ async fn test_memdb() {
     let mut db = Database::new();
     let _ = db.put("foo".as_bytes(), "bar".as_bytes()).await;
     let resp = db.has("foo".as_bytes()).await;
-    assert!(!resp.is_err());
-    assert_eq!(resp.unwrap(), true);
+    assert!(resp.is_ok());
+    assert!(resp.unwrap());
 
     let mut db = Database::new();
     let _ = db.put("foo".as_bytes(), "bar".as_bytes()).await;
     let _ = db.delete("foo".as_bytes()).await;
     let resp = db.has("foo".as_bytes()).await;
-    assert!(!resp.is_err());
-    assert_eq!(resp.unwrap(), false);
+    assert!(resp.is_ok());
+    assert!(!resp.unwrap());
 
     let db = Database::new();
     let resp = db.health_check().await;
-    assert!(!resp.is_err());
+    assert!(resp.is_ok());
     let _ = db.close().await;
     let resp = db.health_check().await;
     assert_eq!(resp.err().unwrap().to_string(), "database closed");

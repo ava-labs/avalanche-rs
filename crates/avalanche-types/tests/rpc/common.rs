@@ -96,7 +96,7 @@ impl TestHandler {
     pub fn new() -> Self {
         let mut handler = jsonrpc_core::IoHandler::new();
         handler.add_method("foo", |_params: jsonrpc_core::Params| async move {
-            Ok(jsonrpc_core::Value::String(format!("Hello, from foo")))
+            Ok(jsonrpc_core::Value::String("Hello, from foo".to_string()))
         });
 
         handler.add_method("bar", |params: jsonrpc_core::Params| async move {

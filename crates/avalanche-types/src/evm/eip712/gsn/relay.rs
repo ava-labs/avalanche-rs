@@ -68,7 +68,7 @@ impl super::Tx {
         log::info!("estimated gas {estimated_gas} -- now signing again with updated gas");
 
         self.gas = estimated_gas;
-        Request::sign_to_request(&self, eth_signer).await
+        Request::sign_to_request(self, eth_signer).await
     }
 
     /// "sign_to_request" but with estimated gas via RPC endpoints.
@@ -96,7 +96,7 @@ impl super::Tx {
             if elapsed.gt(&retry_timeout) {
                 break;
             }
-            retries = retries + 1;
+            retries += 1;
 
             match Self::sign_to_request_with_estimated_gas(
                 self,
@@ -125,7 +125,7 @@ impl super::Tx {
                 }
             }
         }
-        return Err(Error::new(ErrorKind::Other, "failed estimate_gas in time"));
+        Err(Error::new(ErrorKind::Other, "failed estimate_gas in time"))
     }
 }
 
@@ -260,7 +260,7 @@ impl Request {
 
         let domain_verifying_contract =
             if let Some(verifying_contract) = &self.forward_request.domain.verifying_contract {
-                verifying_contract.clone()
+                *verifying_contract
             } else {
                 return Err(Error::new(
                     ErrorKind::InvalidInput,
@@ -501,7 +501,7 @@ impl Request {
         let fwd_req_hash = tx
             .encode_eip712()
             .map_err(|e| Error::new(ErrorKind::Other, format!("failed encode_eip712 '{}'", e)))?;
-        let fwd_req_hash = H256::from_slice(&fwd_req_hash.to_vec());
+        let fwd_req_hash = H256::from_slice(fwd_req_hash.as_ref());
 
         let signer_addr = sig.recover(RecoveryMessage::Hash(fwd_req_hash)).map_err(|e| {
                 Error::new(

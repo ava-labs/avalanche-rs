@@ -149,7 +149,7 @@ async fn main() -> io::Result<()> {
         //
         // trusted forwarder contract address
         .domain_verifying_contract(forwarder_contract_addr)
-        .from(no_gas_key_info.h160_address.clone())
+        .from(no_gas_key_info.h160_address)
         //
         // contract address that this gasless transaction will interact with
         .to(recipient_contract_addr)

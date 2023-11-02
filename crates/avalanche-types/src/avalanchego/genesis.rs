@@ -235,23 +235,21 @@ impl Genesis {
             ));
         }
 
-        let f = File::open(&file_path).map_err(|e| {
-            return Error::new(
+        let f = File::open(file_path).map_err(|e| {
+            Error::new(
                 ErrorKind::Other,
                 format!("failed to open {} ({})", file_path, e),
-            );
+            )
         })?;
 
         // load as it is
-        let genesis_file: GenesisFile = serde_json::from_reader(f).map_err(|e| {
-            return Error::new(ErrorKind::InvalidInput, format!("invalid JSON: {}", e));
-        })?;
+        let genesis_file: GenesisFile = serde_json::from_reader(f)
+            .map_err(|e| Error::new(ErrorKind::InvalidInput, format!("invalid JSON: {}", e)))?;
 
         // make genesis strictly typed
         let c_chain_genesis: coreth_genesis::Genesis =
-            serde_json::from_str(&genesis_file.c_chain_genesis).map_err(|e| {
-                return Error::new(ErrorKind::InvalidInput, format!("invalid JSON: {}", e));
-            })?;
+            serde_json::from_str(&genesis_file.c_chain_genesis)
+                .map_err(|e| Error::new(ErrorKind::InvalidInput, format!("invalid JSON: {}", e)))?;
 
         let genesis = Genesis {
             network_id: genesis_file.network_id,

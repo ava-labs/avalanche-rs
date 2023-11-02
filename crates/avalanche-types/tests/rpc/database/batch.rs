@@ -85,7 +85,7 @@ async fn batch_delete_test() {
     let key = "hello".as_bytes();
     let value = "world".as_bytes();
 
-    let _ = db.put(key, value).await.unwrap();
+    db.put(key, value).await.unwrap();
 
     // new batch delete key
     let mut batch = db.new_batch().await.unwrap();
@@ -130,7 +130,7 @@ async fn batch_reset_test() {
     let key = "hello".as_bytes();
     let value = "world".as_bytes();
 
-    let _ = db.put(key, value).await.unwrap();
+    db.put(key, value).await.unwrap();
 
     // new batch delete key
     let mut batch = db.new_batch().await.unwrap();
@@ -148,5 +148,5 @@ async fn batch_reset_test() {
     assert!(db.has(key).await.unwrap());
     let resp = db.get(key).await;
     assert!(resp.is_ok());
-    assert_eq!(resp.unwrap(), value.clone());
+    assert_eq!(resp.unwrap(), value);
 }

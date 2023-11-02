@@ -44,7 +44,7 @@ async fn main() -> Result<()> {
         .base_http_url(chain_rpc_url.clone())
         .build()
         .await?;
-    let evm_wallet = w.evm(&signer, chain_rpc_url.as_str(), U256::from(chain_id))?;
+    let evm_wallet = w.evm(&signer, chain_rpc_url.as_str(), chain_id)?;
 
     // parsed function of "increment()"
     let func = Function {

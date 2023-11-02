@@ -16,7 +16,7 @@ pub const ETH_ACCOUNT_EXT_PUB_KEY_DERIV_PATH: &str = "m/44'/60'/0'/0/0";
 /// ref. <https://github.com/bitcoin/bips/blob/master/bip-0039/bip-0039-wordlists.md>
 /// ref. <https://iancoleman.io/bip39/>
 pub fn gen_24() -> String {
-    let m = Mnemonic::random(&mut OsRng, Language::English);
+    let m = Mnemonic::random(OsRng, Language::English);
     let s = m.phrase();
     assert_eq!(s.split(' ').count(), 24);
     String::from(s)

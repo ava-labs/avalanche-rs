@@ -289,7 +289,7 @@ impl Config {
             ));
         }
 
-        let f = File::open(&file_path).map_err(|e| {
+        let f = File::open(file_path).map_err(|e| {
             Error::new(
                 ErrorKind::Other,
                 format!("failed to open {} ({})", file_path, e),

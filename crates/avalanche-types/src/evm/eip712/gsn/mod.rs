@@ -545,5 +545,5 @@ fn foward_request_types() -> Types {
             },
         ],
     );
-    return types;
+    types
 }

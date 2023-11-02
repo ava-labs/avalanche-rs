@@ -15,7 +15,7 @@ where
 {
     let s = String::deserialize(deserializer)?;
     base64::engine::general_purpose::STANDARD
-        .decode(&s)
+        .decode(s)
         .map_err(serde::de::Error::custom)
 }
 
@@ -37,7 +37,7 @@ impl<'de> DeserializeAs<'de, Vec<u8>> for Base64Bytes {
     {
         let s = String::deserialize(deserializer)?;
         base64::engine::general_purpose::STANDARD
-            .decode(&s)
+            .decode(s)
             .map_err(serde::de::Error::custom)
     }
 }

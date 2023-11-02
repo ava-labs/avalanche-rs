@@ -39,6 +39,6 @@ async fn rpcdb_mutation_test() {
     }
 
     while let Some(res) = futures.next().await {
-        assert!(!res.is_err());
+        assert!(res.is_ok());
     }
 }
