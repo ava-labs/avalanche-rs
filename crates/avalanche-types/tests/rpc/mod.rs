@@ -7,7 +7,8 @@ use avalanche_types::subnet::rpc::{
     http::{client::Client as HttpClient, server::Server as HttpServer},
     utils,
 };
-use jsonrpc_core::Response as JsonResp;
+use jsonrpsee_types::{Response as JsonResp, ResponsePayload};
+use serde_json::Value;
 use tokio::net::TcpListener;
 
 #[tokio::test]
@@ -39,16 +40,12 @@ async fn test_http_service() {
 
     let json_str = std::str::from_utf8(foo_resp.body());
     assert!(json_str.is_ok());
-    let foo_json_resp = JsonResp::from_json(json_str.unwrap()).unwrap();
 
-    let foo_output: jsonrpc_core::Output = match foo_json_resp {
-        JsonResp::Single(val) => val,
-        JsonResp::Batch(_) => panic!("Test should return single output"),
-    };
+    let foo_json_resp: JsonResp<Value> = serde_json::from_str(json_str.unwrap()).unwrap();
 
-    match foo_output {
-        jsonrpc_core::Output::Success(_) => {}
-        jsonrpc_core::Output::Failure(f) => panic!("inner resp invalid: {}", f.error),
+    match foo_json_resp.payload {
+        ResponsePayload::Result(_) => {}
+        ResponsePayload::Error(f) => panic!("inner resp invalid: {f}"),
     }
 
     let bar_request = generate_http_request("bar", "http://127.0.0.1:1234", &["John"]);
@@ -60,15 +57,10 @@ async fn test_http_service() {
 
     let json_str = std::str::from_utf8(bar_resp.body());
     assert!(json_str.is_ok());
-    let bar_json_resp = JsonResp::from_json(json_str.unwrap()).unwrap();
+    let bar_json_resp: JsonResp<Value> = serde_json::from_str(json_str.unwrap()).unwrap();
 
-    let bar_output: jsonrpc_core::Output = match bar_json_resp {
-        JsonResp::Single(val) => val,
-        JsonResp::Batch(_) => panic!("Test should return single output"),
-    };
-
-    match bar_output {
-        jsonrpc_core::Output::Success(_) => {}
-        jsonrpc_core::Output::Failure(f) => panic!("inner resp invalid: {}", f.error),
+    match bar_json_resp.payload {
+        ResponsePayload::Result(_) => {}
+        ResponsePayload::Error(f) => panic!("inner resp invalid: {f}"),
     }
 }

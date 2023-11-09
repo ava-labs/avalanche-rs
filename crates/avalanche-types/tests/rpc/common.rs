@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 #[cfg(any(test, feature = "proto"))]
 use std::io::{self, Error, ErrorKind};
 
@@ -13,8 +14,9 @@ use avalanche_types::{
     subnet::rpc::{http::handle::Handle, utils::grpc::default_server},
 };
 use bytes::Bytes;
-use jsonrpc_core::{IoHandler, MethodCall};
-use serde::{Deserialize, Serialize};
+use jsonrpsee_core::server::RpcModule;
+use jsonrpsee_types::{Id, Request, Response, ResponsePayload, TwoPointZero};
+use serde_json::Value;
 use tokio::net::TcpListener;
 use tokio_stream::wrappers::TcpListenerStream;
 
@@ -58,17 +60,13 @@ pub fn generate_http_request(
     address: &str,
     param: &[&str],
 ) -> http::Request<Vec<u8>> {
-    let mut json_params = Vec::with_capacity(param.len());
+    let raw_params = serde_json::value::to_raw_value(param).unwrap();
 
-    for i in 0..param.len() {
-        json_params.push(serde_json::Value::from(param[i]))
-    }
-
-    let m = jsonrpc_core::MethodCall {
-        jsonrpc: Some(jsonrpc_core::Version::V2),
-        method: String::from(method_name),
-        params: jsonrpc_core::Params::Array(json_params),
-        id: jsonrpc_core::Id::Num(1),
+    let m = Request {
+        jsonrpc: TwoPointZero,
+        method: Cow::Borrowed(method_name).into(),
+        params: Some(&*raw_params),
+        id: Id::Number(1),
     };
 
     let body = serde_json::to_vec(&m).unwrap();
@@ -82,32 +80,30 @@ pub fn generate_http_request(
         .unwrap()
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct HttpBarParams {
-    pub name: String,
-}
-
 #[derive(Clone)]
 pub struct TestHandler {
-    pub handler: IoHandler,
+    pub module: RpcModule<()>,
 }
 
 impl TestHandler {
     pub fn new() -> Self {
-        let mut handler = jsonrpc_core::IoHandler::new();
-        handler.add_method("foo", |_params: jsonrpc_core::Params| async move {
-            Ok(jsonrpc_core::Value::String("Hello, from foo".to_string()))
-        });
+        let mut module = RpcModule::new(());
 
-        handler.add_method("bar", |params: jsonrpc_core::Params| async move {
-            let params: HttpBarParams = params.parse().unwrap();
+        module
+            .register_blocking_method("foo", |_, _| {
+                serde_json::Value::String("Hello, from foo".to_string())
+            })
+            .unwrap();
 
-            Ok(jsonrpc_core::Value::String(format!(
-                "Hello, {}, from bar",
-                params.name
-            )))
-        });
-        Self { handler }
+        module
+            .register_blocking_method("bar", |params, _| {
+                let params: Option<[[String; 1]; 1]> = params.parse().unwrap();
+
+                serde_json::Value::String(format!("Hello, {}, from bar", params.unwrap()[0][0]))
+            })
+            .unwrap();
+
+        Self { module }
     }
 }
 
@@ -118,26 +114,32 @@ impl Handle for TestHandler {
         req: &Bytes,
         _headers: &[Element],
     ) -> std::io::Result<(Bytes, Vec<Element>)> {
-        let de_request: MethodCall = serde_json::from_slice(req).map_err(|e| {
+        let request: Request = serde_json::from_slice(req).map_err(|e| {
             io::Error::new(
                 io::ErrorKind::Other,
                 format!("failed to deserialize request: {e}"),
             )
         })?;
 
-        let json_str = serde_json::to_string(&de_request).map_err(|e| {
-            io::Error::new(
-                io::ErrorKind::Other,
-                format!("failed to serialize request: {e}"),
-            )
-        })?;
+        // module.call has a trait bound of ToRpcParams for params
+        // The trait is not implemented for `T: Serialize`, but is for the tuple `(T0,): Serialize`
+        // This means we have to wrap request.params as a tuple (which serde will also turn into an array)
+        match self
+            .module
+            .call::<_, Value>(&request.method, (request.params,))
+            .await
+        {
+            Ok(resp) => {
+                let owned = Cow::<'static, Value>::Owned(resp);
+                let payload = ResponsePayload::Result(owned);
+                let resp = Response::new(payload, request.id);
 
-        match self.handler.handle_request(&json_str).await {
-            Some(resp) => Ok((Bytes::from(resp), Vec::new())),
-            None => Err(io::Error::new(
-                io::ErrorKind::Other,
-                "failed to handle request",
-            )),
+                Ok((
+                    Bytes::from(serde_json::to_string(&resp).unwrap()),
+                    Vec::new(),
+                ))
+            }
+            Err(err) => Err(io::Error::new(io::ErrorKind::Other, err)),
         }
     }
 }

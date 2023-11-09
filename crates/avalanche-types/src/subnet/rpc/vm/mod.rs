@@ -18,7 +18,7 @@ use crate::{
     },
     subnet::rpc::{runtime, utils},
 };
-use jsonrpc_core::futures::FutureExt;
+use futures::FutureExt;
 use tokio::sync::broadcast::Receiver;
 use tonic::transport::server::NamedService;
 use tonic_health::server::health_reporter;
