@@ -93,8 +93,6 @@ base64 = { version = "0.21.2", optional = true } # https://github.com/marshallpi
 num-bigint = { version = "0.4.3", optional = true }
 
 [dev-dependencies]
-jsonrpsee-core = { version = "0.20.3", features = ["server"] }
-jsonrpsee-types = "0.20.3"
 env_logger = "0.10.0"
 id-manager = "0.0.3"
 random-manager = "0.0.5"
