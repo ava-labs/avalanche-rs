@@ -51,7 +51,7 @@ secp256k1 = { version = "0.28.0", features = ["global-context", "rand-std", "rec
 
 # [OPTIONAL] for "kms_aws"
 aws-manager = { version = "0.30.2", features = ["kms"], optional = true } # https://github.com/gyuho/aws-manager/tags
-aws-sdk-kms = { version = "0.30.0", optional = true } # https://crates.io/crates/aws-sdk-kms/versions
+aws-sdk-kms = { version = "0.35.0", optional = true } # https://crates.io/crates/aws-sdk-kms/versions
 
 # [OPTIONAL] for "message"
 flate2 = { version = "1.0.26", optional = true }
