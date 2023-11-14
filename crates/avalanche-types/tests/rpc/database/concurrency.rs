@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use crate::rpc::common::*;
+use super::serve_test_database;
 use avalanche_types::subnet::rpc::database::{
     memdb::Database as MemDb,
     rpcdb::{client::DatabaseClient, server::Server as RpcDb},

@@ -75,8 +75,6 @@ ethers-signers = { version = "=2.0.7", optional = true } # https://github.com/ga
 # [OPTIONAL] for "subnet"
 futures = { version = "0.3.28", optional = true }
 http = { version = "0.2.9", optional = true }
-jsonrpc-core = { version = "18.0.0", optional = true }
-jsonrpc-http-server = { version = "18.0.0", optional = true }
 num-derive = { version = "0.4.1", optional = true }
 num-traits = { version = "0.2.15", optional = true }
 prost = { version = "0.12.1", optional = true } # prost-build requires "cmake", https://github.com/tokio-rs/prost/releases
@@ -153,7 +151,6 @@ message = [
 subnet = [
     "futures",
     "http",
-    "jsonrpc-core",
     "num-derive",
     "num-traits",
     "prost",

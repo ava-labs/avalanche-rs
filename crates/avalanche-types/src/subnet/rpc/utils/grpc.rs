@@ -8,9 +8,9 @@ use std::{
 };
 
 use chrono::{DateTime, Utc};
+use futures::FutureExt;
 use http::{Request, Response};
 use hyper::Body;
-use jsonrpc_core::futures::FutureExt;
 use tokio::sync::broadcast::Receiver;
 use tonic::{
     body::BoxBody,

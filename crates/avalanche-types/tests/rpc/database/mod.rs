@@ -4,7 +4,7 @@ mod iterator;
 
 use std::{io::ErrorKind, time::Duration};
 
-use crate::rpc::common::*;
+pub use super::serve_test_database;
 use avalanche_types::subnet::rpc::database::{
     corruptabledb::Database as CorruptableDb,
     manager::{versioned_database::VersionedDatabase, DatabaseManager},
