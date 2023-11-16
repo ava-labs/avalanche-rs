@@ -5,7 +5,7 @@ use std::{env::args, io, str::FromStr};
 use avalanche_types::{evm::abi, jsonrpc::client::evm as json_client_evm, key, wallet};
 use ethers_core::{
     abi::{Function, Param, ParamType, StateMutability, Token},
-    types::{H160, U256},
+    types::H160,
 };
 
 /// cargo run --example evm_contract_counter_increment_forwarder_proxy_call --features="jsonrpc_client evm" -- [HTTP RPC ENDPOINT] [PRIVATE KEY] [FORWARDER CONTRACT ADDRESS] [RECIPIENT CONTRACT ADDRESS]

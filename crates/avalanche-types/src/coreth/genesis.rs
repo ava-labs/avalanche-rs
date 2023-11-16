@@ -63,12 +63,6 @@ pub const DEFAULT_INITIAL_AMOUNT: &str = "0x204FCE5E3E25026110000000";
 
 impl Default for Genesis {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl Genesis {
-    pub fn default() -> Self {
         let mut alloc = BTreeMap::new();
         alloc.insert(
             // ref. <https://github.com/ava-labs/coreth/blob/v0.11.5/params/config.go>
@@ -98,7 +92,9 @@ impl Genesis {
             base_fee: None,
         }
     }
+}
 
+impl Genesis {
     pub fn encode_json(&self) -> io::Result<String> {
         serde_json::to_string(&self)
             .map_err(|e| Error::new(ErrorKind::Other, format!("failed to serialize JSON {}", e)))
@@ -185,12 +181,6 @@ pub struct ChainConfig {
 
 impl Default for ChainConfig {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl ChainConfig {
-    pub fn default() -> Self {
         Self {
             // don't use local ID "43112" to avoid config override
             // ref. <https://github.com/ava-labs/coreth/blob/v0.8.6/plugin/evm/vm.go#L326-L328>
@@ -252,12 +242,6 @@ pub struct AllocAccount {
 
 impl Default for AllocAccount {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl AllocAccount {
-    pub fn default() -> Self {
         Self {
             code: None,
             storage: None,

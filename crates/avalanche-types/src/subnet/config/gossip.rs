@@ -15,15 +15,9 @@ pub struct SenderConfig {
 }
 
 impl Default for SenderConfig {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl SenderConfig {
     /// The defaults do not match with the ones in avalanchego,
     /// as this is for avalanche-ops based deployments.
-    pub fn default() -> Self {
+    fn default() -> Self {
         Self {
             gossip_accepted_frontier_validator_size: 0,
             gossip_accepted_frontier_non_validator_size: 0,

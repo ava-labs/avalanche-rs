@@ -45,7 +45,6 @@ impl super::AppSender for AppSenderClient {
 
         let mut id_bytes: Vec<Bytes> = Vec::with_capacity(node_ids.len());
         for node_id in node_ids.iter() {
-            let node_id = node_id;
             id_bytes.push(Bytes::from(node_id.to_vec()))
         }
 

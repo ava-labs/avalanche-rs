@@ -150,6 +150,12 @@ impl Transaction {
     }
 }
 
+impl Default for Transaction {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 /// Decodes the RLP-encoded signed "ethers_core::types::transaction::eip2718::TypedTransaction" bytes.
 /// ref. <https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_sendrawtransaction>
 pub fn decode_signed_rlp(b: impl AsRef<[u8]>) -> io::Result<(TypedTransaction, Signature)> {

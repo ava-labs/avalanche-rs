@@ -31,15 +31,9 @@ pub struct SnowballParameters {
 }
 
 impl Default for SnowballParameters {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl SnowballParameters {
     /// The defaults do not match with the ones in avalanchego,
     /// as this is for avalanche-ops based deployments.
-    pub fn default() -> Self {
+    fn default() -> Self {
         Self {
             k: 20,
             alpha: 15,
@@ -66,15 +60,9 @@ pub struct Parameters {
 }
 
 impl Default for Parameters {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl Parameters {
     /// The defaults do not match with the ones in avalanchego,
     /// as this is for avalanche-ops based deployments.
-    pub fn default() -> Self {
+    fn default() -> Self {
         Self {
             snowball_parameters: SnowballParameters::default(),
             parents: 5,
