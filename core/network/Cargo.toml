@@ -17,7 +17,7 @@ log = "0.4.20"
 rustls = { version = "0.21.5", features = ["logging", "dangerous_configuration"]} # https://github.com/rustls/rustls/tags
 hyper-rustls = "0.24.1"
 rustls-native-certs = "0.6.3"
-hyper = { version = "0.14.27", features = ["full"], optional = true }
+hyper = { version = "1.0.0", features = ["full"], optional = true }
 tokio-rustls = { version = "0.24.1", optional = true }
 
 # for feature "pem"
