@@ -14,9 +14,10 @@ The following VMs were built with the SDK:
 
 Examples can be found in [`examples`](./examples) and are a good first step to getting an understanding of general usage.
 
-### Tutorials
+### Resources
 
 - [How to Build a Simple Rust VM](https://docs.avax.network/subnets/create-a-simple-rust-vm) tutorial provides a basic example of using the Rust SDK.
+- [TimestampVM Template](https://github.com/ava-labs/timestampvm-rs-template) allows you to quickly generate a [TimestampVM](https://github.com/ava-labs/timestampvm-rs) based project with [cargo generate](https://cargo-generate.github.io/cargo-generate/)
 
 ### Rust Version
 
