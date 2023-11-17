@@ -20,7 +20,7 @@ cert-manager = "0.0.11" # https://github.com/gyuho/cert-manager
 chrono = "0.4.26"
 cmp-manager = "0.0.1"
 ecdsa = { version = "0.16.7", features = ["rfc6979", "verifying"] } # https://github.com/RustCrypto/elliptic-curves/tree/master/k256
-ethers-core = { version = "=2.0.7", features = ["eip712"] } # https://github.com/gakonst/ethers-rs/releases
+ethers-core = { version = "=2.0.11", features = ["eip712"] } # https://github.com/gakonst/ethers-rs/releases
 hex = "0.4.3"
 hmac = "0.12.1"
 hyper = { version = "0.14.26"}
