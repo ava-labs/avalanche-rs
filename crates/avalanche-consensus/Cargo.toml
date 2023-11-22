@@ -10,6 +10,9 @@ license-file = "LICENSE"
 homepage = "https://avax.network"
 repository = "https://github.com/ava-labs/avalanche-rs/tree/main/crates/avalanche-consensus"
 
+[lints]
+workspace = true
+
 [dependencies]
 avalanche-types = { version = "0.1.1", path = "../../crates/avalanche-types", features = [] } # https://crates.io/crates/avalanche-types
 bytes = "1.4.0"

@@ -10,6 +10,9 @@ homepage = "https://avax.network"
 repository = "https://github.com/ava-labs/avalanche-rs/tree/main/crates/avalanche-types"
 readme = "README.md"
 
+[lints]
+workspace = true
+
 [dependencies]
 async-trait = "0.1.73" # for "key::secp256k1" sign trait, https://github.com/dtolnay/async-trait
 bech32 = "0.9.1"
