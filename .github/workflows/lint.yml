@@ -1,6 +1,5 @@
-name:  ci
+name:  ci-clippy
 
-# ref. https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions
 on:
   push:
     branches:
@@ -30,8 +29,6 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
       - name: Check Rust version
         run: rustc --version
-      # or use "abelfodil/protoc-action@v1"
-      # ref. https://github.com/hyperium/tonic/issues/1047#issuecomment-1222508191
       - name: Install protoc
         uses: arduino/setup-protoc@v1
         with:

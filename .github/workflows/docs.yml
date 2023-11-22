@@ -1,6 +1,5 @@
-name:  ci
+name:  ci-doc-tests
 
-# ref. https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions
 on:
   push:
     branches:
@@ -16,7 +15,6 @@ jobs:
   docs:
     name: docs
     runs-on: ubuntu-latest
-    # Fails the CI build if there are documentation warnings.
     steps:
       - name: Remove unnecessary files
         run: |
@@ -31,8 +29,6 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
       - name: Check Rust version
         run: rustc --version
-      # or use "abelfodil/protoc-action@v1"
-      # ref. https://github.com/hyperium/tonic/issues/1047#issuecomment-1222508191
       - name: Install protoc
         uses: arduino/setup-protoc@v1
         with:
@@ -43,6 +39,7 @@ jobs:
       - name: Set env var 
         shell: bash
         run: export 'RUSTFLAGS=-D warnings'
+      # Fails the CI build if there are documentation warnings.
       - name: Run doc tests
         shell: bash
         run: cargo doc --no-deps --all-features -p avalanche-consensus -p avalanche-types
