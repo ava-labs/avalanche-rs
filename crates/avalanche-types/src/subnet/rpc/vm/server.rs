@@ -44,6 +44,7 @@ use prost::bytes::Bytes;
 use semver::Version;
 use tokio::sync::{broadcast, mpsc, RwLock};
 use tonic::{Request, Response};
+use crate::warp::client::WarpSignerClient;
 
 pub struct Server<V> {
     /// Underlying Vm implementation.
@@ -96,6 +97,7 @@ where
             DatabaseManager = DatabaseManager,
             AppSender = AppSenderClient,
             ValidatorState = ValidatorStateClient,
+            WarpSigner=WarpSignerClient,
         > + Send
         + Sync
         + 'static,
@@ -182,7 +184,7 @@ where
                 return tonic::Status::unknown("engine receiver closed unexpectedly");
             }
         });
-
+        let warp_signer = WarpSignerClient::new(client_conn.clone());
         let mut inner_vm = self.vm.write().await;
         inner_vm
             .initialize(
@@ -194,6 +196,7 @@ where
                 tx_engine,
                 &[()],
                 AppSenderClient::new(client_conn.clone()),
+                warp_signer
             )
             .await
             .map_err(|e| tonic::Status::unknown(e.to_string()))?;

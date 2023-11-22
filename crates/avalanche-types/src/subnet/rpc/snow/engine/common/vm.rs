@@ -18,7 +18,7 @@ use crate::{
     },
 };
 use tokio::sync::mpsc::Sender;
-
+use crate::warp::WarpSignerClient_;
 /// Vm describes the trait that all consensus VMs must implement.
 ///
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/snow/engine/common#Vm>
@@ -29,7 +29,7 @@ pub trait CommonVm: AppHandler + Connector + Checkable {
     type ChainHandler: Handle;
     type StaticHandler: Handle;
     type ValidatorState: validators::State;
-
+    type WarpSigner: WarpSignerClient_;
     async fn initialize(
         &mut self,
         ctx: Option<Context<Self::ValidatorState>>,
@@ -40,6 +40,7 @@ pub trait CommonVm: AppHandler + Connector + Checkable {
         to_engine: Sender<Message>,
         fxs: &[Fx],
         app_sender: Self::AppSender,
+        warp_signer: Self::WarpSigner,
     ) -> Result<()>;
     async fn set_state(&self, state: State) -> Result<()>;
     async fn shutdown(&self) -> Result<()>;
