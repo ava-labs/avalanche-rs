@@ -165,7 +165,7 @@ impl Genesis {
                 unlock_schedule: Some(vec![LockedAmount {
                     amount: Some(xp_alloc_per_key),
                     ..Default::default()
-                }])
+                }]),
             };
             xp_allocs.push(xp_alloc);
 
@@ -177,7 +177,7 @@ impl Genesis {
 
         // make sure to use different network ID than "local" network ID
         // ref. https://github.com/ava-labs/avalanche-ops/issues/8
-        let c_chain_genesis = coreth_genesis::Genesis{
+        let c_chain_genesis = coreth_genesis::Genesis {
             alloc: Some(c_allocs),
             ..Default::default()
         };
