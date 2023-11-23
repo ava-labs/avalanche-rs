@@ -12,6 +12,9 @@
 //! ecosystem.
 //!
 #![cfg_attr(docsrs, feature(doc_cfg))]
+#[cfg(feature = "avalanchego")]
+#[cfg_attr(docsrs, doc(cfg(feature = "avalanchego")))]
+pub mod avalanchego;
 pub mod avm;
 pub mod choices;
 pub mod codec;
@@ -30,9 +33,6 @@ pub mod units;
 pub mod utils;
 pub mod verify;
 pub mod warp;
-#[cfg(feature = "avalanchego")]
-#[cfg_attr(docsrs, doc(cfg(feature = "avalanchego")))]
-pub mod avalanchego;
 
 #[cfg(feature = "coreth")]
 #[cfg_attr(docsrs, doc(cfg(feature = "coreth")))]

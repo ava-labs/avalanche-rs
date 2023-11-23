@@ -1,7 +1,7 @@
 pub mod client;
 
-use std::io::Result;
 use crate::proto::warp::SignResponse;
+use std::io::Result;
 
 #[tonic::async_trait]
 pub trait WarpSignerClient_: Send + Sync + CloneBox {
@@ -18,8 +18,8 @@ pub trait CloneBox {
 }
 
 impl<T> CloneBox for T
-    where
-        T: 'static + WarpSignerClient_ + Clone + Send + Sync,
+where
+    T: 'static + WarpSignerClient_ + Clone + Send + Sync,
 {
     fn clone_box(&self) -> Box<dyn WarpSignerClient_ + Send + Sync> {
         Box::new(self.clone())
