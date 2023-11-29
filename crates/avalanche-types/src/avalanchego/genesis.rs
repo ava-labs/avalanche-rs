@@ -93,12 +93,6 @@ pub const DEFAULT_INITIAL_STAKE_DURATION_OFFSET: u64 = 5400; // 1.5 hour
 
 impl Default for Genesis {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl Genesis {
-    pub fn default() -> Self {
         let now_unix = SystemTime::now()
             .duration_since(SystemTime::UNIX_EPOCH)
             .expect("unexpected None duration_since")
@@ -119,7 +113,9 @@ impl Genesis {
             message: Some(String::new()),
         }
     }
+}
 
+impl Genesis {
     /// Creates a new Genesis object with "keys" number of generated pre-funded keys.
     pub fn new<T: key::secp256k1::ReadOnly>(network_id: u32, seed_keys: &[T]) -> io::Result<Self> {
         // maximize total supply
@@ -146,8 +142,10 @@ impl Genesis {
         log::info!("allocate {} for each key in C-chain", c_alloc_per_key);
 
         // allocation for C-chain
-        let mut default_c_alloc = coreth_genesis::AllocAccount::default();
-        default_c_alloc.balance = primitive_types::U256::from(c_alloc_per_key);
+        let default_c_alloc = coreth_genesis::AllocAccount {
+            balance: primitive_types::U256::from(c_alloc_per_key),
+            ..Default::default()
+        };
 
         // "initial_staked_funds" addresses use all P-chain balance
         // so keep the remaining balance for other keys than "last" key
@@ -160,14 +158,15 @@ impl Genesis {
 
         for k in seed_keys.iter() {
             // allocation for X/P-chain
-            let mut xp_alloc = Allocation::default();
-            xp_alloc.eth_addr = Some(k.eth_address());
-            xp_alloc.avax_addr = Some(k.hrp_address(network_id, "X").unwrap());
-            xp_alloc.initial_amount = Some(xp_alloc_per_key);
-            xp_alloc.unlock_schedule = Some(vec![LockedAmount {
-                amount: Some(xp_alloc_per_key),
-                ..Default::default()
-            }]);
+            let xp_alloc = Allocation {
+                eth_addr: Some(k.eth_address()),
+                avax_addr: Some(k.hrp_address(network_id, "X").unwrap()),
+                initial_amount: Some(xp_alloc_per_key),
+                unlock_schedule: Some(vec![LockedAmount {
+                    amount: Some(xp_alloc_per_key),
+                    ..Default::default()
+                }]),
+            };
             xp_allocs.push(xp_alloc);
 
             c_allocs.insert(
@@ -178,8 +177,10 @@ impl Genesis {
 
         // make sure to use different network ID than "local" network ID
         // ref. https://github.com/ava-labs/avalanche-ops/issues/8
-        let mut c_chain_genesis = coreth_genesis::Genesis::default();
-        c_chain_genesis.alloc = Some(c_allocs);
+        let c_chain_genesis = coreth_genesis::Genesis {
+            alloc: Some(c_allocs),
+            ..Default::default()
+        };
 
         Ok(Self {
             network_id,
@@ -305,12 +306,6 @@ pub const DEFAULT_LOCKED_AMOUNT_P_CHAIN: u64 = 200000000000000000;
 
 impl Default for Allocation {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl Allocation {
-    pub fn default() -> Self {
         let unlock_empty = LockedAmount::default();
         Self {
             avax_addr: None,
@@ -339,12 +334,6 @@ pub struct LockedAmount {
 
 impl Default for LockedAmount {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl LockedAmount {
-    pub fn default() -> Self {
         // NOTE: to place lock-time, use this:
         // let now_unix = SystemTime::now()
         //     .duration_since(SystemTime::UNIX_EPOCH)
@@ -374,12 +363,6 @@ pub const DEFAULT_DELEGATION_FEE: u32 = 62500;
 
 impl Default for Staker {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl Staker {
-    pub fn default() -> Self {
         Self {
             node_id: None,
             reward_address: None,

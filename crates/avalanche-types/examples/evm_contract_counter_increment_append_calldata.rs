@@ -7,7 +7,7 @@ use avalanche_types::{
 };
 use ethers_core::{
     abi::{encode as abi_encode, Function, StateMutability, Token},
-    types::{H160, U256},
+    types::H160,
 };
 
 /// cargo run --example evm_contract_counter_increment_append_calldata --features="jsonrpc_client evm" -- [HTTP RPC ENDPOINT] [PRIVATE KEY] [FORWARDER CONTRACT ADDRESS] [RECIPIENT CONTRACT ADDRESS]

@@ -33,15 +33,9 @@ pub struct Config {
 }
 
 impl Default for Config {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl Config {
     /// The defaults do not match with the ones in avalanchego,
     /// as this is for avalanche-ops based deployments.
-    pub fn default() -> Self {
+    fn default() -> Self {
         Self {
             gossip_sender_config: gossip::SenderConfig::default(),
             validator_only: false,
@@ -49,7 +43,9 @@ impl Config {
             proposer_min_block_delay: 1000 * 1000 * 1000, // 1-second
         }
     }
+}
 
+impl Config {
     pub fn encode_json(&self) -> io::Result<String> {
         serde_json::to_string(&self)
             .map_err(|e| Error::new(ErrorKind::Other, format!("failed to serialize JSON {}", e)))

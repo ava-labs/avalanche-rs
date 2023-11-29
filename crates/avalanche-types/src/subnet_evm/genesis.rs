@@ -70,12 +70,6 @@ pub const DEFAULT_INITIAL_AMOUNT: &str = "0x204FCE5E3E25026110000000";
 
 impl Default for Genesis {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl Genesis {
-    pub fn default() -> Self {
         let mut alloc = BTreeMap::new();
         alloc.insert(
             // ref. https://github.com/ava-labs/subnet-evm/blob/master/networks/11111/genesis.json
@@ -112,7 +106,9 @@ impl Genesis {
             base_fee: None,
         }
     }
+}
 
+impl Genesis {
     /// Creates a new Genesis object with "keys" number of generated pre-funded keys.
     pub fn new(seed_eth_addrs: Vec<String>) -> io::Result<Self> {
         // maximize total supply
@@ -126,8 +122,10 @@ impl Genesis {
         // divide by 2, allow more room for transfers
         let alloc_per_key = alloc_per_key / 2;
 
-        let mut default_alloc = AllocAccount::default();
-        default_alloc.balance = primitive_types::U256::from(alloc_per_key);
+        let default_alloc = AllocAccount {
+            balance: primitive_types::U256::from(alloc_per_key),
+            ..Default::default()
+        };
 
         let mut allocs = BTreeMap::new();
         for eth_addr in seed_eth_addrs.iter() {
@@ -137,8 +135,10 @@ impl Genesis {
             );
         }
 
-        let mut subnet_evm_genesis = Self::default();
-        subnet_evm_genesis.alloc = Some(allocs);
+        let subnet_evm_genesis = Self {
+            alloc: Some(allocs),
+            ..Self::default()
+        };
 
         Ok(subnet_evm_genesis)
     }
@@ -229,14 +229,8 @@ pub struct ChainConfig {
 }
 
 impl Default for ChainConfig {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl ChainConfig {
     /// ref. <https://pkg.go.dev/github.com/ava-labs/subnet-evm/params#pkg-variables>
-    pub fn default() -> Self {
+    fn default() -> Self {
         Self {
             // don't use local ID "43112" to avoid config override
             // ref. <https://github.com/ava-labs/coreth/blob/v0.8.6/plugin/evm/vm.go#L326-L328>
@@ -307,18 +301,12 @@ pub struct FeeConfig {
 }
 
 impl Default for FeeConfig {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl FeeConfig {
     /// ref. <https://github.com/ava-labs/public-chain-assets/blob/main/chains/53935/genesis.json>
     /// ref. <https://pkg.go.dev/github.com/ava-labs/subnet-evm/params#pkg-variables>
     /// ref. <https://github.com/ava-labs/subnet-evm/blob/master/scripts/run.sh>
     /// ref. <https://www.rapidtables.com/convert/number/decimal-to-hex.html>
     /// ref. <https://www.rapidtables.com/convert/number/hex-to-decimal.html>
-    pub fn default() -> Self {
+    fn default() -> Self {
         Self {
             // ref. <https://github.com/ava-labs/subnet-evm/blob/master/scripts/run.sh>
             gas_limit: Some(20_000_000),
@@ -354,12 +342,6 @@ pub struct ContractDeployerAllowListConfig {
 
 impl Default for ContractDeployerAllowListConfig {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl ContractDeployerAllowListConfig {
-    pub fn default() -> Self {
         Self {
             allow_list_admins: None,
             block_timestamp: Some(0),
@@ -388,12 +370,6 @@ pub struct ContractNativeMinterConfig {
 
 impl Default for ContractNativeMinterConfig {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl ContractNativeMinterConfig {
-    pub fn default() -> Self {
         Self {
             allow_list_admins: None,
             block_timestamp: Some(0),
@@ -421,12 +397,6 @@ pub struct TxAllowListConfig {
 
 impl Default for TxAllowListConfig {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl TxAllowListConfig {
-    pub fn default() -> Self {
         Self {
             allow_list_admins: None,
             block_timestamp: Some(0),
@@ -454,12 +424,6 @@ pub struct FeeManagerConfig {
 
 impl Default for FeeManagerConfig {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl FeeManagerConfig {
-    pub fn default() -> Self {
         Self {
             allow_list_admins: None,
             block_timestamp: Some(0),
@@ -490,12 +454,6 @@ pub struct AllocAccount {
 
 impl Default for AllocAccount {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl AllocAccount {
-    pub fn default() -> Self {
         Self {
             code: None,
             storage: None,

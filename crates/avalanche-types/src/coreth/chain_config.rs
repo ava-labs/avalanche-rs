@@ -158,15 +158,9 @@ pub const DEFAULT_LOG_JSON_FORMAT: bool = true;
 pub const DEFAULT_OFFLINE_PRUNING_DATA_DIR: &str = "/data/c-chain-offline-pruning";
 
 impl Default for Config {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl Config {
     /// The defaults do not match with the ones in avalanchego,
     /// as this is for avalanche-ops based deployments.
-    pub fn default() -> Self {
+    fn default() -> Self {
         Self {
             snowman_api_enabled: None,
             coreth_admin_api_enabled: Some(DEFAULT_CORETH_ADMIN_API_ENABLED),
@@ -254,7 +248,9 @@ impl Config {
             tx_lookup_limit: None,
         }
     }
+}
 
+impl Config {
     pub fn encode_json(&self) -> io::Result<String> {
         serde_json::to_string(&self)
             .map_err(|e| Error::new(ErrorKind::Other, format!("failed to serialize JSON {}", e)))

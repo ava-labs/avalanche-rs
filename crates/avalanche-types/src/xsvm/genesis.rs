@@ -20,15 +20,6 @@ pub struct Genesis {
 
 impl Default for Genesis {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-pub const CODEC_VERSION: u16 = 0;
-pub const DEFAULT_INITIAL_AMOUNT: u64 = 1000000000;
-
-impl Genesis {
-    pub fn default() -> Self {
         Self {
             timestamp: 0,
             allocations: Some(vec![Allocation {
@@ -38,7 +29,12 @@ impl Genesis {
             }]),
         }
     }
+}
 
+pub const CODEC_VERSION: u16 = 0;
+pub const DEFAULT_INITIAL_AMOUNT: u64 = 1000000000;
+
+impl Genesis {
     /// Creates a new Genesis object with "keys" number of generated pre-funded keys.
     pub fn new<T: key::secp256k1::ReadOnly>(seed_keys: &[T]) -> io::Result<Self> {
         // maximize total supply
@@ -60,8 +56,10 @@ impl Genesis {
             });
         }
 
-        let mut genesis = Self::default();
-        genesis.allocations = Some(allocs);
+        let genesis = Self {
+            allocations: Some(allocs),
+            ..Self::default()
+        };
 
         Ok(genesis)
     }
@@ -130,12 +128,6 @@ pub struct Allocation {
 
 impl Default for Allocation {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl Allocation {
-    pub fn default() -> Self {
         Self {
             address: short::Id::empty(),
             balance: 0,

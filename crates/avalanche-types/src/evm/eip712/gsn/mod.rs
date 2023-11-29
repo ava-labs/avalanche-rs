@@ -414,6 +414,12 @@ impl Tx {
     }
 }
 
+impl Default for Tx {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 /// Implements "type_hash".
 /// ref. "ethers_core::types::transaction::eip712::EIP712_DOMAIN_TYPE_HASH"
 /// ref. <https://github.com/opengsn/gsn/blob/master/packages/contracts/src/forwarder/Forwarder.sol> "registerRequestType"
