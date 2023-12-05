@@ -13,6 +13,16 @@ members = [
 default-members = ["crates/avalanche-types", "crates/avalanche-consensus"]
 resolver = "2"
 
+[workspace.lints.clippy]
+# suspicious = "deny"
+# style = "deny"
+# complexity = "deny"
+# perf = "deny"
+# pedantic = "deny"
+# restriction = "deny"
+# nursery = "deny"
+# cargo = "deny"
+
 [workspace.package]
 version = "0.1.1"
 authors = ["gyuho", "hexfusion", "exdx", "richardpringle"]

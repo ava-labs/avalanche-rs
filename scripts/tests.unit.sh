@@ -10,7 +10,7 @@ fi
 # https://github.com/nextest-rs/nextest/tree/main
 # local use: cargo install nextest
 
-RUST_LOG=debug cargo nextest run \
+RUST_LOG=debug cargo test \
 --all-features \
 -p avalanche-types \
 -p avalanche-consensus

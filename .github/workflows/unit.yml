@@ -1,6 +1,5 @@
-name: ci
+name: ci-unit-tests
 
-# ref. https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions
 on:
   push:
     branches:
@@ -30,8 +29,6 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
       - name: Check Rust version
         run: rustc --version
-      # or use "abelfodil/protoc-action@v1"
-      # ref. https://github.com/hyperium/tonic/issues/1047#issuecomment-1222508191
       - name: Install protoc
         uses: arduino/setup-protoc@v1
         with:
@@ -39,7 +36,6 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Checkout
         uses: actions/checkout@v3
-      - uses: taiki-e/install-action@nextest
       - name: Run unit tests
         shell: bash
         run: scripts/tests.unit.sh
