@@ -28,9 +28,8 @@ mod test {
     use rcgen::CertificateParams;
     use rustls::ServerConfig;
     use std::{
-        io::{self, Error, ErrorKind},
-        net::{IpAddr, SocketAddr},
-        str::FromStr,
+        io,
+        net::{IpAddr, Ipv4Addr, SocketAddr},
         sync::Arc,
         time::Duration,
     };
@@ -47,9 +46,11 @@ mod test {
             // .is_test(true)
             .try_init();
 
+        let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 9649);
+
         let server_key_path = random_manager::tmp_path(10, None)?;
         let server_cert_path = random_manager::tmp_path(10, None)?;
-        let server_cert_sna_params = CertificateParams::new(vec!["127.0.0.1".to_string()]);
+        let server_cert_sna_params = CertificateParams::new([addr.ip().to_string()]);
         cert_manager::x509::generate_and_write_pem(
             Some(server_cert_sna_params),
             &server_key_path,
@@ -62,24 +63,12 @@ mod test {
             server_cert_path.as_ref(),
         )?;
 
-        let ip_addr = String::from("127.0.0.1");
-        let ip_port = 9649_u16;
-
         let join_handle = tokio::task::spawn(async move {
             let server_config = ServerConfig::builder()
                 .with_safe_defaults()
                 .with_no_client_auth()
                 .with_single_cert(vec![certificate], private_key)
-                .map_err(|e| {
-                    Error::new(
-                        ErrorKind::InvalidInput,
-                        format!("failed to create TLS server config '{}'", e),
-                    )
-                })
                 .unwrap();
-
-            let ip = ip_addr.clone().parse::<std::net::IpAddr>().unwrap();
-            let addr = SocketAddr::new(ip, ip_port);
 
             let tls_acceptor = TlsAcceptor::from(Arc::new(server_config));
             let tcp_listener = TcpListener::bind(addr).await.unwrap();
@@ -103,20 +92,16 @@ mod test {
 
         let client_key_path = random_manager::tmp_path(10, None)?;
         let client_cert_path = random_manager::tmp_path(10, None)?;
-        let client_cert_sna_params = CertificateParams::new(vec!["127.0.0.1".to_string()]);
+        let client_cert_sna_params = CertificateParams::new([addr.ip().to_string()]);
         cert_manager::x509::generate_and_write_pem(
             Some(client_cert_sna_params),
             &client_key_path,
             &client_cert_path,
         )?;
-        log::info!("client cert path: {}", client_cert_path);
+        log::info!("client cert path: {client_cert_path}");
 
         let connector = outbound::Connector::new_from_pem(&client_key_path, &client_cert_path)?;
-        let stream = connector.connect(
-            IpAddr::from_str("127.0.0.1").unwrap(),
-            ip_port,
-            Duration::from_secs(5),
-        )?;
+        let stream = connector.connect(addr, Duration::from_secs(5))?;
 
         log::info!("peer certificate:\n\n{}", stream.peer_certificate_pem);
 

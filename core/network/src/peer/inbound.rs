@@ -1,6 +1,6 @@
 use std::{
     io::{self, Error, ErrorKind},
-    net::{IpAddr, SocketAddr},
+    net::SocketAddr,
     sync::Arc,
 };
 
@@ -34,7 +34,7 @@ impl Listener {
             .with_single_cert(vec![certificate], private_key)
             .map_err(|e| {
                 Error::new(
-                    ErrorKind::InvalidInput,
+                    ErrorKind::Other,
                     format!("failed to create TLS server config '{}'", e),
                 )
             })?;
@@ -46,11 +46,9 @@ impl Listener {
 
     /// Creates a listening stream for the specified IP and port.
     /// ref. <https://github.com/rustls/hyper-rustls/blob/main/examples/server.rs>
-    pub fn listen(&self, ip: IpAddr, port: u16) -> io::Result<Stream> {
-        log::info!("[rustls] listening on {}:{}", ip, port);
+    pub fn listen(&self, addr: SocketAddr) -> io::Result<Stream> {
+        log::info!("[rustls] listening on {addr}");
 
-        // ref. https://doc.rust-lang.org/std/net/enum.SocketAddr.html
-        let addr = SocketAddr::new(ip, port);
         let incoming = AddrIncoming::bind(&addr)
             .map_err(|e| Error::new(ErrorKind::Other, format!("failed to bind '{}'", e)))?;
         let local_addr = incoming.local_addr();

@@ -71,13 +71,13 @@ impl Message {
     }
 
     #[must_use]
-    pub fn tracked_subnets(mut self, tracked_subnets: Vec<ids::Id>) -> Self {
-        let mut tracked_subnet_bytes: Vec<prost::bytes::Bytes> =
-            Vec::with_capacity(tracked_subnets.len());
-        for id in tracked_subnets.iter() {
-            tracked_subnet_bytes.push(prost::bytes::Bytes::from(id.to_vec()));
-        }
-        self.msg.tracked_subnets = tracked_subnet_bytes;
+    pub fn tracked_subnets(mut self, tracked_subnets: impl AsRef<[ids::Id]>) -> Self {
+        self.msg.tracked_subnets = tracked_subnets
+            .as_ref()
+            .iter()
+            .map(|id| id.to_vec())
+            .map(prost::bytes::Bytes::from)
+            .collect();
         self
     }
 
@@ -180,7 +180,7 @@ fn test_message() {
         .my_version(String::from("v1.2.3"))
         .my_version_time(1234567)
         .sig(random_manager::secure_bytes(65).unwrap())
-        .tracked_subnets(vec![
+        .tracked_subnets([
             ids::Id::empty(),
             ids::Id::empty(),
             ids::Id::empty(),

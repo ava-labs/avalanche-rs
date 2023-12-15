@@ -1,6 +1,5 @@
 use std::{
-    net::{IpAddr, Ipv4Addr},
-    str::FromStr,
+    net::{IpAddr, Ipv4Addr, SocketAddr},
     thread,
     time::{Duration, Instant, SystemTime},
 };
@@ -269,8 +268,7 @@ async fn byzantine() {
         utils::urls::extract_scheme_host_port_path_chain_alias(&rpc_eps[0]).unwrap();
     log::info!("connecting to the first peer {} with port {:?}", host, port);
     let res = connector.connect(
-        IpAddr::from_str("127.0.0.1").unwrap(),
-        port.unwrap(),
+        SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), port.unwrap()),
         Duration::from_secs(10),
     );
     if res.is_err() {
