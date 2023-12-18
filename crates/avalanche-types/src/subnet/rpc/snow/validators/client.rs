@@ -87,10 +87,11 @@ impl super::State for ValidatorStateClient {
         for validator in resp.validators.iter() {
             let node_id = ids::node::Id::from_slice(&validator.node_id);
 
-            let mut public_key: Option<Key> = None;
-            if !resp.validators.is_empty() {
-                public_key = Some(Key::from_bytes(&validator.public_key)?);
-            }
+            let public_key = if !validator.public_key.is_empty() {
+                Some(Key::from_bytes(&validator.public_key)?)
+            } else {
+                None
+            };
             validators.insert(
                 node_id,
                 GetValidatorOutput {
