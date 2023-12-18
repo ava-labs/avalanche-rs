@@ -19,6 +19,9 @@ pub mod avm;
 pub mod choices;
 pub mod codec;
 pub mod constants;
+#[cfg(feature = "coreth")]
+#[cfg_attr(docsrs, doc(cfg(feature = "coreth")))]
+pub mod coreth;
 pub mod errors;
 pub mod formatting;
 pub mod hash;
@@ -32,11 +35,6 @@ pub mod txs;
 pub mod units;
 pub mod utils;
 pub mod verify;
-pub mod warp;
-
-#[cfg(feature = "coreth")]
-#[cfg_attr(docsrs, doc(cfg(feature = "coreth")))]
-pub mod coreth;
 
 #[cfg(feature = "subnet_evm")]
 #[cfg_attr(docsrs, doc(cfg(feature = "subnet_evm")))]

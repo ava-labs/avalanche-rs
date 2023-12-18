@@ -1,6 +1,5 @@
 use std::{collections::HashMap, io::Result};
 
-use crate::warp::WarpSignerClient_;
 use crate::{
     ids,
     subnet::rpc::{
@@ -29,7 +28,6 @@ pub trait CommonVm: AppHandler + Connector + Checkable {
     type ChainHandler: Handle;
     type StaticHandler: Handle;
     type ValidatorState: validators::State;
-    type WarpSigner: WarpSignerClient_;
     async fn initialize(
         &mut self,
         ctx: Option<Context<Self::ValidatorState>>,
@@ -40,7 +38,6 @@ pub trait CommonVm: AppHandler + Connector + Checkable {
         to_engine: Sender<Message>,
         fxs: &[Fx],
         app_sender: Self::AppSender,
-        warp_signer: Self::WarpSigner,
     ) -> Result<()>;
     async fn set_state(&self, state: State) -> Result<()>;
     async fn shutdown(&self) -> Result<()>;

@@ -7,6 +7,7 @@ use crate::{
         keystore::keystore_client::KeystoreClient,
         sharedmemory::shared_memory_client::SharedMemoryClient,
     },
+    proto::warp::signer_client::SignerClient,
 };
 use tonic::transport::Channel;
 
@@ -25,6 +26,7 @@ pub struct Context<S: validators::State> {
     pub keystore: KeystoreClient<Channel>,
     pub shared_memory: SharedMemoryClient<Channel>,
     pub bc_lookup: AliasReaderClient<Channel>,
+    pub singer_client: SignerClient<Channel>,
     pub chain_data_dir: String,
     pub validator_state: S,
     // TODO metrics

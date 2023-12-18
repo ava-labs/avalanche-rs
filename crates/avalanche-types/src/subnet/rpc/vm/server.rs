@@ -4,7 +4,6 @@ use std::{
     time::{Duration, Instant},
 };
 
-use crate::warp::client::WarpSignerClient;
 use crate::{
     ids,
     packer::U32_LEN,
@@ -17,6 +16,7 @@ use crate::{
         sharedmemory::shared_memory_client::SharedMemoryClient,
         vm,
     },
+    proto::warp::signer_client,
     subnet::rpc::{
         consensus::snowman::{Block, Decidable},
         context::Context,
@@ -97,7 +97,6 @@ where
             DatabaseManager = DatabaseManager,
             AppSender = AppSenderClient,
             ValidatorState = ValidatorStateClient,
-            WarpSigner = WarpSignerClient,
         > + Send
         + Sync
         + 'static,
@@ -125,7 +124,7 @@ where
         let keystore = KeystoreClient::new(client_conn.clone());
         let shared_memory = SharedMemoryClient::new(client_conn.clone());
         let bc_lookup = AliasReaderClient::new(client_conn.clone());
-
+        let singer_client = signer_client::SignerClient::new(client_conn.clone());
         let ctx: Option<Context<ValidatorStateClient>> = Some(Context {
             network_id: req.network_id,
             subnet_id: ids::Id::from_slice(&req.subnet_id),
@@ -137,6 +136,7 @@ where
             keystore,
             shared_memory,
             bc_lookup,
+            singer_client,
             chain_data_dir: req.chain_data_dir,
             validator_state: ValidatorStateClient::new(client_conn.clone()),
         });
@@ -184,7 +184,6 @@ where
                 return tonic::Status::unknown("engine receiver closed unexpectedly");
             }
         });
-        let warp_signer = WarpSignerClient::new(client_conn.clone());
         let mut inner_vm = self.vm.write().await;
         inner_vm
             .initialize(
@@ -196,7 +195,6 @@ where
                 tx_engine,
                 &[()],
                 AppSenderClient::new(client_conn.clone()),
-                warp_signer,
             )
             .await
             .map_err(|e| tonic::Status::unknown(e.to_string()))?;
@@ -1012,7 +1010,7 @@ where
                 return Ok(Response::new(vm::GetBlockIdAtHeightResponse {
                     blk_id: height.to_vec().into(),
                     err: 0,
-                }))
+                }));
             }
             Err(e) => {
                 if error_to_error_code(&e.to_string()) != 0 {
