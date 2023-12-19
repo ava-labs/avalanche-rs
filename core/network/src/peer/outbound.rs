@@ -72,9 +72,12 @@ impl Connector {
         // The certificate details are used to establish node identity.
         // See https://docs.avax.network/specs/cryptographic-primitives#tls-certificates.
         // The avalanchego certs are intentionally NOT signed by a legitimate CA.
-        let (peer_certificate, other_certificates) = conn
+        let (peer_certificate, total_certificates) = conn
             .peer_certificates()
-            .and_then(|certs| certs.split_first())
+            .and_then(|certs| {
+                let total_certs = certs.len();
+                certs.split_first().map(|(first, _)| (first, total_certs))
+            })
             .ok_or(Error::new(
                 ErrorKind::NotConnected,
                 "no peer certificate found",
@@ -84,7 +87,7 @@ impl Connector {
         info!(
             "successfully connected to {} (total {} certificates, first cert {}-byte)",
             peer_node_id,
-            other_certificates.len() + 1,
+            total_certificates,
             peer_certificate.0.len(),
         );
 
