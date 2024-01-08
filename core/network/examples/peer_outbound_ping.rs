@@ -7,7 +7,7 @@ use std::{
 };
 
 use avalanche_types::{ids::Id, message};
-use network::peer::outbound;
+use network::{cert_manager, peer::outbound};
 
 /// cargo run --example peer_outbound_ping -- [PEER IP] [STAKING PORT]
 /// cargo run --example peer_outbound_ping -- 34.222.2.60 9651
