@@ -36,6 +36,7 @@ mod test {
     use tokio::net::TcpListener;
     use tokio_rustls::TlsAcceptor;
 
+    use crate::cert_manager;
     use crate::peer::outbound;
 
     #[tokio::test]

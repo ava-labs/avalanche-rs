@@ -4,6 +4,7 @@ use std::{
     sync::Arc,
 };
 
+use crate::cert_manager;
 use hyper::server::conn::AddrIncoming;
 use rustls::server::NoClientAuth;
 use tokio_rustls::rustls::ServerConfig;

@@ -12,21 +12,25 @@ readme = "README.md"
 
 [dependencies]
 avalanche-types = { path = "../../crates/avalanche-types", features = ["message"] }
-cert-manager = "0.0.11" # https://github.com/gyuho/cert-manager
 log = "0.4.20"
 rustls = { version = "0.21.5", features = ["logging", "dangerous_configuration"]} # https://github.com/rustls/rustls/tags
 hyper-rustls = "0.24.1"
 rustls-native-certs = "0.7.0"
 hyper = { version = "0.14.27", features = ["full"], optional = true }
 tokio-rustls = { version = "0.24.1", optional = true }
-
+rand = "0.8.5"
+random-manager = "0.0.5" # https://crates.io/crates/random-manager/versions
+rcgen = { version = "0.11.3", features = ["pem", "x509-parser"] }
+rsa = { version = "0.9.2", features = ["pem"] } # https://crates.io/crates/rsa
+rustls-pemfile = "1.0.3"
+x509-parser = "0.15.1"
 # for feature "pem"
 pem = { version = "3.0.0", optional = true } # https://github.com/jcreekmore/pem-rs
 
 [dev-dependencies]
 env_logger = "0.10.0"
 random-manager = "0.0.5"
-rcgen = "0.11.3"
+tempfile = "3.5.0"
 tokio = { version = "1.32.0", features = ["full"] }
 tracing = "0.1.37"
 tracing-subscriber = "0.3.17"
