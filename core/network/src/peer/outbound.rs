@@ -1,4 +1,4 @@
-use std::net;
+use std::net::SocketAddr;
 use std::{
     io::{self, Error, ErrorKind, Read, Write},
     net::TcpStream,
@@ -52,70 +52,58 @@ impl Connector {
 
     /// Creates a connection to the specified peer's IP and port.
     /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/network/peer#NewTLSClientUpgrader>
-    pub fn connect(
-        &self,
-        peer_ip: net::IpAddr,
-        port: u16,
-        _timeout: Duration,
-    ) -> io::Result<Stream> {
-        info!("[rustls] connecting to {}:{}", peer_ip, port);
+    pub fn connect(&self, addr: SocketAddr, _timeout: Duration) -> io::Result<Stream> {
+        info!("[rustls] connecting to {addr}");
 
-        // ref. https://doc.rust-lang.org/std/net/enum.SocketAddr.html
-        let sock_addr = format!("{}:{}", peer_ip, port);
-
-        // This is now possible with rustls v0.21.0+
-        let server_name: ServerName = ServerName::try_from(peer_ip.to_string().as_ref()).unwrap();
+        let server_name = ServerName::IpAddress(addr.ip());
         let mut conn =
             rustls::ClientConnection::new(self.client_config.clone(), server_name).unwrap();
-        let mut sock = TcpStream::connect(sock_addr.clone()).unwrap();
+        let mut sock = TcpStream::connect(addr).unwrap();
         let mut tls = rustls::Stream::new(&mut conn, &mut sock);
 
-        let binding = format!("GET / HTTP/1.1\r\nHost: {}:{}\r\nConnection: close\r\nAccept-Encoding: identity\r\n\r\n", peer_ip, port);
-        let header = binding.as_bytes();
+        let binding = format!("GET / HTTP/1.1\r\nHost: {addr}\r\nConnection: close\r\nAccept-Encoding: identity\r\n\r\n");
+
         // This is a dummy write to ensure that the certificate data is transmitted.
         // Without this GET we get an error: Error: Custom { kind: NotConnected, error: "no peer certificate found" }
-        match tls.write_all(header) {
-            Ok(_) => {
-                println!("\n\n WROTE REQUEST\n\n");
-            }
-            Err(e) => {
-                println!("failed to write request: {}", e);
-            }
-        };
+        tls.write_all(binding.as_bytes())?;
+        info!("\n\n WROTE REQUEST\n\n");
 
         info!("retrieving peer certificates...");
-        let peer_certs = conn.peer_certificates();
-        if peer_certs.is_none() {
-            return Err(Error::new(
-                ErrorKind::NotConnected,
-                "no peer certificate found",
-            ));
-        }
 
         // The certificate details are used to establish node identity.
         // See https://docs.avax.network/specs/cryptographic-primitives#tls-certificates.
         // The avalanchego certs are intentionally NOT signed by a legitimate CA.
-        let peer_certs = peer_certs.unwrap();
-        let peer_certificate = peer_certs[0].clone();
+        let (peer_certificate, total_certificates) = conn
+            .peer_certificates()
+            .and_then(|certs| {
+                let total_certs = certs.len();
+                certs.split_first().map(|(first, _)| (first, total_certs))
+            })
+            .ok_or(Error::new(
+                ErrorKind::NotConnected,
+                "no peer certificate found",
+            ))?;
+
         let peer_node_id = node::Id::from_cert_der_bytes(&peer_certificate.0)?;
         info!(
             "successfully connected to {} (total {} certificates, first cert {}-byte)",
             peer_node_id,
-            peer_certs.len(),
+            total_certificates,
             peer_certificate.0.len(),
         );
 
         Ok(Stream {
-            addr: sock_addr,
-            conn,
+            addr,
             peer_certificate: peer_certificate.clone(),
             peer_node_id,
 
             #[cfg(feature = "pem_encoding")]
             peer_certificate_pem: pem::encode(&Pem::new(
                 "CERTIFICATE".to_string(),
-                peer_certificate.0,
+                peer_certificate.0.clone(),
             )),
+
+            conn,
         })
     }
 }
@@ -154,7 +142,7 @@ fn test_connector() {
 /// Represents a connection to a peer.
 /// ref. <https://github.com/rustls/rustls/commit/b8024301747fb0328c9493d7cf7268e0de17ffb3>
 pub struct Stream {
-    pub addr: String,
+    pub addr: SocketAddr,
 
     /// ref. <https://docs.rs/rustls/latest/rustls/enum.Connection.html>
     /// ref. <https://docs.rs/rustls/latest/rustls/client/struct.ClientConnection.html>

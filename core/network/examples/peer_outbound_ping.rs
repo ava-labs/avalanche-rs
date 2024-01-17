@@ -1,7 +1,8 @@
 use std::{
+    array,
     env::args,
     io,
-    net::{IpAddr, Ipv6Addr},
+    net::{IpAddr, SocketAddr},
     str::FromStr,
     time::{Duration, SystemTime},
 };
@@ -27,12 +28,14 @@ fn main() -> io::Result<()> {
     let port = args().nth(2).expect("no port given");
     let port: u16 = port.parse().unwrap();
 
+    let addr = SocketAddr::new(peer_ip, port);
+
     let key_path = random_manager::tmp_path(10, Some(".key")).unwrap();
     let cert_path = random_manager::tmp_path(10, Some(".cert")).unwrap();
     cert_manager::x509::generate_and_write_pem(None, &key_path, &cert_path)?;
 
     let connector = outbound::Connector::new_from_pem(&key_path, &cert_path)?;
-    let mut stream = connector.connect(peer_ip, port, Duration::from_secs(10))?;
+    let mut stream = connector.connect(addr, Duration::from_secs(10))?;
     log::info!("peer certificate:\n\n{}", stream.peer_certificate_pem);
 
     log::info!("sending version...");
@@ -41,21 +44,13 @@ fn main() -> io::Result<()> {
         .duration_since(SystemTime::UNIX_EPOCH)
         .expect("unexpected None duration_since")
         .as_secs();
-    let tracked_subnets = vec![
-        Id::from_slice(&random_manager::secure_bytes(32).unwrap()),
-        Id::from_slice(&random_manager::secure_bytes(32).unwrap()),
-        Id::from_slice(&random_manager::secure_bytes(32).unwrap()),
-        Id::from_slice(&random_manager::secure_bytes(32).unwrap()),
-        Id::from_slice(&random_manager::secure_bytes(32).unwrap()),
-    ];
-    let mut tracked_subnets_bytes: Vec<Vec<u8>> = Vec::new();
-    for id in tracked_subnets.iter() {
-        tracked_subnets_bytes.push(id.as_ref().to_vec());
-    }
+    let tracked_subnets: [Id; 5] =
+        array::from_fn(|_| Id::from_slice(&random_manager::secure_bytes(32).unwrap()));
+
     let msg = message::version::Message::default()
         .network_id(1000000)
         .my_time(now_unix)
-        .ip_addr(IpAddr::V6(Ipv6Addr::LOCALHOST))
+        .ip_addr(addr.ip())
         .ip_port(0)
         .my_version("avalanche/1.2.3".to_string())
         .sig(random_manager::secure_bytes(64).unwrap())
