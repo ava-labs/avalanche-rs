@@ -12,10 +12,16 @@
 //! ecosystem.
 //!
 #![cfg_attr(docsrs, feature(doc_cfg))]
+#[cfg(feature = "avalanchego")]
+#[cfg_attr(docsrs, doc(cfg(feature = "avalanchego")))]
+pub mod avalanchego;
 pub mod avm;
 pub mod choices;
 pub mod codec;
 pub mod constants;
+#[cfg(feature = "coreth")]
+#[cfg_attr(docsrs, doc(cfg(feature = "coreth")))]
+pub mod coreth;
 pub mod errors;
 pub mod formatting;
 pub mod hash;
@@ -29,14 +35,6 @@ pub mod txs;
 pub mod units;
 pub mod utils;
 pub mod verify;
-
-#[cfg(feature = "avalanchego")]
-#[cfg_attr(docsrs, doc(cfg(feature = "avalanchego")))]
-pub mod avalanchego;
-
-#[cfg(feature = "coreth")]
-#[cfg_attr(docsrs, doc(cfg(feature = "coreth")))]
-pub mod coreth;
 
 #[cfg(feature = "subnet_evm")]
 #[cfg_attr(docsrs, doc(cfg(feature = "subnet_evm")))]

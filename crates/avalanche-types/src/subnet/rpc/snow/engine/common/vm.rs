@@ -18,7 +18,6 @@ use crate::{
     },
 };
 use tokio::sync::mpsc::Sender;
-
 /// Vm describes the trait that all consensus VMs must implement.
 ///
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/snow/engine/common#Vm>
@@ -29,7 +28,6 @@ pub trait CommonVm: AppHandler + Connector + Checkable {
     type ChainHandler: Handle;
     type StaticHandler: Handle;
     type ValidatorState: validators::State;
-
     async fn initialize(
         &mut self,
         ctx: Option<Context<Self::ValidatorState>>,
