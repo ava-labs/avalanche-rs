@@ -21,7 +21,7 @@ serde = { version = "1.0.186", features = ["derive"] } # https://github.com/serd
 thiserror = "1.0.47"
 
 [dev-dependencies]
-env_logger = "0.10.0"
+env_logger = "0.11.0"
 
 [package.metadata.docs.rs]
 cargo-args = ["-Zunstable-options", "-Zrustdoc-scrape-examples"]
