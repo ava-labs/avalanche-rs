@@ -16,7 +16,7 @@ aws-manager = { version = "0.30.2", features = ["kms"] } # https://github.com/gy
 clap = { version = "4.3.19", features = ["cargo", "derive"] } # https://github.com/clap-rs/clap/releases
 crossterm = "0.27.0"
 dialoguer = "0.11.0"
-env_logger = "0.10.0"
+env_logger = "0.11.1"
 ethers = { version = "=2.0.11" } # https://github.com/gakonst/ethers-rs/releases
 ethers-core = { version = "=2.0.13", features = ["eip712"] } # https://github.com/gakonst/ethers-rs/releases
 ethers-signers = { version = "=2.0.11" } # https://github.com/gakonst/ethers-rs/releases
