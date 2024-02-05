@@ -14,7 +14,7 @@ homepage = "https://avax.network"
 avalanche-installer = "0.0.77"
 avalanche-network-runner-sdk = "0.3.3" # https://crates.io/crates/avalanche-network-runner-sdk
 avalanche-types = { path = "../../crates/avalanche-types", features = ["jsonrpc_client"] } # https://crates.io/crates/avalanche-types
-cert-manager = "0.0.11" # https://github.com/gyuho/cert-manager
+cert-manager = { path = "../../core/cert-manager" }
 env_logger = "0.11.1"
 hex = "0.4.3"
 log = "0.4.20"
