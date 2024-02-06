@@ -1,0 +1,257 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - '*'
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Remove unnecessary files
+        run: |
+          docker rmi `docker images -q`
+          sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php /etc/sudo apt/sources.list.d
+          sudo apt -y autoremove --purge
+          sudo apt -y autoclean
+          sudo apt clean
+          rm -rf "$AGENT_TOOLSDIRECTORY"
+          df -h
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
+          large-packages: true
+          swap-storage: true
+      - name: Install protoc
+        uses: arduino/setup-protoc@v1
+        with:
+          version: '3.x'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: 'ci'
+      - name: Build binaries
+        run: cargo build --all --tests --all-features
+
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - run: 'echo hello world'
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Run static analysis tests
+        shell: bash
+        run: cargo fmt --all --check
+
+  unit:
+    name: unit tests
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Remove unnecessary files
+        run: |
+          docker rmi `docker images -q`
+          sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php /etc/sudo apt/sources.list.d
+          sudo apt -y autoremove --purge
+          sudo apt -y autoclean
+          sudo apt clean
+          rm -rf "$AGENT_TOOLSDIRECTORY"
+          df -h
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
+          large-packages: true
+          swap-storage: true
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Check Rust version
+        run: rustc --version
+      # - name: Install protoc
+      #   uses: arduino/setup-protoc@v1
+      #   with:
+      #     version: '3.x'
+      #     repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: 'ci'
+
+      - name: Run unit tests
+        run: cargo test --all-features -p avalanche-types -p avalanche-consensus
+
+  avalanchego-integration-tests:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - run: 'echo hello world'
+      # - name: Checkout
+      #   uses: actions/checkout@v3
+      # - name: Remove unnecessary files
+      #   run: |
+      #     sudo rm -rf /usr/share/dotnet
+      #     sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+      # - name: Install linker
+      #   run: |
+      #     sudo apt-get update
+      #     sudo apt-get install -y --no-install-recommends \
+      #       gcc-multilib
+      # - name: Install protoc
+      #   uses: arduino/setup-protoc@v1
+      #   with:
+      #     version: '3.x'
+      #     repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      # - name: Install Rust
+      #   uses: dtolnay/rust-toolchain@stable
+
+      # - name: Install Go
+      #   uses: actions/setup-go@v4
+      #   with:
+      #     go-version: '1.19'
+
+      # - name: Run e2e tests
+      #   run: scripts/tests.avalanchego-e2e.sh
+
+  avalanchego-conformance-tests:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - run: 'echo hello world'
+      # - name: Checkout
+      #   uses: actions/checkout@v3
+      # - name: Remove unnecessary files
+      #   run: |
+      #     sudo rm -rf /usr/share/dotnet
+      #     sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+      # - name: Install linker
+      #   run: |
+      #     sudo apt-get update
+      #     sudo apt-get install -y --no-install-recommends \
+      #       gcc-multilib
+      # - name: Install protoc
+      #   uses: arduino/setup-protoc@v1
+      #   with:
+      #     version: '3.x'
+      #     repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      # - name: Install Rust
+      #   uses: dtolnay/rust-toolchain@stable
+
+      # - name: Install Go
+      #   uses: actions/setup-go@v4
+      #   with:
+      #     go-version: '1.19'
+
+      # - name: Run e2e tests
+      #   run: scripts/tests.avalanchego-conformance.sh
+
+  avalanchego-byzantine-tests:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - run: 'echo hello world'
+      # - name: Checkout
+      #   uses: actions/checkout@v3
+      # - name: Remove unnecessary files
+      #   run: |
+      #     sudo rm -rf /usr/share/dotnet
+      #     sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+      # - name: Install linker
+      #   run: |
+      #     sudo apt-get update
+      #     sudo apt-get install -y --no-install-recommends \
+      #       gcc-multilib
+      # - name: Install protoc
+      #   uses: arduino/setup-protoc@v1
+      #   with:
+      #     version: '3.x'
+      #     repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      # - name: Install Rust
+      #   uses: dtolnay/rust-toolchain@stable
+
+      # - name: Install Go
+      #   uses: actions/setup-go@v4
+      #   with:
+      #     go-version: '1.19'
+
+      # - name: Run e2e tests
+      #   run: scripts/tests.avalanchego-byzantine.sh
+  clippy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - run: 'echo hello world'
+      # - name: Remove unnecessary files
+      #   run: |
+      #     sudo rm -rf /usr/share/dotnet
+      #     sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+      # - name: Install linker
+      #   run: |
+      #     sudo apt-get update
+      #     sudo apt-get install -y --no-install-recommends \
+      #       gcc-multilib
+      # - name: Install Rust
+      #   uses: dtolnay/rust-toolchain@stable
+      # - name: Check Rust version
+      #   run: rustc --version
+      # - name: Install protoc
+      #   uses: arduino/setup-protoc@v1
+      #   with:
+      #     version: '3.x'
+      #     repo-token: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Checkout
+      #   uses: actions/checkout@v3
+      # - name: Run static analysis tests
+      #   shell: bash
+      #   run: cargo clippy --all --all-features --tests --benches --examples
+
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - run: 'echo hello world'
+      # - name: Remove unnecessary files
+      #   run: |
+      #     sudo rm -rf /usr/share/dotnet
+      #     sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+      # - name: Install linker
+      #   run: |
+      #     sudo apt-get update
+      #     sudo apt-get install -y --no-install-recommends \
+      #       gcc-multilib
+      # - name: Install Rust
+      #   uses: dtolnay/rust-toolchain@stable
+      # - name: Check Rust version
+      #   run: rustc --version
+      # - name: Install protoc
+      #   uses: arduino/setup-protoc@v1
+      #   with:
+      #     version: '3.x'
+      #     repo-token: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Checkout
+      #   uses: actions/checkout@v3
+      # - name: Set env var
+      #   shell: bash
+      #   run: export 'RUSTFLAGS=-D warnings'
+      # # Fails the CI build if there are documentation warnings.
+      # - name: Run doc tests
+      #   shell: bash
+      #   run: cargo doc --no-deps --all-features -p avalanche-consensus -p avalanche-types
