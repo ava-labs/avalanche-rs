@@ -11,8 +11,8 @@ use tonic::transport::Channel;
 
 #[tokio::test(flavor = "multi_thread")]
 async fn rpcdb_mutation_test() {
-    let db = MemDb::new();
-    let server = RpcDb::new(db);
+    let db = MemDb::new_boxed();
+    let server = RpcDb::new_boxed(db);
 
     let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
     let addr = listener.local_addr().unwrap();
@@ -26,7 +26,7 @@ async fn rpcdb_mutation_test() {
         .await
         .unwrap();
 
-    let client = DatabaseClient::new(client_conn);
+    let client = DatabaseClient::new_boxed(client_conn);
     let mut futures = FuturesUnordered::new();
     // 1000 requests
     for i in 0..1000_i32 {

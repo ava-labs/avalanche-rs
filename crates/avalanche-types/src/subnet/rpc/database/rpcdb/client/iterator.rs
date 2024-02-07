@@ -36,7 +36,11 @@ pub struct Iterator {
 }
 
 impl Iterator {
-    pub fn new(db: DatabaseClient<Channel>, id: u64, closed: Arc<AtomicBool>) -> BoxedIterator {
+    pub fn new_boxed(
+        db: DatabaseClient<Channel>,
+        id: u64,
+        closed: Arc<AtomicBool>,
+    ) -> BoxedIterator {
         Box::new(Self {
             id,
             data: vec![],

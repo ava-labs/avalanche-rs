@@ -14,7 +14,7 @@ use tonic::transport::Channel;
 // contents lexicographically.
 #[tokio::test]
 async fn iterator_test() {
-    let server = RpcDb::new(MemDb::new());
+    let server = RpcDb::new_boxed(MemDb::new_boxed());
 
     let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
     let addr = listener.local_addr().unwrap();
@@ -28,7 +28,7 @@ async fn iterator_test() {
         .await
         .unwrap();
 
-    let mut db = CorruptableDb::new(DatabaseClient::new(client_conn));
+    let mut db = CorruptableDb::new_boxed(DatabaseClient::new_boxed(client_conn));
 
     let key1 = "hello1".as_bytes();
     let value1 = "world1".as_bytes();
@@ -63,7 +63,7 @@ async fn iterator_test() {
 // start mid way through the database.
 #[tokio::test]
 async fn iterator_start_test() {
-    let server = RpcDb::new(MemDb::new());
+    let server = RpcDb::new_boxed(MemDb::new_boxed());
 
     let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
     let addr = listener.local_addr().unwrap();
@@ -77,7 +77,7 @@ async fn iterator_start_test() {
         .await
         .unwrap();
 
-    let mut db = CorruptableDb::new(DatabaseClient::new(client_conn));
+    let mut db = CorruptableDb::new_boxed(DatabaseClient::new_boxed(client_conn));
 
     let key1 = "hello1".as_bytes();
     let value1 = "world1".as_bytes();
@@ -104,7 +104,7 @@ async fn iterator_start_test() {
 // keys missing the provided prefix.
 #[tokio::test]
 async fn iterator_prefix_test() {
-    let server = RpcDb::new(MemDb::new());
+    let server = RpcDb::new_boxed(MemDb::new_boxed());
 
     let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
     let addr = listener.local_addr().unwrap();
@@ -118,7 +118,7 @@ async fn iterator_prefix_test() {
         .await
         .unwrap();
 
-    let mut db = CorruptableDb::new(DatabaseClient::new(client_conn));
+    let mut db = CorruptableDb::new_boxed(DatabaseClient::new_boxed(client_conn));
 
     let key1 = "hello1".as_bytes();
     let value1 = "world1".as_bytes();
@@ -152,7 +152,7 @@ async fn iterator_prefix_test() {
 // next() can still serve its current value after the underlying DB was closed.
 #[tokio::test]
 async fn iterator_error_test() {
-    let server = RpcDb::new(MemDb::new());
+    let server = RpcDb::new_boxed(MemDb::new_boxed());
 
     let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
     let addr = listener.local_addr().unwrap();
@@ -166,7 +166,7 @@ async fn iterator_error_test() {
         .await
         .unwrap();
 
-    let mut db = CorruptableDb::new(DatabaseClient::new(client_conn));
+    let mut db = CorruptableDb::new_boxed(DatabaseClient::new_boxed(client_conn));
 
     let key1 = "hello1".as_bytes();
     let value1 = "world1".as_bytes();
@@ -200,7 +200,7 @@ async fn iterator_error_test() {
 // released still reports the error correctly.
 #[tokio::test]
 async fn iterator_error_after_release_test() {
-    let server = RpcDb::new(MemDb::new());
+    let server = RpcDb::new_boxed(MemDb::new_boxed());
 
     let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
     let addr = listener.local_addr().unwrap();
@@ -214,7 +214,7 @@ async fn iterator_error_after_release_test() {
         .await
         .unwrap();
 
-    let mut db = CorruptableDb::new(DatabaseClient::new(client_conn));
+    let mut db = CorruptableDb::new_boxed(DatabaseClient::new_boxed(client_conn));
 
     let key1 = "hello1".as_bytes();
     let value1 = "world1".as_bytes();

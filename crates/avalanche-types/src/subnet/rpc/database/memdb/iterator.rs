@@ -21,7 +21,11 @@ pub struct Iterator {
 }
 
 impl Iterator {
-    pub fn new(keys: Vec<Vec<u8>>, values: Vec<Vec<u8>>, closed: Arc<AtomicBool>) -> BoxedIterator {
+    pub fn new_boxed(
+        keys: Vec<Vec<u8>>,
+        values: Vec<Vec<u8>>,
+        closed: Arc<AtomicBool>,
+    ) -> BoxedIterator {
         Box::new(Self {
             keys,
             values,

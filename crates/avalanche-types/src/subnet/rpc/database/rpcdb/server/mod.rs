@@ -39,7 +39,7 @@ pub struct Server {
 }
 
 impl Server {
-    pub fn new(db: BoxedDatabase) -> impl pb::rpcdb::database_server::Database {
+    pub fn new_boxed(db: BoxedDatabase) -> impl pb::rpcdb::database_server::Database {
         Self {
             inner: Arc::new(RwLock::new(db)),
             iterators: Arc::new(RwLock::new(HashMap::new())),

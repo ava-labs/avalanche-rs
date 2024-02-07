@@ -184,7 +184,7 @@ impl database::iterator::Iteratee for Database {
             }
         }
 
-        Ok(iterator::Iterator::new(
+        Ok(iterator::Iterator::new_boxed(
             keys,
             values,
             Arc::clone(&self.closed),
@@ -252,7 +252,7 @@ async fn iterate_test() {
         iterator::Iteratee, memdb, Commitable, KeyValueReaderWriterDeleter,
     };
 
-    let base_db = memdb::Database::new();
+    let base_db = memdb::Database::new_boxed();
 
     let batch = base_db.new_batch().await.unwrap();
     let mut db = Database::new(base_db, batch);

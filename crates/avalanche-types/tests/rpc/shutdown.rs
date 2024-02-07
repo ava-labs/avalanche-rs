@@ -19,8 +19,8 @@ async fn test_shutdown() {
     let (tx, _rx): (Sender<()>, Receiver<()>) = tokio::sync::broadcast::channel(1);
 
     // setup rpcdb service
-    let memdb = MemDb::new();
-    let server = RpcDb::new(memdb);
+    let memdb = MemDb::new_boxed();
+    let server = RpcDb::new_boxed(memdb);
     let svc = DatabaseServer::new(server);
     let addr = utils::new_socket_addr();
 
@@ -35,7 +35,7 @@ async fn test_shutdown() {
         .connect()
         .await
         .unwrap();
-    let mut client = DatabaseClient::new(client_conn);
+    let mut client = DatabaseClient::new_boxed(client_conn);
 
     // client request ok
     let resp = client.put("foo".as_bytes(), "bar".as_bytes()).await;

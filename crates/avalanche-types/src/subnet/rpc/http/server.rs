@@ -20,7 +20,7 @@ impl<T> Server<T>
 where
     T: Handle + Send + Sync + 'static,
 {
-    pub fn new(handler: T) -> impl pb::http::http_server::Http {
+    pub fn new(handler: T) -> Self {
         Server {
             handle: Arc::new(handler),
         }

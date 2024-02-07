@@ -157,7 +157,7 @@ where
                 })?;
 
             let vdb = versioned_database::VersionedDatabase::new(
-                corruptabledb::Database::new(DatabaseClient::new(client_conn)),
+                corruptabledb::Database::new_boxed(DatabaseClient::new_boxed(client_conn)),
                 version,
             );
             versioned_dbs.push(vdb);

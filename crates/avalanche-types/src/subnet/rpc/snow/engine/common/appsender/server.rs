@@ -24,9 +24,7 @@ pub struct Server {
 
 /// A gRPC server which wraps a subnet::rpc::database::Database impl allowing client control over over RPC.
 impl Server {
-    pub fn new(
-        appsender: Box<dyn super::AppSender + Send + Sync>,
-    ) -> impl pb::appsender::app_sender_server::AppSender {
+    pub fn new(appsender: Box<dyn super::AppSender + Send + Sync>) -> Self {
         Server {
             inner: Arc::new(RwLock::new(appsender)),
         }

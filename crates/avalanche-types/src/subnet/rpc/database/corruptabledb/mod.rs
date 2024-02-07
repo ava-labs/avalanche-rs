@@ -17,7 +17,7 @@ pub struct Database {
 }
 
 impl Database {
-    pub fn new(db: BoxedDatabase) -> BoxedDatabase {
+    pub fn new_boxed(db: BoxedDatabase) -> BoxedDatabase {
         Box::new(Self {
             db,
             corrupted: Arc::new(Mutex::new(utils::Errors::new())),

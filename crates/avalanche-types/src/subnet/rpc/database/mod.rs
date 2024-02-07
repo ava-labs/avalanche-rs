@@ -81,7 +81,7 @@ pub trait VersionedDatabase {
 #[tokio::test]
 async fn clone_box_test() {
     // create box and mutate underlying hashmap
-    let mut db = memdb::Database::new();
+    let mut db = memdb::Database::new_boxed();
     let resp = db.put("foo".as_bytes(), "bar".as_bytes()).await;
     assert!(resp.is_ok());
 
