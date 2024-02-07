@@ -30,7 +30,6 @@ pub mod units;
 pub mod utils;
 pub mod verify;
 
-
 #[cfg(feature = "avalanchego")]
 #[cfg_attr(docsrs, doc(cfg(feature = "avalanchego")))]
 pub mod avalanchego;
