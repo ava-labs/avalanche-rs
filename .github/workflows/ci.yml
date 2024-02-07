@@ -57,6 +57,19 @@ jobs:
         shell: bash
         run: cargo fmt --all --check
 
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Checkout
+        uses: actions/checkout@v3
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: 'ci'
+      - name: Run doc tests
+        run: RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --all-features --document-private-items -p avalanche-consensus -p avalanche-types
+
   unit:
     name: unit tests
     needs: build
@@ -223,35 +236,3 @@ jobs:
       # - name: Run static analysis tests
       #   shell: bash
       #   run: cargo clippy --all --all-features --tests --benches --examples
-
-  docs:
-    runs-on: ubuntu-latest
-    steps:
-      - run: 'echo hello world'
-      # - name: Remove unnecessary files
-      #   run: |
-      #     sudo rm -rf /usr/share/dotnet
-      #     sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-      # - name: Install linker
-      #   run: |
-      #     sudo apt-get update
-      #     sudo apt-get install -y --no-install-recommends \
-      #       gcc-multilib
-      # - name: Install Rust
-      #   uses: dtolnay/rust-toolchain@stable
-      # - name: Check Rust version
-      #   run: rustc --version
-      # - name: Install protoc
-      #   uses: arduino/setup-protoc@v1
-      #   with:
-      #     version: '3.x'
-      #     repo-token: ${{ secrets.GITHUB_TOKEN }}
-      # - name: Checkout
-      #   uses: actions/checkout@v3
-      # - name: Set env var
-      #   shell: bash
-      #   run: export 'RUSTFLAGS=-D warnings'
-      # # Fails the CI build if there are documentation warnings.
-      # - name: Run doc tests
-      #   shell: bash
-      #   run: cargo doc --no-deps --all-features -p avalanche-consensus -p avalanche-types
