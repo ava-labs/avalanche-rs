@@ -7,6 +7,12 @@ on:
     tags:
       - '*'
   pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
 
 permissions:
   contents: write
@@ -56,21 +62,10 @@ jobs:
     name: unit tests
     runs-on: ubuntu-latest
     steps:
-      - name: Remove unnecessary files
-        run: |
-          docker rmi `docker images -q`
-          sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php /etc/sudo apt/sources.list.d
-          sudo apt -y autoremove --purge
-          sudo apt -y autoclean
-          sudo apt clean
-          rm -rf "$AGENT_TOOLSDIRECTORY"
-          df -h
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@main
-        # with:
-        #   tool-cache: true
-        #   large-packages: true
-        #   swap-storage: true
+        with:
+          large-packages: false
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
       - name: Install protoc
