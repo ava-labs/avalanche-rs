@@ -8,7 +8,6 @@ use std::{
 
 use avalanche_types::ids::node;
 
-use crate::cert_manager;
 use log::info;
 use pem::Pem;
 use rustls::Certificate;
