@@ -25,8 +25,8 @@ async fn rpcdb_mutation_test() {
     let bar_value = "bar".as_bytes().to_vec();
     let baz_value = "baz".as_bytes().to_vec();
 
-    let db = MemDb::new();
-    let server = RpcDb::new(db);
+    let db = MemDb::new_boxed();
+    let server = RpcDb::new_boxed(db);
 
     let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
     let addr = listener.local_addr().unwrap();
@@ -40,7 +40,7 @@ async fn rpcdb_mutation_test() {
         .await
         .unwrap();
 
-    let mut client = DatabaseClient::new(client_conn);
+    let mut client = DatabaseClient::new_boxed(client_conn);
 
     log::info!("put foo:bar");
     let resp = client.put("foo".as_bytes(), "bar".as_bytes()).await;
@@ -97,8 +97,8 @@ async fn corruptibledb_mutation_test() {
 
     let bar_value = "bar".as_bytes().to_vec();
 
-    let memdb = MemDb::new();
-    let mut corruptible = CorruptableDb::new(memdb);
+    let memdb = MemDb::new_boxed();
+    let mut corruptible = CorruptableDb::new_boxed(memdb);
 
     log::info!("put foo:bar");
     let resp = corruptible.put("foo".as_bytes(), "bar".as_bytes()).await;
@@ -148,8 +148,8 @@ async fn test_rpcdb_corruptible() {
     let bar_value = "bar".as_bytes().to_vec();
     let baz_value = "baz".as_bytes().to_vec();
 
-    let memdb = MemDb::new();
-    let rpc_server = RpcDb::new(memdb);
+    let memdb = MemDb::new_boxed();
+    let rpc_server = RpcDb::new_boxed(memdb);
 
     let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
     let addr = listener.local_addr().unwrap();
@@ -163,8 +163,8 @@ async fn test_rpcdb_corruptible() {
         .await
         .unwrap();
 
-    let db = DatabaseClient::new(client_conn);
-    let mut client = CorruptableDb::new(db);
+    let db = DatabaseClient::new_boxed(client_conn);
+    let mut client = CorruptableDb::new_boxed(db);
 
     log::info!("put foo:bar");
     let resp = client.put("foo".as_bytes(), "bar".as_bytes()).await;
@@ -223,8 +223,8 @@ async fn test_db_manager() {
     let bar_value = "bar".as_bytes().to_vec();
     let baz_value = "baz".as_bytes().to_vec();
 
-    let memdb = MemDb::new();
-    let rpc_server = RpcDb::new(memdb);
+    let memdb = MemDb::new_boxed();
+    let rpc_server = RpcDb::new_boxed(memdb);
 
     let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
     let addr = listener.local_addr().unwrap();
@@ -238,7 +238,10 @@ async fn test_db_manager() {
         .await
         .unwrap();
 
-    let vdb = VersionedDatabase::new(DatabaseClient::new(client_conn), Version::new(0, 0, 1));
+    let vdb = VersionedDatabase::new(
+        DatabaseClient::new_boxed(client_conn),
+        Version::new(0, 0, 1),
+    );
 
     let databases: Vec<VersionedDatabase> = vec![vdb];
 

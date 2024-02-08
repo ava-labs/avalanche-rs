@@ -34,7 +34,7 @@ pub struct Database {
 }
 
 impl Database {
-    pub fn new() -> BoxedDatabase {
+    pub fn new_boxed() -> BoxedDatabase {
         Box::new(Self {
             state: Arc::new(RwLock::new(HashMap::new())),
             closed: Arc::new(AtomicBool::new(false)),
@@ -157,7 +157,7 @@ impl super::iterator::Iteratee for Database {
             }
         }
 
-        Ok(iterator::Iterator::new(
+        Ok(iterator::Iterator::new_boxed(
             keys,
             values,
             Arc::clone(&self.closed),
@@ -180,39 +180,39 @@ impl crate::subnet::rpc::database::Database for Database {}
 
 #[tokio::test]
 async fn test_memdb() {
-    let mut db = Database::new();
+    let mut db = Database::new_boxed();
     let _ = db.put("foo".as_bytes(), "bar".as_bytes()).await;
     let resp = db.get("notfound".as_bytes()).await;
     assert!(resp.is_err());
     assert_eq!(resp.err().unwrap().kind(), io::ErrorKind::NotFound);
 
-    let mut db = Database::new();
+    let mut db = Database::new_boxed();
     let _ = db.close().await;
     let resp = db.put("foo".as_bytes(), "bar".as_bytes()).await;
     assert!(resp.is_err());
     assert_eq!(resp.err().unwrap().to_string(), "database closed");
 
-    let db = Database::new();
+    let db = Database::new_boxed();
     let _ = db.close().await;
     let resp = db.get("foo".as_bytes()).await;
     print!("found {:?}", resp);
     assert!(resp.is_err());
     assert_eq!(resp.err().unwrap().to_string(), "database closed");
 
-    let mut db = Database::new();
+    let mut db = Database::new_boxed();
     let _ = db.put("foo".as_bytes(), "bar".as_bytes()).await;
     let resp = db.has("foo".as_bytes()).await;
     assert!(resp.is_ok());
     assert!(resp.unwrap());
 
-    let mut db = Database::new();
+    let mut db = Database::new_boxed();
     let _ = db.put("foo".as_bytes(), "bar".as_bytes()).await;
     let _ = db.delete("foo".as_bytes()).await;
     let resp = db.has("foo".as_bytes()).await;
     assert!(resp.is_ok());
     assert!(!resp.unwrap());
 
-    let db = Database::new();
+    let db = Database::new_boxed();
     let resp = db.health_check().await;
     assert!(resp.is_ok());
     let _ = db.close().await;

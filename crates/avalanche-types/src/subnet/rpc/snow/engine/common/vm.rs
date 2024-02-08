@@ -30,6 +30,7 @@ pub trait CommonVm: AppHandler + Connector + Checkable {
     type StaticHandler: Handle;
     type ValidatorState: validators::State;
 
+    #[allow(clippy::too_many_arguments)]
     async fn initialize(
         &mut self,
         ctx: Option<Context<Self::ValidatorState>>,

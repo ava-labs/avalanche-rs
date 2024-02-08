@@ -31,8 +31,8 @@ pub trait ChainVm: CommonVm + BatchedChainVm + Getter + Parser {
     /// TODO: Remove after v1.11.x activates.
     async fn verify_height_index(&self) -> Result<()>;
 
-    /// Returns the ID of the block that was accepted with [height].
-    /// Returns ErrNotFound if the [height] index is unknown.
+    /// Returns the ID of the block that was accepted with `height`.
+    /// Returns ErrNotFound if the `height` index is unknown.
     async fn get_block_id_at_height(&self, height: u64) -> Result<Id>;
 
     /// Returns whether state sync is enabled.

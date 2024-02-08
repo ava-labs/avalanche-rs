@@ -41,7 +41,7 @@ pub struct DatabaseClient {
 }
 
 impl DatabaseClient {
-    pub fn new(client_conn: Channel) -> BoxedDatabase {
+    pub fn new_boxed(client_conn: Channel) -> BoxedDatabase {
         Box::new(Self {
             inner: RpcDbDatabaseClient::new(client_conn)
                 .max_decoding_message_size(usize::MAX)
@@ -186,14 +186,14 @@ impl database::iterator::Iteratee for DatabaseClient {
             })
             .await
         {
-            Ok(resp) => Ok(iterator::Iterator::new(
+            Ok(resp) => Ok(iterator::Iterator::new_boxed(
                 self.inner.clone(),
                 resp.into_inner().id,
                 Arc::clone(&self.closed),
             )),
-            Err(s) => Ok(crate::subnet::rpc::database::nodb::Iterator::new(Some(
-                errors::from_status(s),
-            ))),
+            Err(s) => Ok(crate::subnet::rpc::database::nodb::Iterator::new_boxed(
+                Some(errors::from_status(s)),
+            )),
         }
     }
 }

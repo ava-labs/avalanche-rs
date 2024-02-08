@@ -16,7 +16,7 @@ use tonic::transport::Channel;
 // Ensure batched writes work as expected.
 #[tokio::test]
 async fn batch_put_test() {
-    let server = RpcDb::new(MemDb::new());
+    let server = RpcDb::new_boxed(MemDb::new_boxed());
 
     let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
     let addr = listener.local_addr().unwrap();
@@ -30,7 +30,7 @@ async fn batch_put_test() {
         .await
         .unwrap();
 
-    let mut db = CorruptableDb::new(DatabaseClient::new(client_conn));
+    let mut db = CorruptableDb::new_boxed(DatabaseClient::new_boxed(client_conn));
 
     let key = "hello".as_bytes();
     let value = "world".as_bytes();
@@ -66,7 +66,7 @@ async fn batch_put_test() {
 
 #[tokio::test]
 async fn batch_delete_test() {
-    let server = RpcDb::new(MemDb::new());
+    let server = RpcDb::new_boxed(MemDb::new_boxed());
 
     let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
     let addr = listener.local_addr().unwrap();
@@ -80,7 +80,7 @@ async fn batch_delete_test() {
         .await
         .unwrap();
 
-    let mut db = CorruptableDb::new(DatabaseClient::new(client_conn));
+    let mut db = CorruptableDb::new_boxed(DatabaseClient::new_boxed(client_conn));
 
     let key = "hello".as_bytes();
     let value = "world".as_bytes();
@@ -111,7 +111,7 @@ async fn batch_delete_test() {
 // when it is reset.
 #[tokio::test]
 async fn batch_reset_test() {
-    let server = RpcDb::new(MemDb::new());
+    let server = RpcDb::new_boxed(MemDb::new_boxed());
 
     let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
     let addr = listener.local_addr().unwrap();
@@ -125,7 +125,7 @@ async fn batch_reset_test() {
         .await
         .unwrap();
 
-    let mut db = CorruptableDb::new(DatabaseClient::new(client_conn));
+    let mut db = CorruptableDb::new_boxed(DatabaseClient::new_boxed(client_conn));
 
     let key = "hello".as_bytes();
     let value = "world".as_bytes();

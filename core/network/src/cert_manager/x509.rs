@@ -355,7 +355,7 @@ fn test_csr() {
         }
     }
 
-    fs::remove_file(&ca_key_path).unwrap();
+    fs::remove_file(ca_key_path).unwrap();
     fs::remove_file(&ca_cert_path).unwrap();
 
     fs::remove_file(&csr_key_path).unwrap();

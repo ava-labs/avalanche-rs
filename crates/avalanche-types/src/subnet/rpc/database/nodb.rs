@@ -10,7 +10,7 @@ pub struct Iterator {
 ///
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/database#Iterator>
 impl Iterator {
-    pub fn new(err: Option<std::io::Error>) -> BoxedIterator {
+    pub fn new_boxed(err: Option<std::io::Error>) -> BoxedIterator {
         Box::new(Iterator { err })
     }
 }

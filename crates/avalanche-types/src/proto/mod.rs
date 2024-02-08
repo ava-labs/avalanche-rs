@@ -1,6 +1,7 @@
 //! Generated protobuf stubs and helpers for Avalanche.
 //!
 //! ref. <https://buf.build/ava-labs/avalanche>
+#[allow(clippy::all)]
 pub mod pb;
 
 #[doc(hidden)]

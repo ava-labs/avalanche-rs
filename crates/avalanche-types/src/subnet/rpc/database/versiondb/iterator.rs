@@ -34,7 +34,7 @@ pub struct ValueDelete {
 }
 
 impl Iterator {
-    pub fn new(
+    pub fn new_boxed(
         keys: Vec<Vec<u8>>,
         values: Vec<ValueDelete>,
         closed: Arc<AtomicBool>,
