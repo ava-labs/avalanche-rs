@@ -67,10 +67,10 @@ jobs:
           df -h
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@main
-        with:
-          tool-cache: true
-          large-packages: true
-          swap-storage: true
+        # with:
+        #   tool-cache: true
+        #   large-packages: true
+        #   swap-storage: true
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
       - name: Install protoc
