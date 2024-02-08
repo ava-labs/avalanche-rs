@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "avalanchego-conformance-sdk",
+    "core/cert-manager",
     "core/network",
     "core/server",
     "crates/avalanche-consensus",
