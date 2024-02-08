@@ -25,6 +25,7 @@ impl Peer {
 /// Error is Os { code: 61, kind: ConnectionRefused, message: "Connection refused" } when connecting client to server.
 #[cfg(test)]
 mod test {
+    use crate::peer::outbound;
     use rcgen::CertificateParams;
     use rustls::ServerConfig;
     use std::{
@@ -35,9 +36,6 @@ mod test {
     };
     use tokio::net::TcpListener;
     use tokio_rustls::TlsAcceptor;
-
-    use crate::cert_manager;
-    use crate::peer::outbound;
 
     #[tokio::test]
     #[ignore]
