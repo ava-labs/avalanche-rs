@@ -40,6 +40,11 @@ jobs:
     steps:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
+      - name: Install protoc
+        uses: arduino/setup-protoc@v1
+        with:
+          version: '3.x'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Checkout
         uses: actions/checkout@v3
       - uses: Swatinem/rust-cache@v2
@@ -68,6 +73,11 @@ jobs:
           swap-storage: true
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
+      - name: Install protoc
+        uses: arduino/setup-protoc@v1
+        with:
+          version: '3.x'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Checkout
         uses: actions/checkout@v3
       - uses: Swatinem/rust-cache@v2
