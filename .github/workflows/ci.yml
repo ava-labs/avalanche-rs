@@ -82,95 +82,71 @@ jobs:
   avalanchego-integration-tests:
     runs-on: ubuntu-latest
     steps:
-      - run: 'echo hello world'
-      # - name: Checkout
-      #   uses: actions/checkout@v3
-      # - name: Remove unnecessary files
-      #   run: |
-      #     sudo rm -rf /usr/share/dotnet
-      #     sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-      # - name: Install linker
-      #   run: |
-      #     sudo apt-get update
-      #     sudo apt-get install -y --no-install-recommends \
-      #       gcc-multilib
-      # - name: Install protoc
-      #   uses: arduino/setup-protoc@v1
-      #   with:
-      #     version: '3.x'
-      #     repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-      # - name: Install Rust
-      #   uses: dtolnay/rust-toolchain@stable
-
-      # - name: Install Go
-      #   uses: actions/setup-go@v4
-      #   with:
-      #     go-version: '1.19'
-
-      # - name: Run e2e tests
-      #   run: scripts/tests.avalanchego-e2e.sh
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          large-packages: false
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Install protoc
+        uses: arduino/setup-protoc@v1
+        with:
+          version: '3.x'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Checkout
+        uses: actions/checkout@v3
+      - uses: Swatinem/rust-cache@v2
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.19'
+      - name: Run e2e tests
+        run: scripts/tests.avalanchego-e2e.sh
 
   avalanchego-conformance-tests:
     runs-on: ubuntu-latest
     steps:
-      - run: 'echo hello world'
-      # - name: Checkout
-      #   uses: actions/checkout@v3
-      # - name: Remove unnecessary files
-      #   run: |
-      #     sudo rm -rf /usr/share/dotnet
-      #     sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-      # - name: Install linker
-      #   run: |
-      #     sudo apt-get update
-      #     sudo apt-get install -y --no-install-recommends \
-      #       gcc-multilib
-      # - name: Install protoc
-      #   uses: arduino/setup-protoc@v1
-      #   with:
-      #     version: '3.x'
-      #     repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-      # - name: Install Rust
-      #   uses: dtolnay/rust-toolchain@stable
-
-      # - name: Install Go
-      #   uses: actions/setup-go@v4
-      #   with:
-      #     go-version: '1.19'
-
-      # - name: Run e2e tests
-      #   run: scripts/tests.avalanchego-conformance.sh
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          large-packages: false
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Install protoc
+        uses: arduino/setup-protoc@v1
+        with:
+          version: '3.x'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Checkout
+        uses: actions/checkout@v3
+      - uses: Swatinem/rust-cache@v2
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.19'
+      - name: Run e2e tests
+        run: scripts/tests.avalanchego-conformance.sh
 
   avalanchego-byzantine-tests:
     runs-on: ubuntu-latest
     steps:
-      - run: 'echo hello world'
-      # - name: Checkout
-      #   uses: actions/checkout@v3
-      # - name: Remove unnecessary files
-      #   run: |
-      #     sudo rm -rf /usr/share/dotnet
-      #     sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-      # - name: Install linker
-      #   run: |
-      #     sudo apt-get update
-      #     sudo apt-get install -y --no-install-recommends \
-      #       gcc-multilib
-      # - name: Install protoc
-      #   uses: arduino/setup-protoc@v1
-      #   with:
-      #     version: '3.x'
-      #     repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-      # - name: Install Rust
-      #   uses: dtolnay/rust-toolchain@stable
-
-      # - name: Install Go
-      #   uses: actions/setup-go@v4
-      #   with:
-      #     go-version: '1.19'
-
-      # - name: Run e2e tests
-      #   run: scripts/tests.avalanchego-byzantine.sh
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          large-packages: false
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Install protoc
+        uses: arduino/setup-protoc@v1
+        with:
+          version: '3.x'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Checkout
+        uses: actions/checkout@v3
+      - uses: Swatinem/rust-cache@v2
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.19'
+      - name: Run e2e tests
+        run: scripts/tests.avalanchego-byzantine.sh
