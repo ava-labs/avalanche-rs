@@ -20,7 +20,7 @@ use crate::{
 };
 use futures::FutureExt;
 use tokio::sync::broadcast::Receiver;
-use tonic::transport::server::NamedService;
+use tonic::server::NamedService;
 use tonic_health::server::health_reporter;
 
 use super::runtime::Initializer;

@@ -14,7 +14,8 @@ use hyper::Body;
 use tokio::sync::broadcast::Receiver;
 use tonic::{
     body::BoxBody,
-    transport::{Channel, Endpoint, NamedService},
+    server::NamedService,
+    transport::{Channel, Endpoint},
 };
 use tower_service::Service;
 

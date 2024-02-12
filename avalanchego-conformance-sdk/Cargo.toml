@@ -14,12 +14,12 @@ log = "0.4.20"
 prost = "0.12.1"
 tokio = { version = "1.33.0", features = ["fs", "rt-multi-thread", "macros"] }
 tokio-stream = { version = "0.1.14", features = ["net"] }
-tonic = "0.10.2"
+tonic = "0.11.0"
 
 [build-dependencies]
 # ref. https://github.com/hyperium/tonic/tags
 # ref. https://github.com/hyperium/tonic/tree/master/tonic-build
-tonic-build = "0.10.2"
+tonic-build = "0.11.0"
 
 [dev-dependencies]
 env_logger = "0.11.1"
