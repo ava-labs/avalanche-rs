@@ -13,15 +13,15 @@ async fn generate_certificate_to_node_id() {
     let cli = Client::new(&ep).await;
 
     let (key, cert) = cert_manager::x509::generate_der(None).expect("failed generate_der");
-    log::debug!("key: {} bytes", key.0.len());
-    log::debug!("cert: {} bytes", cert.0.len());
-    let node_id = node::Id::from_cert_der_bytes(&cert.0).expect("failed from_cert_der_bytes");
+    log::debug!("key: {} bytes", key.secret_der().len());
+    log::debug!("cert: {} bytes", cert.len());
+    let node_id = node::Id::from_cert_der_bytes(&cert).expect("failed from_cert_der_bytes");
 
     log::info!("sending node id {}", node_id);
 
     let resp = cli
         .certificate_to_node_id(CertificateToNodeIdRequest {
-            certificate: cert.0.to_vec(),
+            certificate: cert.to_vec(),
             node_id: node_id.as_ref().to_vec(),
         })
         .await
@@ -53,14 +53,14 @@ async fn load_certificate_to_node_id() {
 
         let cert = cert_manager::x509::load_pem_cert_to_der(cert_path)
             .expect("failed load_pem_cert_to_der");
-        log::debug!("cert: {} bytes", cert.0.len());
+        log::debug!("cert: {} bytes", cert.len());
 
         let node_id = node::Id::from_cert_pem_file(cert_path).expect("failed from_cert_pem_file");
         log::debug!("node id: {}", node_id);
 
         let resp = cli
             .certificate_to_node_id(CertificateToNodeIdRequest {
-                certificate: cert.0.to_vec(),
+                certificate: cert.to_vec(),
                 node_id: node_id.as_ref().to_vec(),
             })
             .await

@@ -13,16 +13,16 @@ readme = "README.md"
 [dependencies]
 avalanche-types = { path = "../../crates/avalanche-types", features = ["message"] }
 log = "0.4.20"
-rustls = { version = "0.21.5", features = ["logging", "dangerous_configuration"]} # https://github.com/rustls/rustls/tags
+rustls = { version = "0.22.2", features = ["logging"] }
 hyper-rustls = "0.26.0"
 rustls-native-certs = "0.7.0"
 hyper = { version = "0.14.27", features = ["full"], optional = true }
-tokio-rustls = { version = "0.24.1", optional = true }
+tokio-rustls = { version = "0.25.0", optional = true }
 rand = "0.8.5"
 random-manager = "0.0.5" # https://crates.io/crates/random-manager/versions
 rcgen = { version = "0.12.1", features = ["pem", "x509-parser"] }
 rsa = { version = "0.9.2", features = ["pem"] } # https://crates.io/crates/rsa
-rustls-pemfile = "1.0.3"
+rustls-pemfile = "2.0.0"
 x509-parser = "0.15.1"
 # for feature "pem"
 pem = { version = "3.0.0", optional = true } # https://github.com/jcreekmore/pem-rs
