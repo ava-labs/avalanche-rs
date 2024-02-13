@@ -21,13 +21,11 @@ jobs:
   fmt:
     runs-on: ubuntu-latest
     steps:
-      - run: 'echo hello world'
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
       - name: Checkout
         uses: actions/checkout@v3
       - name: Run static analysis tests
-        shell: bash
         run: cargo fmt --all --check
 
   docs:
