@@ -82,7 +82,7 @@ impl Connector {
             let certs = conn.peer_certificates();
 
             match certs {
-                Some(certs) if certs.len() > 0 => {
+                Some(certs) if !certs.is_empty() => {
                     let total_certs = certs.len();
                     (certs[0].clone().into_owned(), total_certs)
                 }
