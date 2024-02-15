@@ -11,6 +11,9 @@ use rcgen::{
 use rsa::{pkcs1::LineEnding, pkcs8::EncodePrivateKey, RsaPrivateKey};
 use rustls_pemfile::{read_one, Item};
 
+type PrivateKeyDer = rustls::pki_types::PrivateKeyDer<'static>;
+type CertificateDer = rustls::pki_types::CertificateDer<'static>;
+
 /// Represents a certificate authoriry.
 /// CA acts as a trusted third party.
 /// ref. <https://en.wikipedia.org/wiki/Certificate_authority>
@@ -651,7 +654,7 @@ fn test_pem() {
 pub fn load_pem_key_cert_to_der(
     key_path: &str,
     cert_path: &str,
-) -> io::Result<(rustls::PrivateKey, rustls::Certificate)> {
+) -> io::Result<(PrivateKeyDer, CertificateDer)> {
     log::info!("loading PEM from key path '{key_path}' and cert '{cert_path}' (to DER)");
     if !Path::new(key_path).exists() {
         return Err(Error::new(
@@ -690,28 +693,31 @@ pub fn load_pem_key_cert_to_der(
                 log::warn!("key path {} has unexpected certificate", key_path);
                 None
             }
-            Item::RSAKey(key) => {
-                log::info!("loaded RSA key");
-                Some(key)
+            Item::Crl(_) => {
+                log::warn!("key path {} has unexpected CRL", key_path);
+                None
             }
-            Item::PKCS8Key(key) => {
+            Item::Pkcs1Key(key) => {
+                log::info!("loaded PKCS1 key");
+                Some(PrivateKeyDer::from(key))
+            }
+            Item::Pkcs8Key(key) => {
                 log::info!("loaded PKCS8 key");
-                Some(key)
+                Some(PrivateKeyDer::from(key))
             }
-            Item::ECKey(key) => {
+            Item::Sec1Key(key) => {
                 log::info!("loaded EC key");
-                Some(key)
+                Some(PrivateKeyDer::from(key))
             }
             _ => None,
         }
     };
-    if key.is_none() {
+    let Some(key_der) = key else {
         return Err(Error::new(
             ErrorKind::NotFound,
             format!("key path '{key_path}' found no key"),
         ));
-    }
-    let key_der = key.unwrap();
+    };
 
     let cert_file = File::open(cert_path)?;
     let mut reader = BufReader::new(cert_file);
@@ -719,22 +725,25 @@ pub fn load_pem_key_cert_to_der(
     let cert = {
         match pem_read.unwrap() {
             Item::X509Certificate(cert) => Some(cert),
-            Item::RSAKey(_) | Item::PKCS8Key(_) | Item::ECKey(_) => {
+            Item::Pkcs1Key(_) | Item::Pkcs8Key(_) | Item::Sec1Key(_) => {
                 log::warn!("cert path '{cert_path}' has unexpected private key");
+                None
+            }
+            Item::Crl(_) => {
+                log::warn!("cert path '{cert_path}' has unexpected CRL");
                 None
             }
             _ => None,
         }
     };
-    if cert.is_none() {
+    let Some(cert_der) = cert else {
         return Err(Error::new(
             ErrorKind::NotFound,
             format!("cert path '{cert_path}' found no cert"),
         ));
-    }
-    let cert_der = cert.unwrap();
+    };
 
-    Ok((rustls::PrivateKey(key_der), rustls::Certificate(cert_der)))
+    Ok((key_der, cert_der))
 }
 
 /// Loads the serial number from the PEM-encoded certificate.
@@ -763,7 +772,7 @@ pub fn load_pem_cert_serial(cert_path: &str) -> io::Result<Vec<u8>> {
 }
 
 /// Loads the PEM-encoded certificate as DER.
-pub fn load_pem_cert_to_der(cert_path: &str) -> io::Result<rustls::Certificate> {
+pub fn load_pem_cert_to_der(cert_path: &str) -> io::Result<CertificateDer> {
     log::info!("loading PEM cert '{cert_path}' (to DER)");
     if !Path::new(cert_path).exists() {
         return Err(Error::new(
@@ -778,29 +787,33 @@ pub fn load_pem_cert_to_der(cert_path: &str) -> io::Result<rustls::Certificate> 
     let cert = {
         match pem_read.unwrap() {
             Item::X509Certificate(cert) => Some(cert),
-            Item::RSAKey(_) | Item::PKCS8Key(_) | Item::ECKey(_) => {
+            Item::Pkcs1Key(_) | Item::Pkcs8Key(_) | Item::Sec1Key(_) => {
                 log::warn!("cert path '{cert_path}' has unexpected private key");
+                None
+            }
+            Item::Crl(_) => {
+                log::warn!("cert path '{cert_path}' has unexpected CRL");
                 None
             }
             _ => None,
         }
     };
-    if cert.is_none() {
+
+    let Some(cert_der) = cert else {
         return Err(Error::new(
             ErrorKind::NotFound,
             format!("cert path '{cert_path}' found no cert"),
         ));
-    }
-    let cert_der = cert.unwrap();
+    };
 
-    Ok(rustls::Certificate(cert_der))
+    Ok(cert_der)
 }
 
 /// Generates a X509 certificate pair and returns them in DER format.
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/staking#NewCertAndKeyBytes>
 pub fn generate_der(
     params: Option<CertificateParams>,
-) -> io::Result<(rustls::PrivateKey, rustls::Certificate)> {
+) -> io::Result<(PrivateKeyDer, CertificateDer)> {
     log::info!("generating key and cert (DER format)");
 
     let cert_params = if let Some(p) = params {
@@ -820,18 +833,20 @@ pub fn generate_der(
     // ref. "crypto/tls.parsePrivateKey"
     // ref. "crypto/x509.MarshalPKCS8PrivateKey"
     let key_der = cert.serialize_private_key_der();
+    let key_der = rustls::pki_types::PrivatePkcs8KeyDer::from(key_der);
+    let key_der = key_der.into();
+    let cert_der = CertificateDer::from(cert_der);
 
-    Ok((rustls::PrivateKey(key_der), rustls::Certificate(cert_der)))
+    Ok((key_der, cert_der))
 }
 
 /// Loads the TLS key and certificate from the DER-encoded files.
 pub fn load_der_key_cert(
     key_path: &str,
     cert_path: &str,
-) -> io::Result<(rustls::PrivateKey, rustls::Certificate)> {
+) -> io::Result<(PrivateKeyDer, CertificateDer)> {
     log::info!("loading DER from key path '{key_path}' and cert '{cert_path}'");
-    let (key, cert) = fs::read(key_path).and_then(|x| Ok((x, fs::read(cert_path)?)))?;
-    Ok((rustls::PrivateKey(key), rustls::Certificate(cert)))
+    load_pem_key_cert_to_der(key_path, cert_path)
 }
 
 /// RUST_LOG=debug cargo test --all-features --lib -- x509::test_generate_der --exact --show-output
@@ -843,8 +858,8 @@ fn test_generate_der() {
         .try_init();
 
     let (key, cert) = generate_der(None).unwrap();
-    log::info!("key: {} bytes", key.0.len());
-    log::info!("cert: {} bytes", cert.0.len());
+    log::info!("key: {} bytes", key.secret_der().len());
+    log::info!("cert: {} bytes", cert.len());
 }
 
 /// ref. <https://doc.rust-lang.org/std/fs/fn.read.html>

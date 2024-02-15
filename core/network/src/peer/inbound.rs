@@ -29,7 +29,6 @@ impl Listener {
         // ref. https://docs.rs/rustls/latest/rustls/struct.ConfigBuilder.html#method.with_single_cert
         // ref. https://github.com/rustls/hyper-rustls/blob/main/examples/server.rs
         let server_config = ServerConfig::builder()
-            .with_safe_defaults()
             .with_client_cert_verifier(Arc::new(NoClientAuth))
             .with_single_cert(vec![certificate], private_key)
             .map_err(|e| {

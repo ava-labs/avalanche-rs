@@ -64,7 +64,6 @@ mod test {
 
         let join_handle = tokio::task::spawn(async move {
             let server_config = ServerConfig::builder()
-                .with_safe_defaults()
                 .with_no_client_auth()
                 .with_single_cert(vec![certificate], private_key)
                 .unwrap();
