@@ -139,29 +139,27 @@ where
             validator_state: ValidatorStateClient::new(client_conn.clone()),
         });
 
-        let mut versioned_dbs = Vec::with_capacity(req.db_servers.len());
-        for db_server in req.db_servers.iter() {
-            let semver = db_server.version.trim_start_matches('v');
-            let version =
-                Version::parse(semver).map_err(|e| tonic::Status::unknown(e.to_string()))?;
-            let server_addr = db_server.server_addr.as_str();
+        let mut versioned_dbs = Vec::new();
 
-            // Create a client connection with the server address
-            let client_conn = utils::grpc::default_client(server_addr)?
-                .connect()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(format!(
-                        "failed to create client conn from: {server_addr}: {e}",
-                    ))
-                })?;
+        // TODO: is this correct?
+        let version = Version::parse("1.0.0").map_err(|e| tonic::Status::unknown(e.to_string()))?;
+        let server_addr = req.db_server_addr.as_str();
 
-            let vdb = versioned_database::VersionedDatabase::new(
-                corruptabledb::Database::new_boxed(DatabaseClient::new_boxed(client_conn)),
-                version,
-            );
-            versioned_dbs.push(vdb);
-        }
+        // Create a client connection with the server address
+        let client_conn = utils::grpc::default_client(server_addr)?
+            .connect()
+            .await
+            .map_err(|e| {
+                tonic::Status::unknown(format!(
+                    "failed to create client conn from: {server_addr}: {e}",
+                ))
+            })?;
+
+        let vdb = versioned_database::VersionedDatabase::new(
+            corruptabledb::Database::new_boxed(DatabaseClient::new_boxed(client_conn.clone())),
+            version,
+        );
+        versioned_dbs.push(vdb);
 
         let (tx_engine, mut rx_engine): (mpsc::Sender<Message>, mpsc::Receiver<Message>) =
             mpsc::channel(100);
@@ -280,56 +278,6 @@ where
         }
 
         Ok(Response::new(vm::CreateHandlersResponse {
-            handlers: resp_handlers,
-        }))
-    }
-
-    /// Creates the HTTP handlers for custom VM network calls.
-    ///
-    /// This creates and exposes handlers that the outside world can use to communicate
-    /// with a static reference to the VM. Each handler has the path:
-    /// `\[Address of node]/ext/VM/[VM ID]/[extension\]`
-    ///
-    /// Returns a mapping from \[extension\]s to HTTP handlers.
-    ///
-    /// Each extension can specify how locking is managed for convenience.
-    ///
-    /// For example, it might make sense to have an extension for creating
-    /// genesis bytes this VM can interpret.
-    async fn create_static_handlers(
-        &self,
-        _req: Request<Empty>,
-    ) -> std::result::Result<Response<vm::CreateStaticHandlersResponse>, tonic::Status> {
-        log::debug!("create_static_handlers called");
-
-        // get handlers from underlying vm
-        let mut inner_vm = self.vm.write().await;
-        let handlers = inner_vm.create_static_handlers().await.map_err(|e| {
-            tonic::Status::unknown(format!("failed to create static handlers: {e}"))
-        })?;
-
-        // create and start gRPC server serving HTTP service for each handler
-        let mut resp_handlers: Vec<vm::Handler> = Vec::with_capacity(handlers.keys().len());
-        for (prefix, http_handler) in handlers {
-            let server_addr = utils::new_socket_addr();
-            let server = grpc::Server::new(server_addr, self.stop_ch.subscribe());
-
-            server
-                .serve(pb::http::http_server::HttpServer::new(HttpServer::new(
-                    http_handler.handler,
-                )))
-                .map_err(|e| {
-                    tonic::Status::unknown(format!("failed to create http service: {e}"))
-                })?;
-
-            let resp_handler = vm::Handler {
-                prefix,
-                server_addr: server_addr.to_string(),
-            };
-            resp_handlers.push(resp_handler);
-        }
-
-        Ok(Response::new(vm::CreateStaticHandlersResponse {
             handlers: resp_handlers,
         }))
     }

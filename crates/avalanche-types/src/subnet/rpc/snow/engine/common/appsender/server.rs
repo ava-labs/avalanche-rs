@@ -8,8 +8,9 @@ use crate::{
     proto::pb::{
         self,
         appsender::{
-            SendAppGossipMsg, SendAppGossipSpecificMsg, SendAppRequestMsg, SendAppResponseMsg,
-            SendCrossChainAppRequestMsg, SendCrossChainAppResponseMsg,
+            SendAppErrorMsg, SendAppGossipMsg, SendAppGossipSpecificMsg, SendAppRequestMsg,
+            SendAppResponseMsg, SendCrossChainAppErrorMsg, SendCrossChainAppRequestMsg,
+            SendCrossChainAppResponseMsg,
         },
         google::protobuf::Empty,
     },
@@ -79,6 +80,13 @@ impl pb::appsender::app_sender_server::AppSender for Server {
             })?;
 
         Ok(Response::new(Empty {}))
+    }
+
+    async fn send_app_error(
+        &self,
+        _request: Request<SendAppErrorMsg>,
+    ) -> Result<Response<Empty>, Status> {
+        unimplemented!("not implemented")
     }
 
     async fn send_app_gossip(
@@ -171,5 +179,12 @@ impl pb::appsender::app_sender_server::AppSender for Server {
             })?;
 
         Ok(Response::new(Empty {}))
+    }
+
+    async fn send_cross_chain_app_error(
+        &self,
+        _request: Request<SendCrossChainAppErrorMsg>,
+    ) -> Result<Response<Empty>, Status> {
+        unimplemented!("not implemented")
     }
 }
