@@ -1,13 +1,12 @@
 use std::{
-    array,
     env::args,
     io,
     net::{IpAddr, SocketAddr},
     str::FromStr,
-    time::{Duration, SystemTime},
+    time::Duration,
 };
 
-use avalanche_types::{ids::Id, message};
+use avalanche_types::message;
 use network::peer::outbound;
 
 /// cargo run --example peer_outbound_ping -- [PEER IP] [STAKING PORT]
