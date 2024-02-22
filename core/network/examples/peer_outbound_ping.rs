@@ -38,26 +38,6 @@ fn main() -> io::Result<()> {
     let mut stream = connector.connect(addr, Duration::from_secs(10))?;
     log::info!("peer certificate:\n\n{}", stream.peer_certificate_pem);
 
-    log::info!("sending version...");
-    let now = SystemTime::now();
-    let now_unix = now
-        .duration_since(SystemTime::UNIX_EPOCH)
-        .expect("unexpected None duration_since")
-        .as_secs();
-    let tracked_subnets: [Id; 5] =
-        array::from_fn(|_| Id::from_slice(&random_manager::secure_bytes(32).unwrap()));
-
-    let msg = message::version::Message::default()
-        .network_id(1000000)
-        .my_time(now_unix)
-        .ip_addr(addr.ip())
-        .ip_port(0)
-        .my_version("avalanche/1.2.3".to_string())
-        .sig(random_manager::secure_bytes(64).unwrap())
-        .tracked_subnets(tracked_subnets);
-    let msg = msg.serialize().expect("failed serialize");
-    stream.write(&msg)?;
-
     log::info!("sending ping...");
     let ping_msg = message::ping::Message::default();
     let ping_msg_bytes = ping_msg.serialize()?;
