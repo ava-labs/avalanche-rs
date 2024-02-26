@@ -4,7 +4,7 @@ use crate::{
     ids,
     subnet::rpc::{
         context::Context,
-        database::manager::Manager,
+        database::{manager::Manager, BoxedDatabase},
         health::Checkable,
         http::handle::Handle,
         snow::State,
@@ -17,6 +17,7 @@ use crate::{
         },
     },
 };
+
 use tokio::sync::mpsc::Sender;
 
 /// Vm describes the trait that all consensus VMs must implement.
@@ -34,7 +35,7 @@ pub trait CommonVm: AppHandler + Connector + Checkable {
     async fn initialize(
         &mut self,
         ctx: Option<Context<Self::ValidatorState>>,
-        db_manager: Self::DatabaseManager,
+        db_manager: BoxedDatabase,
         genesis_bytes: &[u8],
         upgrade_bytes: &[u8],
         config_bytes: &[u8],

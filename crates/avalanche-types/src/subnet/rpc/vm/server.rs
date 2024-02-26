@@ -100,6 +100,9 @@ where
         + Sync
         + 'static,
 {
+    /// Implements "avalanchego/vms/rpcchainvm#VMServer.Initialize".
+    /// ref. <https://github.com/ava-labs/avalanchego/blob/v1.11.1/vms/rpcchainvm/vm_server.go#L98>
+    /// ref. <https://github.com/ava-labs/avalanchego/blob/v1.11.1/vms/rpcchainvm/vm_client.go#L123-L133>
     async fn initialize(
         &self,
         req: Request<vm::InitializeRequest>,
@@ -107,6 +110,19 @@ where
         log::info!("initialize called");
 
         let req = req.into_inner();
+
+        let db_server_addr = req.db_server_addr.as_str();
+        let db_client_conn = utils::grpc::default_client(db_server_addr)?
+            .connect()
+            .await
+            .map_err(|e| {
+                tonic::Status::unknown(format!(
+                    "failed to create db client conn from: {db_server_addr}: {e}",
+                ))
+            })?;
+        let db =
+            corruptabledb::Database::new_boxed(DatabaseClient::new_boxed(db_client_conn.clone()));
+
         let server_addr = req.server_addr.as_str();
         let client_conn = utils::grpc::default_client(server_addr)?
             .connect()
@@ -139,28 +155,6 @@ where
             validator_state: ValidatorStateClient::new(client_conn.clone()),
         });
 
-        let mut versioned_dbs = Vec::new();
-
-        // TODO: is this correct?
-        let version = Version::parse("1.0.0").map_err(|e| tonic::Status::unknown(e.to_string()))?;
-        let server_addr = req.db_server_addr.as_str();
-
-        // Create a client connection with the server address
-        let client_conn = utils::grpc::default_client(server_addr)?
-            .connect()
-            .await
-            .map_err(|e| {
-                tonic::Status::unknown(format!(
-                    "failed to create client conn from: {server_addr}: {e}",
-                ))
-            })?;
-
-        let vdb = versioned_database::VersionedDatabase::new(
-            corruptabledb::Database::new_boxed(DatabaseClient::new_boxed(client_conn.clone())),
-            version,
-        );
-        versioned_dbs.push(vdb);
-
         let (tx_engine, mut rx_engine): (mpsc::Sender<Message>, mpsc::Receiver<Message>) =
             mpsc::channel(100);
         tokio::spawn(async move {
@@ -185,7 +179,7 @@ where
         inner_vm
             .initialize(
                 ctx,
-                DatabaseManager::from_databases(versioned_dbs),
+                db,
                 &req.genesis_bytes,
                 &req.upgrade_bytes,
                 &req.config_bytes,
@@ -232,6 +226,10 @@ where
         Ok(Response::new(Empty {}))
     }
 
+    /// Implements "avalanchego/vms/rpcchainvm#VMServer.CreateHandlers".
+    /// ref. <https://github.com/ava-labs/avalanchego/blob/v1.11.1/vms/rpcchainvm/vm_server.go#L312-L336>
+    /// ref. <https://github.com/ava-labs/avalanchego/blob/v1.11.1/vms/rpcchainvm/vm_client.go#L354-L371>
+    ///
     /// Creates the HTTP handlers for custom chain network calls.
     /// This creates and exposes handlers that the outside world can use to communicate
     /// with the chain. Each handler has the path:
