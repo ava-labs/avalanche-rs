@@ -38,7 +38,6 @@ use crate::{
 use chrono::{TimeZone, Utc};
 use pb::vm::vm_server::Vm;
 use prost::bytes::Bytes;
-use semver::Version;
 use tokio::sync::{broadcast, mpsc, RwLock};
 use tonic::{Request, Response};
 
