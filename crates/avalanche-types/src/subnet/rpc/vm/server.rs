@@ -20,10 +20,7 @@ use crate::{
         consensus::snowman::{Block, Decidable},
         context::Context,
         database::rpcdb::{client::DatabaseClient, error_to_error_code},
-        database::{
-            corruptabledb,
-            manager::{versioned_database, DatabaseManager},
-        },
+        database::{corruptabledb, manager::DatabaseManager},
         errors,
         http::server::Server as HttpServer,
         snow::{
