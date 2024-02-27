@@ -20,10 +20,7 @@ use crate::{
         consensus::snowman::{Block, Decidable},
         context::Context,
         database::rpcdb::{client::DatabaseClient, error_to_error_code},
-        database::{
-            corruptabledb,
-            manager::{versioned_database, DatabaseManager},
-        },
+        database::{corruptabledb, manager::DatabaseManager},
         errors,
         http::server::Server as HttpServer,
         snow::{
@@ -41,7 +38,6 @@ use crate::{
 use chrono::{TimeZone, Utc};
 use pb::vm::vm_server::Vm;
 use prost::bytes::Bytes;
-use semver::Version;
 use tokio::sync::{broadcast, mpsc, RwLock};
 use tonic::{Request, Response};
 
@@ -100,6 +96,9 @@ where
         + Sync
         + 'static,
 {
+    /// Implements "avalanchego/vms/rpcchainvm#VMServer.Initialize".
+    /// ref. <https://github.com/ava-labs/avalanchego/blob/v1.11.1/vms/rpcchainvm/vm_server.go#L98>
+    /// ref. <https://github.com/ava-labs/avalanchego/blob/v1.11.1/vms/rpcchainvm/vm_client.go#L123-L133>
     async fn initialize(
         &self,
         req: Request<vm::InitializeRequest>,
@@ -107,6 +106,19 @@ where
         log::info!("initialize called");
 
         let req = req.into_inner();
+
+        let db_server_addr = req.db_server_addr.as_str();
+        let db_client_conn = utils::grpc::default_client(db_server_addr)?
+            .connect()
+            .await
+            .map_err(|e| {
+                tonic::Status::unknown(format!(
+                    "failed to create db client conn from: {db_server_addr}: {e}",
+                ))
+            })?;
+        let db =
+            corruptabledb::Database::new_boxed(DatabaseClient::new_boxed(db_client_conn.clone()));
+
         let server_addr = req.server_addr.as_str();
         let client_conn = utils::grpc::default_client(server_addr)?
             .connect()
@@ -139,30 +151,6 @@ where
             validator_state: ValidatorStateClient::new(client_conn.clone()),
         });
 
-        let mut versioned_dbs = Vec::with_capacity(req.db_servers.len());
-        for db_server in req.db_servers.iter() {
-            let semver = db_server.version.trim_start_matches('v');
-            let version =
-                Version::parse(semver).map_err(|e| tonic::Status::unknown(e.to_string()))?;
-            let server_addr = db_server.server_addr.as_str();
-
-            // Create a client connection with the server address
-            let client_conn = utils::grpc::default_client(server_addr)?
-                .connect()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(format!(
-                        "failed to create client conn from: {server_addr}: {e}",
-                    ))
-                })?;
-
-            let vdb = versioned_database::VersionedDatabase::new(
-                corruptabledb::Database::new_boxed(DatabaseClient::new_boxed(client_conn)),
-                version,
-            );
-            versioned_dbs.push(vdb);
-        }
-
         let (tx_engine, mut rx_engine): (mpsc::Sender<Message>, mpsc::Receiver<Message>) =
             mpsc::channel(100);
         tokio::spawn(async move {
@@ -187,7 +175,7 @@ where
         inner_vm
             .initialize(
                 ctx,
-                DatabaseManager::from_databases(versioned_dbs),
+                db,
                 &req.genesis_bytes,
                 &req.upgrade_bytes,
                 &req.config_bytes,
@@ -234,6 +222,10 @@ where
         Ok(Response::new(Empty {}))
     }
 
+    /// Implements "avalanchego/vms/rpcchainvm#VMServer.CreateHandlers".
+    /// ref. <https://github.com/ava-labs/avalanchego/blob/v1.11.1/vms/rpcchainvm/vm_server.go#L312-L336>
+    /// ref. <https://github.com/ava-labs/avalanchego/blob/v1.11.1/vms/rpcchainvm/vm_client.go#L354-L371>
+    ///
     /// Creates the HTTP handlers for custom chain network calls.
     /// This creates and exposes handlers that the outside world can use to communicate
     /// with the chain. Each handler has the path:
@@ -280,56 +272,6 @@ where
         }
 
         Ok(Response::new(vm::CreateHandlersResponse {
-            handlers: resp_handlers,
-        }))
-    }
-
-    /// Creates the HTTP handlers for custom VM network calls.
-    ///
-    /// This creates and exposes handlers that the outside world can use to communicate
-    /// with a static reference to the VM. Each handler has the path:
-    /// `\[Address of node]/ext/VM/[VM ID]/[extension\]`
-    ///
-    /// Returns a mapping from \[extension\]s to HTTP handlers.
-    ///
-    /// Each extension can specify how locking is managed for convenience.
-    ///
-    /// For example, it might make sense to have an extension for creating
-    /// genesis bytes this VM can interpret.
-    async fn create_static_handlers(
-        &self,
-        _req: Request<Empty>,
-    ) -> std::result::Result<Response<vm::CreateStaticHandlersResponse>, tonic::Status> {
-        log::debug!("create_static_handlers called");
-
-        // get handlers from underlying vm
-        let mut inner_vm = self.vm.write().await;
-        let handlers = inner_vm.create_static_handlers().await.map_err(|e| {
-            tonic::Status::unknown(format!("failed to create static handlers: {e}"))
-        })?;
-
-        // create and start gRPC server serving HTTP service for each handler
-        let mut resp_handlers: Vec<vm::Handler> = Vec::with_capacity(handlers.keys().len());
-        for (prefix, http_handler) in handlers {
-            let server_addr = utils::new_socket_addr();
-            let server = grpc::Server::new(server_addr, self.stop_ch.subscribe());
-
-            server
-                .serve(pb::http::http_server::HttpServer::new(HttpServer::new(
-                    http_handler.handler,
-                )))
-                .map_err(|e| {
-                    tonic::Status::unknown(format!("failed to create http service: {e}"))
-                })?;
-
-            let resp_handler = vm::Handler {
-                prefix,
-                server_addr: server_addr.to_string(),
-            };
-            resp_handlers.push(resp_handler);
-        }
-
-        Ok(Response::new(vm::CreateStaticHandlersResponse {
             handlers: resp_handlers,
         }))
     }

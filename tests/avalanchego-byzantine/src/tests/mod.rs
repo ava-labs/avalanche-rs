@@ -278,22 +278,6 @@ async fn byzantine() {
     }
     let mut stream = res.unwrap();
 
-    log::info!("sending test version message");
-    let now_unix = SystemTime::now()
-        .duration_since(SystemTime::UNIX_EPOCH)
-        .expect("unexpected None duration_since")
-        .as_secs();
-    let msg = message::version::Message::default()
-        .network_id(network_id)
-        .my_time(now_unix)
-        .ip_addr(IpAddr::V4(Ipv4Addr::LOCALHOST))
-        .ip_port(port.unwrap() as u32)
-        .my_version("avalanche/1.7.11".to_string())
-        .my_version_time(now_unix)
-        .sig(random_manager::secure_bytes(64).unwrap());
-    let msg = msg.serialize().expect("failed serialize");
-    stream.write(&msg).unwrap();
-
     log::info!("sending test push query message");
     let msg = message::push_query::Message::default()
         .chain_id(x_chain_blockchain_id)

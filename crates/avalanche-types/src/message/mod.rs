@@ -21,7 +21,6 @@ pub mod pull_query;
 pub mod push_query;
 pub mod put;
 pub mod state_summary_frontier;
-pub mod version;
 
 pub fn ip_addr_to_bytes(ip_addr: std::net::IpAddr) -> Vec<u8> {
     match ip_addr {
