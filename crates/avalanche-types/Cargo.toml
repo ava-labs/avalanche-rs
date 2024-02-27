@@ -43,7 +43,7 @@ serde_yaml = "0.9.25" # https://github.com/dtolnay/serde-yaml/releases
 sha2 = "0.10.6"
 sha3 = "0.10.8" # https://github.com/RustCrypto/hashes
 spki = "0.7.2" # https://github.com/RustCrypto/formats/tree/master/spki
-strum = "0.25.0"
+strum = "0.26.1"
 thiserror = "1.0.47"
 url = "2.4.0" # for "codec::serde::ip_port", "utils"
 zerocopy = { version = "0.7.32", features = ["derive"] }
