@@ -121,7 +121,7 @@ default = [
     # "message",
     # "mnemonic",
     # "proto",
-    "subnet",
+    # "subnet",
     # "subnet_evm",
     # "subnet_metrics",
     # "wallet",
