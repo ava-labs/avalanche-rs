@@ -23,7 +23,7 @@ random-manager = "0.0.5" # https://crates.io/crates/random-manager/versions
 rcgen = { version = "0.12.1", features = ["pem", "x509-parser"] }
 rsa = { version = "0.9.2", features = ["pem"] } # https://crates.io/crates/rsa
 rustls-pemfile = "2.0.0"
-x509-parser = "0.15.1"
+x509-parser = "0.16.0"
 # for feature "pem"
 pem = { version = "3.0.0", optional = true } # https://github.com/jcreekmore/pem-rs
 cert-manager = { path = "../../core/cert-manager" }
