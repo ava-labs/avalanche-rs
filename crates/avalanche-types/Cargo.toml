@@ -26,7 +26,7 @@ ecdsa = { version = "0.16.7", features = ["rfc6979", "verifying"] } # https://gi
 ethers-core = { version = "=2.0.13", features = ["eip712"] } # https://github.com/gakonst/ethers-rs/releases
 hex = "0.4.3"
 hmac = "0.12.1"
-hyper = { version = "0.14.26"}
+hyper = { version = "1.2.0"}
 k256 = { version = "0.13.1", features = ["ecdsa"] } # https://github.com/RustCrypto/elliptic-curves/tree/master/k256
 lazy_static = "1.4.0"
 log = "0.4.20"
