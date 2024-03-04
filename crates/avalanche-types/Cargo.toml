@@ -92,7 +92,7 @@ tower-service = { version = "0.3.2", optional = true }
 prometheus = { version = "0.13.3", default-features = false, features = ["process"], optional = true }
 
 # [OPTIONAL] for "codec"
-base64 = { version = "0.21.2", optional = true } # https://github.com/marshallpierce/rust-base64
+base64 = { version = "0.22.0", optional = true } # https://github.com/marshallpierce/rust-base64
 num-bigint = { version = "0.4.3", optional = true }
 
 [dev-dependencies]
