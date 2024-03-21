@@ -13,7 +13,7 @@ readme = "README.md"
 [dependencies]
 avalanche-types = { path = "../../crates/avalanche-types", features = ["message"] }
 log = "0.4.20"
-rustls = { version = "0.22.2", features = ["logging"] }
+rustls = { version = "0.23.3", features = ["logging"] }
 hyper-rustls = "0.26.0"
 rustls-native-certs = "0.7.0"
 hyper = { version = "0.14.27", features = ["full"], optional = true }
