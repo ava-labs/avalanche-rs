@@ -1,9 +1,16 @@
-use crate::{codec, errors::Result, hash, ids, key, platformvm, txs};
+use crate::{
+    codec,
+    errors::Result,
+    hash, ids, key, packer, platformvm,
+    txs::{self},
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone)]
 pub struct Validator {
+    #[serde(flatten)]
     pub validator: platformvm::txs::Validator,
+    #[serde(rename = "subnetID")]
     pub subnet_id: ids::Id,
 }
 
@@ -25,11 +32,14 @@ pub struct Tx {
     /// as long as "avax.BaseTx.Metadata" is "None".
     /// Once Metadata is updated with signing and "Tx.Initialize",
     /// Tx.ID() is non-empty.
+    #[serde(flatten)]
     pub base_tx: txs::Tx,
     pub validator: Validator,
+    #[serde(rename = "subnetAuthorization")]
     pub subnet_auth: key::secp256k1::txs::Input,
 
     /// To be updated after signing.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub creds: Vec<key::secp256k1::txs::Credential>,
 }
 
@@ -61,9 +71,7 @@ impl Tx {
         *(codec::P_TYPES.get(&Self::type_name()).unwrap()) as u32
     }
 
-    /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/platformvm/txs#Tx.Sign>
-    /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/utils/crypto#PrivateKeyED25519.SignHash>
-    pub async fn sign<T: key::secp256k1::SignOnly>(&mut self, signers: Vec<Vec<T>>) -> Result<()> {
+    pub fn pack(&self) -> Result<packer::Packer> {
         // marshal "unsigned tx" with the codec version
         let type_id = Self::type_id();
         let packer = self.base_tx.pack(codec::VERSION, type_id)?;
@@ -92,6 +100,14 @@ impl Tx {
         for sig_idx in self.subnet_auth.sig_indices.iter() {
             packer.pack_u32(*sig_idx)?;
         }
+
+        Ok(packer)
+    }
+
+    /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/platformvm/txs#Tx.Sign>
+    /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/utils/crypto#PrivateKeyED25519.SignHash>
+    pub async fn sign<T: key::secp256k1::SignOnly>(&mut self, signers: Vec<Vec<T>>) -> Result<()> {
+        let packer = self.pack()?;
 
         // take bytes just for hashing computation
         let tx_bytes_with_no_signature = packer.take_bytes();
@@ -404,4 +420,154 @@ fn test_add_subnet_validator_tx_serialization_with_one_signer() {
         expected_signed_bytes,
         &tx_bytes_with_signatures
     ));
+}
+
+/// RUST_LOG=debug cargo test --package avalanche-types --lib -- platformvm::txs::add_subnet_validator::test_json_deserialize --exact --show-output
+#[test]
+fn test_json_deserialize() {
+    use serde_json::json;
+
+    // Based on <https://github.com/ava-labs/avalanche-rs/issues/177>
+    let tx_json = json!({
+      "networkID": 1337,
+      "blockchainID": "11111111111111111111111111111111LpoYY",
+      "outputs": [
+        {
+          "assetID": "28VTWcsTZ55draGkmjdcS9CFFv4zC3PbvVjkyoqxzNC7Y5msRP",
+          "fxID": "spdxUxVJQbX85MGxMHbKw1sHxMnSqJ3QBzDyDYEP3h6TLuxqQ",
+          "output": {
+            "addresses": ["P-custom18jma8ppw3nhx5r4ap8clazz0dps7rv5u9xde7p"],
+            "amount": 19999999899000000 as u64,
+            "locktime": 0,
+            "threshold": 1
+          }
+        }
+      ],
+      "inputs": [
+        {
+          "txID": "CjisYCwF4j7zSyC25MWR21e5xxzJgwdaLEuf7oBXSGpe3oaej",
+          "outputIndex": 0,
+          "assetID": "28VTWcsTZ55draGkmjdcS9CFFv4zC3PbvVjkyoqxzNC7Y5msRP",
+          "fxID": "spdxUxVJQbX85MGxMHbKw1sHxMnSqJ3QBzDyDYEP3h6TLuxqQ",
+          "input": { "amount": 19999999900000000 as u64, "signatureIndices": [0] }
+        }
+      ],
+      "memo": "0x",
+      "validator": {
+        "nodeID": "NodeID-JHD1JDUZYkiMdWPMDA9UJhWXR4wf25t39",
+        "start": 1711142673,
+        "end": 1711142913,
+        "weight": 20,
+        "subnetID": "CjisYCwF4j7zSyC25MWR21e5xxzJgwdaLEuf7oBXSGpe3oaej"
+      },
+      "subnetAuthorization": { "signatureIndices": [0] }
+    });
+
+    let tx: Tx = serde_json::from_value(tx_json).expect("parsing tx");
+    let packer = tx.pack().expect("packing tx");
+
+    let expected_bytes: &[u8] = &[
+        // codec version
+        0x00, 0x00, //
+        //
+        // platformvm.UnsignedAddSubnetValidatorTx type ID
+        0x00, 0x00, 0x00, 0x0d, //
+        //
+        // network id
+        0x00, 0x00, 0x05, 0x39, //
+        // blockchain id
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //
+        0x00, 0x00, //
+        //
+        // outputs.len()
+        0x00, 0x00, 0x00, 0x01, //
+        //
+        // outputs[0].assetID
+        0x94, 0xb4, 0x5a, 0xa6, 0xe4, 0x46, 0x4a, 0x9a, 0xd3, 0xfc, //
+        0x4e, 0x73, 0xc7, 0x94, 0x7b, 0xa1, 0x63, 0x2d, 0x7c, 0x82, //
+        0x0b, 0xaf, 0x0e, 0xbb, 0xfc, 0x75, 0x48, 0xc4, 0x82, 0x3f, //
+        0x26, 0xbd, //
+        //
+        // outputs[0] type ID
+        0x00, 0x00, 0x00, 0x07, //
+        //
+        // outputs[0].output.amount
+        0x00, 0x47, 0x0d, 0xe4, 0xd9, 0x7c, 0xdc, 0xc0, //
+        //
+        // outputs[0].output.locktime
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //
+        //
+        // outputs[0].output.threshold
+        0x00, 0x00, 0x00, 0x01, //
+        //
+        // outputs[0].output.addresses.len()
+        0x00, 0x00, 0x00, 0x01, //
+        //
+        // outputs[0].output.addresses[0]
+        0x3c, 0xb7, 0xd3, 0x84, 0x2e, 0x8c, 0xee, 0x6a, 0x0e, 0xbd, //
+        0x09, 0xf1, 0xfe, 0x88, 0x4f, 0x68, 0x61, 0xe1, 0xb2, 0x9c, //
+        //
+        // inputs.len()
+        0x00, 0x00, 0x00, 0x01, //
+        // inputs[0].txID
+        0x1a, 0xa6, 0x3b, 0xe8, 0x46, 0x7b, 0x5f, 0x45, 0x76, 0x5f, //
+        0xb1, 0x72, 0xc6, 0xed, 0x66, 0x44, 0xa6, 0xed, 0xb6, 0x6c, //
+        0xa0, 0x41, 0x16, 0x7e, 0x60, 0xa0, 0x78, 0x16, 0x62, 0xfa, //
+        0xde, 0x58, //
+        //
+        // inputs[0].outputIndex
+        0x00, 0x00, 0x00, 0x00, //
+        //
+        // inputs[0].assetID
+        0x94, 0xb4, 0x5a, 0xa6, 0xe4, 0x46, 0x4a, 0x9a, 0xd3, 0xfc, //
+        0x4e, 0x73, 0xc7, 0x94, 0x7b, 0xa1, 0x63, 0x2d, 0x7c, 0x82, //
+        0x0b, 0xaf, 0x0e, 0xbb, 0xfc, 0x75, 0x48, 0xc4, 0x82, 0x3f, //
+        0x26, 0xbd, //
+        //
+        // inputs[0] type ID
+        0x00, 0x00, 0x00, 0x05, //
+        //
+        // inputs[0].input.amount
+        0x00, 0x47, 0x0d, 0xe4, 0xd9, 0x8c, 0x1f, 0x00, //
+        //
+        // inputs[0].input.signatureIndices.len()
+        0x00, 0x00, 0x00, 0x01, //
+        //
+        // inputs[0].input.signatureIndices[0]
+        0x00, 0x00, 0x00, 0x00, //
+        //
+        // memo.len()
+        0x00, 0x00, 0x00, 0x00, //
+        // validator.nodeID
+        0xbd, 0x8a, 0xd0, 0xa9, 0x18, 0xe6, 0x79, 0x1a, 0x32, 0x1e, //
+        0x03, 0x35, 0x5e, 0x70, 0x76, 0x09, 0xec, 0xf8, 0x56, 0xde, //
+        //
+        // validator.start
+        0x00, 0x00, 0x00, 0x00, 0x65, 0xfd, 0xf7, 0x11, //
+        //
+        // validator.end
+        0x00, 0x00, 0x00, 0x00, 0x65, 0xfd, 0xf8, 0x01, //
+        //
+        // validator.weight
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x14, //
+        //
+        // validator.subnetID
+        0x1a, 0xa6, 0x3b, 0xe8, 0x46, 0x7b, 0x5f, 0x45, 0x76, 0x5f, //
+        0xb1, 0x72, 0xc6, 0xed, 0x66, 0x44, 0xa6, 0xed, 0xb6, 0x6c, //
+        0xa0, 0x41, 0x16, 0x7e, 0x60, 0xa0, 0x78, 0x16, 0x62, 0xfa, //
+        0xde, 0x58, //
+        //
+        // subnetAuthorization.signatureIndices type ID
+        0x00, 0x00, 0x00, 0x0a, //
+        //
+        // subnetAuthorization.signatureIndices.len()
+        0x00, 0x00, 0x00, 0x01, //
+        //
+        // subnetAuthorization.signatureIndices[0]
+        0x00, 0x00, 0x00, 0x00, //
+    ];
+
+    assert_eq!(packer.take_bytes(), expected_bytes);
 }

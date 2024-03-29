@@ -460,6 +460,7 @@ fn test_sort_stakeable_lock_outs() {
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/platformvm/api#Staker>
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone)]
 pub struct Validator {
+    #[serde(rename = "nodeID")]
     pub node_id: node::Id,
     pub start: u64,
     pub end: u64,

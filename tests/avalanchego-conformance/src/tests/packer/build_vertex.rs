@@ -58,7 +58,6 @@ async fn build_vertex() {
 
     req.vtx_bytes = b.as_ref().to_vec().clone();
     info!("built vertex ({} bytes)", req.vtx_bytes.len());
-    // info!("{:?}", req);
 
     let resp = cli.build_vertex(req).await.expect("failed build_vertex");
     assert!(resp.success);

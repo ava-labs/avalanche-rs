@@ -342,6 +342,7 @@ fn test_sort_output_owners() {
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/secp256k1fx#Input>
 #[derive(Debug, Serialize, Deserialize, Eq, Clone, Default)]
 pub struct Input {
+    #[serde(rename = "signatureIndices")]
     pub sig_indices: Vec<u32>,
 }
 
