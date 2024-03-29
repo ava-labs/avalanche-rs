@@ -1,7 +1,8 @@
 use crate::{
     codec,
-    errors::{Error, Result},
-    hash, ids, key, platformvm, txs,
+    errors::Result,
+    hash, ids, key, packer, platformvm,
+    txs::{self},
 };
 use serde::{Deserialize, Serialize};
 
@@ -14,13 +15,17 @@ pub struct Tx {
     /// as long as "avax.BaseTx.Metadata" is "None".
     /// Once Metadata is updated with signing and "Tx.Initialize",
     /// Tx.ID() is non-empty.
+    #[serde(flatten)]
     pub base_tx: txs::Tx,
     pub validator: platformvm::txs::Validator,
+    #[serde(rename = "stake")]
     pub stake_transferable_outputs: Option<Vec<txs::transferable::Output>>,
+    #[serde(rename = "rewardsOwner")]
     pub rewards_owner: key::secp256k1::txs::OutputOwners,
     pub shares: u32,
 
     /// To be updated after signing.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub creds: Vec<key::secp256k1::txs::Credential>,
 }
 
@@ -58,151 +63,8 @@ impl Tx {
         &mut self,
         signers: Vec<Vec<T>>,
     ) -> Result<()> {
-        // marshal "unsigned tx" with the codec version
-        let type_id = Self::type_id();
-        let packer = self.base_tx.pack(codec::VERSION, type_id)?;
-
-        // "avalanchego" marshals the whole struct again for signed bytes
-        // even when the underlying "unsigned_tx" is already once marshaled
-        // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/platformvm#Tx.Sign
-        //
-        // reuse the underlying packer to avoid marshaling the unsigned tx twice
-        // just marshal the next fields in the struct and pack them all together
-        // in the existing packer
-        let unsigned_tx_bytes = packer.take_bytes();
-        packer.set_bytes(&unsigned_tx_bytes);
-
-        // pack the second field "validator" in the struct
-        packer.pack_bytes(self.validator.node_id.as_ref())?;
-        packer.pack_u64(self.validator.start)?;
-        packer.pack_u64(self.validator.end)?;
-        packer.pack_u64(self.validator.weight)?;
-
-        // pack the third field "stake" in the struct
-        if self.stake_transferable_outputs.is_some() {
-            let stake_transferable_outputs = self.stake_transferable_outputs.as_ref().unwrap();
-            packer.pack_u32(stake_transferable_outputs.len() as u32)?;
-
-            for transferable_output in stake_transferable_outputs.iter() {
-                // "TransferableOutput.Asset" is struct and serialize:"true"
-                // but embedded inline in the struct "TransferableOutput"
-                // so no need to encode type ID
-                // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/components/avax#TransferableOutput
-                // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/components/avax#Asset
-                packer.pack_bytes(transferable_output.asset_id.as_ref())?;
-
-                // fx_id is serialize:"false" thus skipping serialization
-
-                // decide the type
-                // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/components/avax#TransferableOutput
-                if transferable_output.transfer_output.is_none()
-                    && transferable_output.stakeable_lock_out.is_none()
-                {
-                    return Err(Error::Other {
-                        message: "unexpected Nones in TransferableOutput transfer_output and stakeable_lock_out".to_string(),
-                        retryable: false,
-                    });
-                }
-                let type_id_transferable_out = {
-                    if transferable_output.transfer_output.is_some() {
-                        key::secp256k1::txs::transfer::Output::type_id()
-                    } else {
-                        platformvm::txs::StakeableLockOut::type_id()
-                    }
-                };
-                // marshal type ID for "key::secp256k1::txs::transfer::Output" or "platformvm::txs::StakeableLockOut"
-                packer.pack_u32(type_id_transferable_out)?;
-
-                match type_id_transferable_out {
-                    7 => {
-                        // "key::secp256k1::txs::transfer::Output"
-                        // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/secp256k1fx#TransferOutput
-                        let transfer_output = transferable_output.transfer_output.clone().unwrap();
-
-                        // marshal "secp256k1fx.TransferOutput.Amt" field
-                        packer.pack_u64(transfer_output.amount)?;
-
-                        // "secp256k1fx.TransferOutput.OutputOwners" is struct and serialize:"true"
-                        // but embedded inline in the struct "TransferOutput"
-                        // so no need to encode type ID
-                        // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/secp256k1fx#TransferOutput
-                        // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/secp256k1fx#OutputOwners
-                        packer.pack_u64(transfer_output.output_owners.locktime)?;
-                        packer.pack_u32(transfer_output.output_owners.threshold)?;
-                        packer.pack_u32(transfer_output.output_owners.addresses.len() as u32)?;
-                        for addr in transfer_output.output_owners.addresses.iter() {
-                            packer.pack_bytes(addr.as_ref())?;
-                        }
-                    }
-                    22 => {
-                        // "platformvm::txs::StakeableLockOut"
-                        // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/platformvm#StakeableLockOut
-                        let stakeable_lock_out =
-                            transferable_output.stakeable_lock_out.clone().unwrap();
-
-                        // marshal "platformvm::txs::StakeableLockOut.locktime" field
-                        packer.pack_u64(stakeable_lock_out.locktime)?;
-
-                        // secp256k1fx.TransferOutput type ID
-                        packer.pack_u32(7)?;
-
-                        // "platformvm.StakeableLockOut.TransferOutput" is struct and serialize:"true"
-                        // but embedded inline in the struct "StakeableLockOut"
-                        // so no need to encode type ID
-                        // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/platformvm#StakeableLockOut
-                        // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/secp256k1fx#TransferOutput
-                        // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/secp256k1fx#OutputOwners
-                        //
-                        // marshal "secp256k1fx.TransferOutput.Amt" field
-                        packer.pack_u64(stakeable_lock_out.transfer_output.amount)?;
-                        packer
-                            .pack_u64(stakeable_lock_out.transfer_output.output_owners.locktime)?;
-                        packer
-                            .pack_u32(stakeable_lock_out.transfer_output.output_owners.threshold)?;
-                        packer.pack_u32(
-                            stakeable_lock_out
-                                .transfer_output
-                                .output_owners
-                                .addresses
-                                .len() as u32,
-                        )?;
-                        for addr in stakeable_lock_out
-                            .transfer_output
-                            .output_owners
-                            .addresses
-                            .iter()
-                        {
-                            packer.pack_bytes(addr.as_ref())?;
-                        }
-                    }
-                    _ => {
-                        return Err(Error::Other {
-                            message: format!(
-                                "unexpected type ID {} for TransferableOutput",
-                                type_id_transferable_out
-                            ),
-                            retryable: false,
-                        });
-                    }
-                }
-            }
-        } else {
-            packer.pack_u32(0_u32)?;
-        }
-
-        // pack the fourth field "reward_owner" in the struct
-        // not embedded thus encode struct type id
-        let output_owners_type_id = key::secp256k1::txs::OutputOwners::type_id();
-        packer.pack_u32(output_owners_type_id)?;
-        packer.pack_u64(self.rewards_owner.locktime)?;
-        packer.pack_u32(self.rewards_owner.threshold)?;
-        packer.pack_u32(self.rewards_owner.addresses.len() as u32)?;
-        for addr in self.rewards_owner.addresses.iter() {
-            packer.pack_bytes(addr.as_ref())?;
-        }
-
-        // pack the fifth field "shares" in the struct
-        packer.pack_u32(self.shares)?;
+        let packer = packer::Packer::new_with_version(codec::VERSION)?;
+        packer.pack(self)?;
 
         // take bytes just for hashing computation
         let tx_bytes_with_no_signature = packer.take_bytes();
@@ -265,10 +127,64 @@ impl Tx {
     }
 }
 
+impl packer::Packable for Tx {
+    fn pack(&self, packer: &packer::Packer) -> Result<()> {
+        let type_id = Self::type_id();
+
+        packer.pack_u32(type_id)?;
+        packer.pack(&self.base_tx)?;
+
+        // pack the second field "validator" in the struct
+        packer.pack_bytes(self.validator.node_id.as_ref())?;
+        packer.pack_u64(self.validator.start)?;
+        packer.pack_u64(self.validator.end)?;
+        packer.pack_u64(self.validator.weight)?;
+
+        // pack the third field "stake" in the struct
+        if self.stake_transferable_outputs.is_some() {
+            let stake_transferable_outputs = self.stake_transferable_outputs.as_ref().unwrap();
+            packer.pack_u32(stake_transferable_outputs.len() as u32)?;
+
+            for transferable_output in stake_transferable_outputs.iter() {
+                // "TransferableOutput.Asset" is struct and serialize:"true"
+                // but embedded inline in the struct "TransferableOutput"
+                // so no need to encode type ID
+                // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/components/avax#TransferableOutput
+                // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/components/avax#Asset
+                packer.pack_bytes(transferable_output.asset_id.as_ref())?;
+
+                // fx_id is serialize:"false" thus skipping serialization
+
+                packer.pack(&transferable_output.out)?;
+            }
+        } else {
+            packer.pack_u32(0_u32)?;
+        }
+
+        // pack the fourth field "reward_owner" in the struct
+        // not embedded thus encode struct type id
+        let output_owners_type_id = key::secp256k1::txs::OutputOwners::type_id();
+        packer.pack_u32(output_owners_type_id)?;
+        packer.pack_u64(self.rewards_owner.locktime)?;
+        packer.pack_u32(self.rewards_owner.threshold)?;
+        packer.pack_u32(self.rewards_owner.addresses.len() as u32)?;
+        for addr in self.rewards_owner.addresses.iter() {
+            packer.pack_bytes(addr.as_ref())?;
+        }
+
+        // pack the fifth field "shares" in the struct
+        packer.pack_u32(self.shares)?;
+        Ok(())
+    }
+}
+
 /// RUST_LOG=debug cargo test --package avalanche-types --lib -- platformvm::txs::add_validator::test_add_validator_tx_serialization_with_one_signer --exact --show-output
 #[test]
 fn test_add_validator_tx_serialization_with_one_signer() {
-    use crate::ids::{node, short};
+    use crate::{
+        ids::{node, short},
+        txs::transferable::TransferableOut,
+    };
 
     macro_rules! ab {
         ($e:expr) => {
@@ -286,7 +202,7 @@ fn test_add_validator_tx_serialization_with_one_signer() {
                     0xe8, 0x5e, 0xa5, 0x74, 0xc7, 0xa1, 0x5a, 0x79, //
                     0x68, 0x64, 0x4d, 0x14, 0xd5, 0x47, 0x80, 0x14, //
                 ])),
-                transfer_output: Some(key::secp256k1::txs::transfer::Output {
+                out: TransferableOut::TransferOutput(key::secp256k1::txs::transfer::Output {
                     amount: 0x2c6874d687fc000,
                     output_owners: key::secp256k1::txs::OutputOwners {
                         locktime: 0x00,
@@ -340,7 +256,7 @@ fn test_add_validator_tx_serialization_with_one_signer() {
                 0xe8, 0x5e, 0xa5, 0x74, 0xc7, 0xa1, 0x5a, 0x79, //
                 0x68, 0x64, 0x4d, 0x14, 0xd5, 0x47, 0x80, 0x14, //
             ])),
-            transfer_output: Some(key::secp256k1::txs::transfer::Output {
+            out: TransferableOut::TransferOutput(key::secp256k1::txs::transfer::Output {
                 amount: 0x1d1a94a2000,
                 output_owners: key::secp256k1::txs::OutputOwners {
                     locktime: 0x00,
@@ -544,4 +460,222 @@ fn test_add_validator_tx_serialization_with_one_signer() {
         expected_signed_bytes,
         &tx_bytes_with_signatures
     ));
+}
+
+/// RUST_LOG=debug cargo test --package avalanche-types --lib -- platformvm::txs::add_validator::test_json_deserialize --exact --show-output
+#[test]
+fn test_json_deserialize() {
+    use serde_json::json;
+
+    let tx_json = json!({
+        "networkID": 10,
+        "blockchainID": "11111111111111111111111111111111LpoYY",
+        "outputs": [
+            {
+                "assetID": "Zda4gsqTjRaX6XVZekVNi3ovMFPHDRQiGbzYuAb7Nwqy1rGBc",
+                "fxID": "11111111111111111111111111111111LpoYY",
+                "output": {
+                    "addresses": [
+                        "Q4MzFZZDPHRPAHFeDs3NiyyaZDvxHKivf"
+                    ],
+                    "amount": 1234,
+                    "locktime": 0,
+                    "threshold": 1
+                }
+            }
+        ],
+        "inputs": [
+            {
+                "txID": "tJ4rZfd5dnsPpWPVYU3skNW8uYNpaS6bmpto3sXMMqFMVpR1f",
+                "outputIndex": 2,
+                "assetID": "Zda4gsqTjRaX6XVZekVNi3ovMFPHDRQiGbzYuAb7Nwqy1rGBc",
+                "fxID": "11111111111111111111111111111111LpoYY",
+                "input": {
+                    "amount": 5678,
+                    "signatureIndices": [
+                        0
+                    ]
+                }
+            }
+        ],
+        "memo": "0x",
+        "validator": {
+            "nodeID": "NodeID-111111111111111111116DBWJs",
+            "start": 1711696405,
+            "end": 1711700005,
+            "weight": 2022
+        },
+        "stake": [
+            {
+                "assetID": "Zda4gsqTjRaX6XVZekVNi3ovMFPHDRQiGbzYuAb7Nwqy1rGBc",
+                "fxID": "11111111111111111111111111111111LpoYY",
+                "output": {
+                    "locktime": 1711696406,
+                    "output": {
+                        "addresses": [
+                            "Q4MzFZZDPHRPAHFeDs3NiyyaZDvxHKivf"
+                        ],
+                        "amount": 2022,
+                        "locktime": 0,
+                        "threshold": 1
+                    }
+                }
+            }
+        ],
+        "rewardsOwner": {
+            "addresses": [
+                "Q4MzFZZDPHRPAHFeDs3NiyyaZDvxHKivf"
+            ],
+            "locktime": 0,
+            "threshold": 1
+        },
+        "shares": 1000000
+    });
+
+    let tx: Tx = serde_json::from_value(tx_json).expect("parsing tx");
+    let packer = packer::Packer::new_with_version(codec::VERSION).expect("creating packer");
+    packer.pack(&tx).expect("packing tx");
+
+    let expected_bytes: &[u8] = &[
+        // codec version
+        0x00, 0x00, //
+        //
+        // AddValidatorTx type ID
+        0x00, 0x00, 0x00, 0x0c, //
+        //
+        // network id
+        0x00, 0x00, 0x00, 0x0a, //
+        // blockchainID
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //
+        0x00, 0x00, //
+        //
+        // outputs.len()
+        0x00, 0x00, 0x00, 0x01, //
+        //
+        // outputs[0].assetID
+        0x4a, 0x17, 0x72, 0x05, 0xdf, 0x5c, 0x29, 0x92, 0x9d, 0x06, //
+        0xdb, 0x9d, 0x94, 0x1f, 0x83, 0xd5, 0xea, 0x98, 0x5d, 0xe3, //
+        0x02, 0x01, 0x5e, 0x99, 0x25, 0x2d, 0x16, 0x46, 0x9a, 0x66, //
+        0x10, 0xdb, //
+        //
+        // outputs[0] type ID
+        0x00, 0x00, 0x00, 0x07, //
+        //
+        // outputs[0].output.amount
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0xd2, //
+        //
+        // outputs[0].output.locktime
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //
+        //
+        // outputs[0].output.threshold
+        0x00, 0x00, 0x00, 0x01, //
+        //
+        // outputs[0].output.addresses.len()
+        0x00, 0x00, 0x00, 0x01, //
+        //
+        // outputs[0].output.addresses[0]
+        0xfc, 0xed, 0xa8, 0xf9, 0x0f, 0xcb, 0x5d, 0x30, 0x61, 0x4b, //
+        0x99, 0xd7, 0x9f, 0xc4, 0xba, 0xa2, 0x93, 0x07, 0x76, 0x26, //
+        //
+        // inputs.len()
+        0x00, 0x00, 0x00, 0x01, //
+        //
+        // inputs[0].txID
+        0x74, 0x78, 0x49, 0x44, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //
+        0x00, 0x00, //
+        //
+        // inputs[0].outputIndex
+        0x00, 0x00, 0x00, 0x02, //
+        //
+        // inputs[0].assetID
+        0x4a, 0x17, 0x72, 0x05, 0xdf, 0x5c, 0x29, 0x92, 0x9d, 0x06, //
+        0xdb, 0x9d, 0x94, 0x1f, 0x83, 0xd5, 0xea, 0x98, 0x5d, 0xe3, //
+        0x02, 0x01, 0x5e, 0x99, 0x25, 0x2d, 0x16, 0x46, 0x9a, 0x66, //
+        0x10, 0xdb, //
+        //
+        // inputs[0] type ID
+        0x00, 0x00, 0x00, 0x05, //
+        //
+        // inputs[0].input.amount
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x16, 0x2e, //
+        //
+        // inputs[0].input.signatureIndices.len()
+        0x00, 0x00, 0x00, 0x01, //
+        //
+        // inputs[0].input.signatureIndices[0]
+        0x00, 0x00, 0x00, 0x00, //
+        //
+        // memo.len()
+        0x00, 0x00, 0x00, 0x00, //
+        // validator.nodeID
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //
+        //
+        // validator.start
+        0x00, 0x00, 0x00, 0x00, 0x66, 0x06, 0x6a, 0x15, //
+        //
+        // validator.end
+        0x00, 0x00, 0x00, 0x00, 0x66, 0x06, 0x78, 0x25, //
+        //
+        // validator.weight
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x07, 0xe6, //
+        //
+        // stake.len()
+        0x00, 0x00, 0x00, 0x01, //
+        //
+        // stake[0].assetID
+        0x4a, 0x17, 0x72, 0x05, 0xdf, 0x5c, 0x29, 0x92, 0x9d, 0x06, //
+        0xdb, 0x9d, 0x94, 0x1f, 0x83, 0xd5, 0xea, 0x98, 0x5d, 0xe3, //
+        0x02, 0x01, 0x5e, 0x99, 0x25, 0x2d, 0x16, 0x46, 0x9a, 0x66, //
+        0x10, 0xdb, //
+        //
+        // stake[0] type ID
+        0x00, 0x00, 0x00, 0x16, //
+        //
+        // stake[0].locktime
+        0x00, 0x00, 0x00, 0x00, 0x66, 0x06, 0x6a, 0x16, //
+        //
+        // stake[0].output type ID
+        0x00, 0x00, 0x00, 0x07, //
+        //
+        // stake[0].output amount
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x07, 0xe6, //
+        //
+        // stake[0].output.locktime
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //
+        //
+        // stake[0].output.threshold
+        0x00, 0x00, 0x00, 0x01, //
+        //
+        // stake[0].output.addresses.len()
+        0x00, 0x00, 0x00, 0x01, //
+        //
+        // stake[0].output.addresses[0]
+        0xfc, 0xed, 0xa8, 0xf9, 0x0f, 0xcb, 0x5d, 0x30, 0x61, 0x4b, //
+        0x99, 0xd7, 0x9f, 0xc4, 0xba, 0xa2, 0x93, 0x07, 0x76, 0x26, //
+        //
+        // rewardsOwner type ID
+        0x00, 0x00, 0x00, 0x0b, //
+        //
+        // rewardsOwner.locktime
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //
+        //
+        // rewardsOwner.threshold
+        0x00, 0x00, 0x00, 0x01, //
+        //
+        // rewardsOwner.addresses.len()
+        0x00, 0x00, 0x00, 0x01, //
+        //
+        // rewardsOwner.addresses[0]
+        0xfc, 0xed, 0xa8, 0xf9, 0x0f, 0xcb, 0x5d, 0x30, 0x61, 0x4b, //
+        0x99, 0xd7, 0x9f, 0xc4, 0xba, 0xa2, 0x93, 0x07, 0x76, 0x26, //
+        // shares
+        0x00, 0x0f, 0x42, 0x40, //
+    ];
+
+    assert_eq!(packer.take_bytes(), expected_bytes);
 }

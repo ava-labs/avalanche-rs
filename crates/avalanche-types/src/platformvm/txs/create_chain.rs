@@ -1,4 +1,9 @@
-use crate::{codec, errors::Result, hash, ids, key, txs};
+use crate::{
+    codec,
+    errors::Result,
+    hash, ids, key,
+    txs::{self},
+};
 use serde::{Deserialize, Serialize};
 
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/platformvm/txs#CreateChainTx>
@@ -180,7 +185,7 @@ impl Tx {
 /// RUST_LOG=debug cargo test --package avalanche-types --lib -- platformvm::txs::create_chain::test_create_chain_tx_serialization_with_one_signer --exact --show-output
 #[test]
 fn test_create_chain_tx_serialization_with_one_signer() {
-    use crate::ids::short;
+    use crate::{ids::short, txs::transferable::TransferableOut};
 
     macro_rules! ab {
         ($e:expr) => {
@@ -198,7 +203,7 @@ fn test_create_chain_tx_serialization_with_one_signer() {
                     0xe8, 0x5e, 0xa5, 0x74, 0xc7, 0xa1, 0x5a, 0x79, //
                     0x68, 0x64, 0x4d, 0x14, 0xd5, 0x47, 0x80, 0x14, //
                 ])),
-                transfer_output: Some(key::secp256k1::txs::transfer::Output {
+                out: TransferableOut::TransferOutput(key::secp256k1::txs::transfer::Output {
                     amount: 0x2c6874d5c56f500,
                     output_owners: key::secp256k1::txs::OutputOwners {
                         locktime: 0x00,
