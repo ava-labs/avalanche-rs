@@ -13,7 +13,7 @@ use crate::{
     codec::{self, serde::hex_0x_bytes::Hex0xBytes},
     ids::{self, node},
     key,
-    txs::transferable,
+    txs::transferable::{self},
 };
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
@@ -65,6 +65,8 @@ impl Default for UnsignedTx {
 /// RUST_LOG=debug cargo test --package avalanche-types --lib -- platformvm::txs::test_json_deserialize --exact --show-output
 #[test]
 fn test_json_deserialize() {
+    use crate::txs::transferable::TransferableOut;
+
     let parsed_tx: Tx = serde_json::from_str(
         "
     
@@ -125,23 +127,16 @@ fn test_json_deserialize() {
     println!("{:?}", parsed_tx);
 
     assert_eq!(parsed_tx.unsigned_tx.network_id, 1000000);
-    assert_eq!(
-        parsed_tx.unsigned_tx.transferable_outputs.clone().unwrap()[0]
-            .transfer_output
-            .clone()
-            .unwrap()
-            .amount,
-        245952587549460688
-    );
-    assert_eq!(
-        parsed_tx.unsigned_tx.transferable_outputs.clone().unwrap()[0]
-            .transfer_output
-            .clone()
-            .unwrap()
-            .output_owners
-            .threshold,
-        1
-    );
+    match &parsed_tx.unsigned_tx.transferable_outputs.unwrap()[0].out {
+        TransferableOut::TransferOutput(key::secp256k1::txs::transfer::Output {
+            amount,
+            output_owners,
+        }) => {
+            assert_eq!(*amount, 245952587549460688 as u64);
+            assert_eq!(output_owners.threshold, 1);
+        }
+        _ => panic!("unexpected transferable output"),
+    }
 }
 
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/platformvm#StakeableLockIn>
@@ -259,6 +254,7 @@ fn test_sort_stakeable_lock_ins() {
 #[derive(Debug, Serialize, Deserialize, Eq, Clone, Default)]
 pub struct StakeableLockOut {
     pub locktime: u64,
+    #[serde(rename = "output")]
     pub transfer_output: key::secp256k1::txs::transfer::Output,
 }
 
@@ -460,6 +456,7 @@ fn test_sort_stakeable_lock_outs() {
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/platformvm/api#Staker>
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone)]
 pub struct Validator {
+    #[serde(rename = "nodeID")]
     pub node_id: node::Id,
     pub start: u64,
     pub end: u64,

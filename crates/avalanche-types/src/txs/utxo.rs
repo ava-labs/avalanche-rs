@@ -131,7 +131,9 @@ fn test_utxo_id() {
 /// TODO: implement ordering?
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub struct Utxo {
+    #[serde(flatten)]
     pub utxo_id: Id,
+    #[serde(rename = "assetID")]
     pub asset_id: ids::Id,
 
     /// AvalancheGo loads "avax.UTXO" object from the db and

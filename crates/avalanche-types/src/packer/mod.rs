@@ -60,6 +60,17 @@ impl Packer {
         }
     }
 
+    pub fn new_with_version(codec_version: u16) -> Result<Self> {
+        // ref. "avalanchego/codec.manager.Marshal", "vms/avm.newCustomCodecs"
+        // ref. "math.MaxInt32" and "constants.DefaultByteSliceCap" in Go
+        let packer = Self::new((1 << 31) - 1, 128);
+
+        // codec version
+        // ref. "avalanchego/codec.manager.Marshal"
+        packer.pack_u16(codec_version)?;
+        Ok(packer)
+    }
+
     /// Creates a new Packer with 32-bit message length header.
     pub fn new_with_header(max_size: usize, initial_cap: usize) -> Self {
         let mut b = BytesMut::with_capacity(initial_cap);
@@ -621,6 +632,16 @@ impl Packer {
         };
         Ok(s)
     }
+
+    /// Packs a packable type
+    pub fn pack<T: Packable>(&self, v: &T) -> Result<()> {
+        v.pack(self)
+    }
+}
+
+/// A trait implemented by types that can be packed using [`Packer`]
+pub trait Packable {
+    fn pack(&self, packer: &Packer) -> Result<()>;
 }
 
 /// RUST_LOG=debug cargo test --package avalanche-types --lib -- packer::test_expand --exact --show-output
