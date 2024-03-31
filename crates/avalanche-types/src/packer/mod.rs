@@ -644,6 +644,36 @@ pub trait Packable {
     fn pack(&self, packer: &Packer) -> Result<()>;
 }
 
+/// [`Packable`] implementation for [`u8`]
+impl Packable for u8 {
+    fn pack(&self, packer: &Packer) -> Result<()> {
+        packer.pack_byte(*self)
+    }
+}
+
+/// Generic [`Packable`] implementation for [`Option<T>`]
+impl<T: Packable> Packable for Option<T> {
+    fn pack(&self, packer: &Packer) -> Result<()> {
+        if let Some(val) = self {
+            packer.pack(val)?;
+        } else {
+            packer.pack_u32(0_u32)?;
+        }
+        Ok(())
+    }
+}
+
+/// Generic [`Packable`] implementation for [`Vec<T>`]
+impl<T: Packable> Packable for Vec<T> {
+    fn pack(&self, packer: &Packer) -> Result<()> {
+        packer.pack_u32(self.len() as u32)?;
+        for val in self {
+            packer.pack(val)?;
+        }
+        Ok(())
+    }
+}
+
 /// RUST_LOG=debug cargo test --package avalanche-types --lib -- packer::test_expand --exact --show-output
 /// ref. "avalanchego/utils/wrappers.TestPackerExpand"
 #[test]
