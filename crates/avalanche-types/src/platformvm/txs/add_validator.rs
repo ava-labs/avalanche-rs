@@ -141,25 +141,7 @@ impl packer::Packable for Tx {
         packer.pack_u64(self.validator.weight)?;
 
         // pack the third field "stake" in the struct
-        if self.stake_transferable_outputs.is_some() {
-            let stake_transferable_outputs = self.stake_transferable_outputs.as_ref().unwrap();
-            packer.pack_u32(stake_transferable_outputs.len() as u32)?;
-
-            for transferable_output in stake_transferable_outputs.iter() {
-                // "TransferableOutput.Asset" is struct and serialize:"true"
-                // but embedded inline in the struct "TransferableOutput"
-                // so no need to encode type ID
-                // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/components/avax#TransferableOutput
-                // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/components/avax#Asset
-                packer.pack_bytes(transferable_output.asset_id.as_ref())?;
-
-                // fx_id is serialize:"false" thus skipping serialization
-
-                packer.pack(&transferable_output.out)?;
-            }
-        } else {
-            packer.pack_u32(0_u32)?;
-        }
+        packer.pack(&self.stake_transferable_outputs)?;
 
         // pack the fourth field "reward_owner" in the struct
         // not embedded thus encode struct type id

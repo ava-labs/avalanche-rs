@@ -132,6 +132,19 @@ impl PartialEq for Output {
     }
 }
 
+impl Packable for Output {
+    fn pack(&self, packer: &Packer) -> Result<()> {
+        // "TransferableOutput.Asset" is struct and serialize:"true"
+        // but embedded inline in the struct "TransferableOutput"
+        // so no need to encode type ID
+        // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/components/avax#TransferableOutput
+        // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/components/avax#Asset
+        packer.pack_bytes(self.asset_id.as_ref())?;
+        packer.pack(&self.out)?;
+        Ok(())
+    }
+}
+
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/components/avax#SortTransferableOutputs>
 /// ref. "avalanchego/vms/components/avax.TestTransferableOutputSorting"
 /// RUST_LOG=debug cargo test --package avalanche-types --lib -- txs::transferable::test_sort_transferable_outputs --exact --show-output

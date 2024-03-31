@@ -84,7 +84,6 @@ impl Tx {
         packer.pack_u16(codec_version)?;
         packer.pack_u32(type_id)?;
         packer.pack(self)?;
-
         Ok(packer)
     }
 }
@@ -97,27 +96,7 @@ impl packer::Packable for Tx {
         // ref. "avalanchego/codec/reflectcodec.structFielder"
         packer.pack_u32(self.network_id)?;
         packer.pack_bytes(self.blockchain_id.as_ref())?;
-
-        // "transferable_outputs" field; pack the number of slice elements
-        if self.transferable_outputs.is_some() {
-            let transferable_outputs = self.transferable_outputs.as_ref().unwrap();
-            packer.pack_u32(transferable_outputs.len() as u32)?;
-
-            for transferable_output in transferable_outputs.iter() {
-                // "TransferableOutput.Asset" is struct and serialize:"true"
-                // but embedded inline in the struct "TransferableOutput"
-                // so no need to encode type ID
-                // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/components/avax#TransferableOutput
-                // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/components/avax#Asset
-                packer.pack_bytes(transferable_output.asset_id.as_ref())?;
-
-                // fx_id is serialize:"false" thus skipping serialization
-
-                packer.pack(&transferable_output.out)?;
-            }
-        } else {
-            packer.pack_u32(0_u32)?;
-        }
+        packer.pack(&self.transferable_outputs)?;
 
         // "transferable_inputs" field; pack the number of slice elements
         if self.transferable_inputs.is_some() {
@@ -226,14 +205,7 @@ impl packer::Packable for Tx {
             packer.pack_u32(0_u32)?;
         }
 
-        // marshal "BaseTx.memo"
-        if self.memo.is_some() {
-            let memo = self.memo.as_ref().unwrap();
-            packer.pack_u32(memo.len() as u32)?;
-            packer.pack_bytes(memo)?;
-        } else {
-            packer.pack_u32(0_u32)?;
-        }
+        packer.pack(&self.memo)?;
         Ok(())
     }
 }

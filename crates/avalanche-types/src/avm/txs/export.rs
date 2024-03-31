@@ -69,28 +69,7 @@ impl Tx {
         packer.pack_bytes(self.destination_chain_id.as_ref())?;
 
         // pack the third field in the struct
-        if self.destination_chain_transferable_outputs.is_some() {
-            let destination_chain_transferable_outputs = self
-                .destination_chain_transferable_outputs
-                .as_ref()
-                .unwrap();
-            packer.pack_u32(destination_chain_transferable_outputs.len() as u32)?;
-
-            for transferable_output in destination_chain_transferable_outputs.iter() {
-                // "TransferableOutput.Asset" is struct and serialize:"true"
-                // but embedded inline in the struct "TransferableOutput"
-                // so no need to encode type ID
-                // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/components/avax#TransferableOutput
-                // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/components/avax#Asset
-                packer.pack_bytes(transferable_output.asset_id.as_ref())?;
-
-                // fx_id is serialize:"false" thus skipping serialization
-
-                packer.pack(&transferable_output.out)?;
-            }
-        } else {
-            packer.pack_u32(0_u32)?;
-        }
+        packer.pack(&self.destination_chain_transferable_outputs)?;
 
         // take bytes just for hashing computation
         let tx_bytes_with_no_signature = packer.take_bytes();
