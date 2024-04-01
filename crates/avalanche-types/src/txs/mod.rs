@@ -155,10 +155,7 @@ impl packer::Packable for Tx {
                         // so no need to encode type ID
                         // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/secp256k1fx#TransferInput
                         // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/secp256k1fx#Input
-                        packer.pack_u32(transfer_input.sig_indices.len() as u32)?;
-                        for idx in transfer_input.sig_indices.iter() {
-                            packer.pack_u32(*idx)?;
-                        }
+                        packer.pack(&transfer_input.sig_indices)?;
                     }
                     21 => {
                         // "platformvm::txs::StakeableLockIn"
@@ -184,11 +181,7 @@ impl packer::Packable for Tx {
                         // so no need to encode type ID
                         // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/secp256k1fx#TransferInput
                         // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/secp256k1fx#Input
-                        packer
-                            .pack_u32(stakeable_lock_in.transfer_input.sig_indices.len() as u32)?;
-                        for idx in stakeable_lock_in.transfer_input.sig_indices.iter() {
-                            packer.pack_u32(*idx)?;
-                        }
+                        packer.pack(&stakeable_lock_in.transfer_input.sig_indices)?;
                     }
                     _ => {
                         return Err(Error::Other {

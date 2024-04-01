@@ -88,10 +88,7 @@ impl Tx {
         // pack the third field "subnet_auth" in the struct
         let subnet_auth_type_id = key::secp256k1::txs::Input::type_id();
         packer.pack_u32(subnet_auth_type_id)?;
-        packer.pack_u32(self.subnet_auth.sig_indices.len() as u32)?;
-        for sig_idx in self.subnet_auth.sig_indices.iter() {
-            packer.pack_u32(*sig_idx)?;
-        }
+        packer.pack(&self.subnet_auth.sig_indices)?;
 
         // take bytes just for hashing computation
         let tx_bytes_with_no_signature = packer.take_bytes();
