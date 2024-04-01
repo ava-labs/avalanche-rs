@@ -73,10 +73,7 @@ impl Tx {
         packer.pack_u32(output_owners_type_id)?;
         packer.pack_u64(self.owner.locktime)?;
         packer.pack_u32(self.owner.threshold)?;
-        packer.pack_u32(self.owner.addresses.len() as u32)?;
-        for addr in self.owner.addresses.iter() {
-            packer.pack_bytes(addr.as_ref())?;
-        }
+        packer.pack(&self.owner.addresses)?;
 
         // take bytes just for hashing computation
         let tx_bytes_with_no_signature = packer.take_bytes();

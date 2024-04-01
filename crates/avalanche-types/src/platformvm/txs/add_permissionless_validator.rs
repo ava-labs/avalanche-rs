@@ -129,24 +129,7 @@ impl Tx {
         }
 
         // pack the third field "stake" in the struct
-        if let Some(stake_transferable_outputs) = &self.stake_transferable_outputs {
-            packer.pack_u32(stake_transferable_outputs.len() as u32)?;
-
-            for transferable_output in stake_transferable_outputs.iter() {
-                // "TransferableOutput.Asset" is struct and serialize:"true"
-                // but embedded inline in the struct "TransferableOutput"
-                // so no need to encode type ID
-                // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/components/avax#TransferableOutput
-                // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/components/avax#Asset
-                packer.pack_bytes(transferable_output.asset_id.as_ref())?;
-
-                // fx_id is serialize:"false" thus skipping serialization
-
-                packer.pack(&transferable_output.out)?;
-            }
-        } else {
-            packer.pack_u32(0_u32)?;
-        }
+        packer.pack(&self.stake_transferable_outputs)?;
 
         // pack the fourth field "reward_owner" in the struct
         // not embedded thus encode struct type id
@@ -154,18 +137,12 @@ impl Tx {
         packer.pack_u32(output_owners_type_id)?;
         packer.pack_u64(self.validator_rewards_owner.locktime)?;
         packer.pack_u32(self.validator_rewards_owner.threshold)?;
-        packer.pack_u32(self.validator_rewards_owner.addresses.len() as u32)?;
-        for addr in self.validator_rewards_owner.addresses.iter() {
-            packer.pack_bytes(addr.as_ref())?;
-        }
+        packer.pack(&self.validator_rewards_owner.addresses)?;
 
         packer.pack_u32(output_owners_type_id)?;
         packer.pack_u64(self.delegator_rewards_owner.locktime)?;
         packer.pack_u32(self.delegator_rewards_owner.threshold)?;
-        packer.pack_u32(self.delegator_rewards_owner.addresses.len() as u32)?;
-        for addr in self.delegator_rewards_owner.addresses.iter() {
-            packer.pack_bytes(addr.as_ref())?;
-        }
+        packer.pack(&self.delegator_rewards_owner.addresses)?;
 
         // pack the fifth field "shares" in the struct
         packer.pack_u32(self.delegation_shares)?;

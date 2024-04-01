@@ -149,10 +149,7 @@ impl packer::Packable for Tx {
         packer.pack_u32(output_owners_type_id)?;
         packer.pack_u64(self.rewards_owner.locktime)?;
         packer.pack_u32(self.rewards_owner.threshold)?;
-        packer.pack_u32(self.rewards_owner.addresses.len() as u32)?;
-        for addr in self.rewards_owner.addresses.iter() {
-            packer.pack_bytes(addr.as_ref())?;
-        }
+        packer.pack(&self.rewards_owner.addresses)?;
 
         // pack the fifth field "shares" in the struct
         packer.pack_u32(self.shares)?;

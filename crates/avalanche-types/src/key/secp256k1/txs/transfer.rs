@@ -59,10 +59,7 @@ impl Packable for Output {
         // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/secp256k1fx#OutputOwners
         packer.pack_u64(self.output_owners.locktime)?;
         packer.pack_u32(self.output_owners.threshold)?;
-        packer.pack_u32(self.output_owners.addresses.len() as u32)?;
-        for addr in self.output_owners.addresses.iter() {
-            packer.pack_bytes(addr.as_ref())?;
-        }
+        packer.pack(&self.output_owners.addresses)?;
         Ok(())
     }
 }

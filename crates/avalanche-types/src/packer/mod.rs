@@ -651,6 +651,13 @@ impl Packable for u8 {
     }
 }
 
+/// [`Packable`] implementation for [`u32`]
+impl Packable for u32 {
+    fn pack(&self, packer: &Packer) -> Result<()> {
+        packer.pack_u32(*self)
+    }
+}
+
 /// Generic [`Packable`] implementation for [`Option<T>`]
 impl<T: Packable> Packable for Option<T> {
     fn pack(&self, packer: &Packer) -> Result<()> {

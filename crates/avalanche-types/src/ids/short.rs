@@ -7,7 +7,7 @@ use std::{
     str::FromStr,
 };
 
-use crate::{formatting, hash, key::secp256k1};
+use crate::{formatting, hash, key::secp256k1, packer::{Packable, Packer}, errors};
 use lazy_static::lazy_static;
 use serde::{self, Deserialize, Deserializer, Serialize, Serializer};
 use zerocopy::{AsBytes, FromBytes, FromZeroes, Unaligned};
@@ -123,6 +123,12 @@ impl<'de> Deserialize<'de> for Id {
         let (_, short_bytes) = secp256k1::address::avax_address_to_short_bytes("", addr)
             .map_err(serde::de::Error::custom)?;
         Ok(Id::from_slice(&short_bytes))
+    }
+}
+
+impl Packable for Id {
+    fn pack(&self, packer: &Packer) -> errors::Result<()> {
+        packer.pack_bytes(self.as_ref())
     }
 }
 
