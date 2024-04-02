@@ -96,15 +96,16 @@ impl Status {
     /// Returns the bytes representation of this status.
     pub fn bytes(&self) -> errors::Result<Bytes> {
         let iota = match self {
+            Status::Unknown(_) => 0_u32,
             Status::Processing => 1_u32,
             Status::Rejected => 2_u32,
             Status::Accepted => 3_u32,
-            Status::Unknown(_) => 0_u32,
-        };
+        }
+        .to_be_bytes();
 
-        let packer = Packer::new(4, 4);
-        packer.pack_u32(iota)?;
-        Ok(packer.take_bytes())
+        let boxed: Box<[u8]> = Box::new(iota);
+
+        Ok(Bytes::from(boxed))
     }
 
     /// Returns the u32 primitive representation of this status.
