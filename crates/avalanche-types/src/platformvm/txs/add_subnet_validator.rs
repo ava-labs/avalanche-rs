@@ -437,7 +437,7 @@ fn test_json_deserialize() {
           "fxID": "spdxUxVJQbX85MGxMHbKw1sHxMnSqJ3QBzDyDYEP3h6TLuxqQ",
           "output": {
             "addresses": ["P-custom18jma8ppw3nhx5r4ap8clazz0dps7rv5u9xde7p"],
-            "amount": 19999999899000000 as u64,
+            "amount": 19999999899000000_u64,
             "locktime": 0,
             "threshold": 1
           }
@@ -449,7 +449,7 @@ fn test_json_deserialize() {
           "outputIndex": 0,
           "assetID": "28VTWcsTZ55draGkmjdcS9CFFv4zC3PbvVjkyoqxzNC7Y5msRP",
           "fxID": "spdxUxVJQbX85MGxMHbKw1sHxMnSqJ3QBzDyDYEP3h6TLuxqQ",
-          "input": { "amount": 19999999900000000 as u64, "signatureIndices": [0] }
+          "input": { "amount": 19999999900000000_64, "signatureIndices": [0] }
         }
       ],
       "memo": "0x",
