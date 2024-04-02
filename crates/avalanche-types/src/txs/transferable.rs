@@ -17,7 +17,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// "*platformvm.StakeableLockOut" which embeds "*secp256k1fx.TransferOutput"
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/platformvm#StakeableLockOut>
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone, PartialOrd)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[serde(untagged)]
 pub enum TransferableOut {
     TransferOutput(key::secp256k1::txs::transfer::Output),
@@ -54,6 +54,12 @@ impl Packable for TransferableOut {
             }
         }
         Ok(())
+    }
+}
+
+impl PartialOrd for TransferableOut {
+    fn partial_cmp(&self, other: &TransferableOut) -> Option<Ordering> {
+        Some(self.cmp(other))
     }
 }
 

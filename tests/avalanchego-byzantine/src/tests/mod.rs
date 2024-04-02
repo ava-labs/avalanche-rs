@@ -12,7 +12,8 @@ use avalanche_types::{
     key::{self, secp256k1},
     message,
     packer::Packer,
-    txs, utils,
+    txs::{self, transferable::TransferableOut},
+    utils,
 };
 use network::peer::outbound;
 
@@ -195,7 +196,7 @@ async fn byzantine() {
             // receiver
             txs::transferable::Output {
                 asset_id,
-                transfer_output: Some(key::secp256k1::txs::transfer::Output {
+                out: TransferableOut::TransferOutput(key::secp256k1::txs::transfer::Output {
                     amount: x_transfer_amount,
                     output_owners: key::secp256k1::txs::OutputOwners {
                         locktime: 0,
@@ -208,7 +209,7 @@ async fn byzantine() {
             // sender
             txs::transferable::Output {
                 asset_id,
-                transfer_output: Some(key::secp256k1::txs::transfer::Output {
+                out: TransferableOut::TransferOutput(key::secp256k1::txs::transfer::Output {
                     amount: x_bal - x_transfer_amount - tx_fee,
                     output_owners: key::secp256k1::txs::OutputOwners {
                         locktime: 0,

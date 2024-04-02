@@ -2,7 +2,8 @@ use crate::{
     errors::{Error, Result},
     formatting, ids,
     jsonrpc::client::p as client_p,
-    key, platformvm, txs,
+    key, platformvm,
+    txs::{self, transferable::TransferableOut},
 };
 use tokio::time::{sleep, Duration, Instant};
 
@@ -126,7 +127,7 @@ where
             destination_chain_id: self.destination_blockchain_id,
             destination_chain_transferable_outputs: Some(vec![txs::transferable::Output {
                 asset_id: self.inner.inner.avax_asset_id,
-                transfer_output: Some(key::secp256k1::txs::transfer::Output {
+                out: TransferableOut::TransferOutput(key::secp256k1::txs::transfer::Output {
                     amount: self.amount,
                     output_owners: key::secp256k1::txs::OutputOwners {
                         locktime: 0,

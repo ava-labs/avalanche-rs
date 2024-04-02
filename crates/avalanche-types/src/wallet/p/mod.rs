@@ -12,7 +12,9 @@ use crate::{
     errors::{Error, Result},
     ids::{self, node},
     jsonrpc::client::p as client_p,
-    key, platformvm, txs, wallet,
+    key, platformvm,
+    txs::{self, transferable::TransferableOut},
+    wallet,
 };
 
 impl<T> wallet::Wallet<T>
@@ -209,7 +211,7 @@ where
             // add output to the staked outputs
             staked_outputs.push(txs::transferable::Output {
                 asset_id: utxo.asset_id,
-                stakeable_lock_out: Some(platformvm::txs::StakeableLockOut {
+                out: TransferableOut::StakeableLockOut(platformvm::txs::StakeableLockOut {
                     locktime: out.clone().locktime,
                     transfer_output: key::secp256k1::txs::transfer::Output {
                         amount: remaining_value,
@@ -224,7 +226,7 @@ where
                 // some must be returned
                 returned_outputs.push(txs::transferable::Output {
                     asset_id: utxo.asset_id,
-                    stakeable_lock_out: Some(platformvm::txs::StakeableLockOut {
+                    out: TransferableOut::StakeableLockOut(platformvm::txs::StakeableLockOut {
                         locktime: out.clone().locktime,
                         transfer_output: key::secp256k1::txs::transfer::Output {
                             amount: amount_to_stake,
@@ -303,7 +305,7 @@ where
                 // some of this input was put for staking
                 staked_outputs.push(txs::transferable::Output {
                     asset_id: utxo.asset_id,
-                    out: Some(key::secp256k1::txs::transfer::Output {
+                    out: TransferableOut::TransferOutput(key::secp256k1::txs::transfer::Output {
                         amount: amount_to_stake,
                         output_owners: key::secp256k1::txs::OutputOwners {
                             locktime: 0,
@@ -319,7 +321,7 @@ where
                 // this input had extra value, so some must be returned
                 returned_outputs.push(txs::transferable::Output {
                     asset_id: utxo.asset_id,
-                    transfer_output: Some(key::secp256k1::txs::transfer::Output {
+                    out: TransferableOut::TransferOutput(key::secp256k1::txs::transfer::Output {
                         amount: remaining_value,
                         output_owners: key::secp256k1::txs::OutputOwners {
                             locktime: 0,

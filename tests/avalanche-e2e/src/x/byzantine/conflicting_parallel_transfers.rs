@@ -13,7 +13,8 @@ use avalanche_types::{
     formatting,
     ids::Id,
     jsonrpc::client::{info as avalanche_sdk_info, x as avalanche_sdk_x},
-    key, txs,
+    key,
+    txs::{self, transferable::TransferableOut},
 };
 use rand::{seq::SliceRandom, thread_rng};
 use tokio::{
@@ -137,7 +138,7 @@ pub async fn run(spec: Arc<RwLock<Spec>>) -> io::Result<()> {
             // receiver
             txs::transferable::Output {
                 asset_id,
-                transfer_output: Some(key::secp256k1::txs::transfer::Output {
+                out: TransferableOut::TransferOutput(key::secp256k1::txs::transfer::Output {
                     amount: from_x_tx_amount,
                     output_owners: key::secp256k1::txs::OutputOwners {
                         locktime: 0,
@@ -150,7 +151,7 @@ pub async fn run(spec: Arc<RwLock<Spec>>) -> io::Result<()> {
             // sender
             txs::transferable::Output {
                 asset_id,
-                transfer_output: Some(key::secp256k1::txs::transfer::Output {
+                out: TransferableOut::TransferOutput(key::secp256k1::txs::transfer::Output {
                     amount: from_x_bal_after,
                     output_owners: key::secp256k1::txs::OutputOwners {
                         locktime: 0,

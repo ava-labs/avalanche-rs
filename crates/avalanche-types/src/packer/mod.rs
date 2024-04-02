@@ -52,6 +52,12 @@ pub struct Packer {
     offset: Cell<usize>,
 }
 
+impl Default for Packer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Packer {
     pub fn new() -> Self {
         // ref. "avalanchego/codec.manager.Marshal", "vms/avm.newCustomCodecs"

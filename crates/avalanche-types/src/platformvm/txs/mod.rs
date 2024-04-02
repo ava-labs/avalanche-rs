@@ -132,7 +132,7 @@ fn test_json_deserialize() {
             amount,
             output_owners,
         }) => {
-            assert_eq!(*amount, 245952587549460688 as u64);
+            assert_eq!(*amount, 245952587549460688_u64);
             assert_eq!(output_owners.threshold, 1);
         }
         _ => panic!("unexpected transferable output"),

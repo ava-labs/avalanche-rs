@@ -7,7 +7,8 @@ use crate::{
     formatting,
     ids::{self, short},
     jsonrpc::client::x as client_x,
-    key, txs,
+    key,
+    txs::{self, transferable::TransferableOut},
 };
 use tokio::time::{sleep, Duration, Instant};
 
@@ -136,7 +137,7 @@ where
             // receiver
             txs::transferable::Output {
                 asset_id: self.inner.inner.avax_asset_id,
-                transfer_output: Some(key::secp256k1::txs::transfer::Output {
+                out: TransferableOut::TransferOutput(key::secp256k1::txs::transfer::Output {
                     amount: self.amount,
                     output_owners: key::secp256k1::txs::OutputOwners {
                         locktime: 0,
@@ -190,14 +191,16 @@ where
                     // this input had extra value, so some must be returned
                     outputs.push(txs::transferable::Output {
                         asset_id: self.inner.inner.avax_asset_id,
-                        transfer_output: Some(key::secp256k1::txs::transfer::Output {
-                            amount: remaining_amount,
-                            output_owners: key::secp256k1::txs::OutputOwners {
-                                locktime: 0,
-                                threshold: 1,
-                                addresses: vec![self.inner.inner.short_address.clone()],
+                        out: TransferableOut::TransferOutput(
+                            key::secp256k1::txs::transfer::Output {
+                                amount: remaining_amount,
+                                output_owners: key::secp256k1::txs::OutputOwners {
+                                    locktime: 0,
+                                    threshold: 1,
+                                    addresses: vec![self.inner.inner.short_address.clone()],
+                                },
                             },
-                        }),
+                        ),
                         ..Default::default()
                     })
                 }
