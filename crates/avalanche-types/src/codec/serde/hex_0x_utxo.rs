@@ -19,7 +19,7 @@ where
     Utxo::from_hex(&s).map_err(serde::de::Error::custom)
 }
 
-pub struct Hex0xUtxo(Utxo);
+pub struct Hex0xUtxo;
 
 impl SerializeAs<Utxo> for Hex0xUtxo {
     fn serialize_as<S>(x: &Utxo, serializer: S) -> Result<S::Ok, S::Error>

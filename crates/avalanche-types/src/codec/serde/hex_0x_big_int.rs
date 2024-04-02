@@ -20,7 +20,7 @@ where
     from_hex_to_big_int(&s).map_err(serde::de::Error::custom)
 }
 
-pub struct Hex0xBigInt(BigInt);
+pub struct Hex0xBigInt;
 
 impl SerializeAs<BigInt> for Hex0xBigInt {
     fn serialize_as<S>(x: &BigInt, serializer: S) -> Result<S::Ok, S::Error>

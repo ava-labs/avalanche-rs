@@ -19,7 +19,7 @@ where
     U256::from_str_radix(s, 16).map_err(serde::de::Error::custom)
 }
 
-pub struct Hex0xU256(U256);
+pub struct Hex0xU256;
 
 impl SerializeAs<U256> for Hex0xU256 {
     fn serialize_as<S>(x: &U256, serializer: S) -> Result<S::Ok, S::Error>
