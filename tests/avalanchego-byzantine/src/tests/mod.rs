@@ -252,7 +252,7 @@ async fn byzantine() {
         parent_ids: Vec::new(),
         txs,
     };
-    let packer = Packer::new(4096, 0);
+    let packer = Packer::with_max_size(4096);
     packer.pack_vertex(&mut vtx).unwrap();
     let vtx_bytes = packer.take_bytes();
     let vtx_id = hash::sha256(&vtx_bytes);

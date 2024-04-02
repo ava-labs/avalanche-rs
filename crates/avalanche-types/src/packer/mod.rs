@@ -3,7 +3,10 @@ pub mod ip;
 
 use std::{cell::Cell, u16};
 
-use crate::errors::{Error, Result};
+use crate::{
+    codec,
+    errors::{Error, Result},
+};
 use bytes::{Buf, BufMut, Bytes, BytesMut};
 
 pub const MAX_STR_LEN: u16 = u16::MAX - 1;
@@ -50,25 +53,17 @@ pub struct Packer {
 }
 
 impl Packer {
-    pub fn new(max_size: usize, initial_cap: usize) -> Self {
-        let bytes = Cell::new(BytesMut::with_capacity(initial_cap));
-        Self {
-            max_size,
-            bytes,
-            header: false,
-            offset: Cell::new(0),
-        }
-    }
-
-    pub fn new_with_version(codec_version: u16) -> Result<Self> {
+    pub fn new() -> Self {
         // ref. "avalanchego/codec.manager.Marshal", "vms/avm.newCustomCodecs"
         // ref. "math.MaxInt32" and "constants.DefaultByteSliceCap" in Go
-        let packer = Self::new((1 << 31) - 1, 128);
+        let packer = Self::with_max_and_capacity((1 << 31) - 1, 128);
 
         // codec version
         // ref. "avalanchego/codec.manager.Marshal"
-        packer.pack_u16(codec_version)?;
-        Ok(packer)
+        packer
+            .pack_u16(codec::VERSION)
+            .expect("`Packer` always created with enough space");
+        packer
     }
 
     /// Creates a new Packer with 32-bit message length header.
@@ -82,6 +77,20 @@ impl Packer {
             bytes,
             header: true,
             offset,
+        }
+    }
+
+    pub fn with_max_size(max_size: usize) -> Self {
+        Self::with_max_and_capacity(max_size, max_size)
+    }
+
+    fn with_max_and_capacity(max_size: usize, initial_cap: usize) -> Self {
+        let bytes = Cell::new(BytesMut::with_capacity(initial_cap));
+        Self {
+            max_size,
+            bytes,
+            header: false,
+            offset: Cell::new(0),
         }
     }
 
@@ -707,7 +716,7 @@ fn test_expand() {
     assert_eq!(packer.bytes_len(), 3);
 
     // 256 KiB
-    let packer = Packer::new(256 * 1024, 128);
+    let packer = Packer::with_max_and_capacity(256 * 1024, 128);
     packer.expand(10000).unwrap();
     assert_eq!(packer.bytes_len(), 0);
     assert_eq!(packer.bytes_cap(), 10000);
@@ -732,7 +741,7 @@ fn test_packer_from_bytes() {
 /// ref. "avalanchego/utils/wrappers.TestPackerPackByte"
 #[test]
 fn test_pack_byte() {
-    let packer = Packer::new(1, 0);
+    let packer = Packer::with_max_and_capacity(1, 0);
     packer.pack_byte(0x01).unwrap();
     assert_eq!(packer.bytes_len(), 1);
     assert_eq!(packer.get_offset(), 1);

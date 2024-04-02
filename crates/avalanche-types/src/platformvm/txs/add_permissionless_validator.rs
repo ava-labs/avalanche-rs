@@ -95,7 +95,7 @@ impl Tx {
     ) -> Result<()> {
         // marshal "unsigned tx" with the codec version
         let type_id = Self::type_id();
-        let packer = self.base_tx.pack(codec::VERSION, type_id)?;
+        let packer = self.base_tx.pack(type_id)?;
 
         // "avalanchego" marshals the whole struct again for signed bytes
         // even when the underlying "unsigned_tx" is already once marshaled

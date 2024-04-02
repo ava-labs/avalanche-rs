@@ -303,7 +303,7 @@ where
                 // some of this input was put for staking
                 staked_outputs.push(txs::transferable::Output {
                     asset_id: utxo.asset_id,
-                    transfer_output: Some(key::secp256k1::txs::transfer::Output {
+                    out: Some(key::secp256k1::txs::transfer::Output {
                         amount: amount_to_stake,
                         output_owners: key::secp256k1::txs::OutputOwners {
                             locktime: 0,

@@ -5,7 +5,7 @@ use std::{
     str::FromStr,
 };
 
-use crate::{errors, ids::short, key, packer};
+use crate::{errors, ids::short, key, packer::Packer};
 use serde::{Deserialize, Serialize};
 
 /// ref. <https://github.com/ava-labs/xsvm/blob/master/genesis/genesis.go>
@@ -97,11 +97,10 @@ impl Genesis {
     /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/utils/wrappers#Packer>
     /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/codec#Manager>
     pub fn to_packer_bytes(&self) -> errors::Result<Vec<u8>> {
-        let packer = packer::Packer::new((1 << 31) - 1, 128);
+        let packer = Packer::new();
 
         // codec version
         // ref. "avalanchego/codec.manager.Marshal"
-        packer.pack_u16(CODEC_VERSION)?;
         packer.pack_u64(self.timestamp as u64)?;
 
         if let Some(allocs) = &self.allocations {

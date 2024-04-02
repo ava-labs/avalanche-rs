@@ -132,7 +132,7 @@ fn test_pack_and_unpack() {
         ],
     };
 
-    let packer = Packer::new(1024, 0);
+    let packer = Packer::with_max_size(1024);
     packer.pack_vertex(&mut vtx).unwrap();
 
     let vtx_sorted = Vertex {
@@ -180,7 +180,7 @@ fn test_pack_and_unpack() {
     let b = packer.take_bytes();
     let b = BytesMut::from(&b[..]);
 
-    let packer = Packer::new(0, 0);
+    let packer = Packer::with_max_size(0);
     packer.set_bytes(&b);
 
     let vtx_unpacked = packer.unpack_vertex().unwrap();

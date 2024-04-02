@@ -1,8 +1,9 @@
 use crate::{
     codec,
     errors::Result,
-    hash, ids, key, packer, platformvm,
-    txs::{self},
+    hash, ids, key,
+    packer::{self, Packer},
+    platformvm, txs,
 };
 use serde::{Deserialize, Serialize};
 
@@ -63,7 +64,7 @@ impl Tx {
         &mut self,
         signers: Vec<Vec<T>>,
     ) -> Result<()> {
-        let packer = packer::Packer::new_with_version(codec::VERSION)?;
+        let packer = Packer::new();
         packer.pack(self)?;
 
         // take bytes just for hashing computation
@@ -128,7 +129,7 @@ impl Tx {
 }
 
 impl packer::Packable for Tx {
-    fn pack(&self, packer: &packer::Packer) -> Result<()> {
+    fn pack(&self, packer: &Packer) -> Result<()> {
         let type_id = Self::type_id();
 
         packer.pack_u32(type_id)?;
@@ -512,7 +513,7 @@ fn test_json_deserialize() {
     });
 
     let tx: Tx = serde_json::from_value(tx_json).expect("parsing tx");
-    let packer = packer::Packer::new_with_version(codec::VERSION).expect("creating packer");
+    let packer = Packer::new();
     packer.pack(&tx).expect("packing tx");
 
     let expected_bytes: &[u8] = &[

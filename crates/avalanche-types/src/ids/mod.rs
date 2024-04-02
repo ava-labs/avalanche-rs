@@ -79,7 +79,7 @@ impl Id {
     /// ref. "ids.ID.Prefix(output_index)"
     pub fn prefix(&self, prefixes: &[u64]) -> Result<Self> {
         let n = prefixes.len() + packer::U64_LEN + 32;
-        let packer = packer::Packer::new(n, n);
+        let packer = packer::Packer::with_max_size(n);
         for pfx in prefixes {
             packer.pack_u64(*pfx)?;
         }

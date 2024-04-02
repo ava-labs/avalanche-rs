@@ -74,14 +74,11 @@ impl Tx {
     /// e.g., pack prefix with the type ID for "avm.BaseTx" (linearCodec.PackPrefix)
     /// ref. "avalanchego/codec/linearcodec.linearCodec.MarshalInto"
     /// ref. "avalanchego/codec/reflectcodec.genericCodec.MarshalInto"
-    pub fn pack(&self, codec_version: u16, type_id: u32) -> Result<packer::Packer> {
+    pub fn pack(&self, type_id: u32) -> Result<packer::Packer> {
         // ref. "avalanchego/codec.manager.Marshal", "vms/avm.newCustomCodecs"
         // ref. "math.MaxInt32" and "constants.DefaultByteSliceCap" in Go
-        let packer = packer::Packer::new((1 << 31) - 1, 128);
+        let packer = packer::Packer::new();
 
-        // codec version
-        // ref. "avalanchego/codec.manager.Marshal"
-        packer.pack_u16(codec_version)?;
         packer.pack_u32(type_id)?;
         packer.pack(self)?;
         Ok(packer)
@@ -257,7 +254,7 @@ fn test_base_tx_serialization() {
         ..Tx::default()
     };
     let unsigned_tx_packer = unsigned_tx
-        .pack(0, Tx::type_id())
+        .pack(Tx::type_id())
         .expect("failed to pack unsigned_tx");
     let unsigned_tx_bytes = unsigned_tx_packer.take_bytes();
 

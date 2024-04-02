@@ -52,7 +52,7 @@ async fn build_vertex() {
         txs: txs_copied,
         vtx_bytes: Vec::new(),
     };
-    let packer = Packer::new(1024, 0);
+    let packer = Packer::with_max_size(1024);
     packer.pack_vertex(&mut vtx).unwrap();
     let b = packer.take_bytes();
 

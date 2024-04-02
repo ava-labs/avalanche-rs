@@ -1,11 +1,12 @@
 use std::cmp::Ordering;
 
 use crate::{
-    codec,
     errors::{Error, Result},
     formatting,
     ids::{self, short},
-    key, packer, platformvm,
+    key,
+    packer::Packer,
+    platformvm,
 };
 use serde::{Deserialize, Serialize};
 
@@ -166,7 +167,7 @@ impl Default for Utxo {
 impl Utxo {
     /// Hex-encodes the Utxo with the prepended "0x".
     pub fn to_hex(&self) -> Result<String> {
-        let packer = self.pack(codec::VERSION)?;
+        let packer = self.to_packer()?;
         let b = packer.take_bytes();
 
         let d = formatting::encode_hex_with_checksum(&b);
@@ -187,14 +188,10 @@ impl Utxo {
     }
 
     /// Packes the Utxo.
-    pub fn pack(&self, codec_version: u16) -> Result<packer::Packer> {
+    fn to_packer(&self) -> Result<Packer> {
         // ref. "avalanchego/codec.manager.Marshal", "vms/avm.newCustomCodecs"
         // ref. "math.MaxInt32" and "constants.DefaultByteSliceCap" in Go
-        let packer = packer::Packer::new((1 << 31) - 1, 128);
-
-        // codec version
-        // ref. "avalanchego/codec.manager.Marshal"
-        packer.pack_u16(codec_version)?;
+        let packer = Packer::new();
 
         packer.pack_bytes(self.utxo_id.tx_id.as_ref())?;
         packer.pack_u32(self.utxo_id.output_index)?;
@@ -229,7 +226,7 @@ impl Utxo {
     /// It assumes the data are already decoded from "hex".
     /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/components/avax#UTXO>
     pub fn unpack(d: &[u8]) -> Result<Self> {
-        let packer = packer::Packer::load_bytes_for_unpack(d.len() + 1024, d);
+        let packer = Packer::load_bytes_for_unpack(d.len() + 1024, d);
 
         let _codec_version = packer.unpack_u16()?;
 

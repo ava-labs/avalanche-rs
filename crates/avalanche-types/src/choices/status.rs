@@ -1,5 +1,5 @@
 //! Status enum that represents the possible statuses of an consensus operation.
-use crate::{errors, packer::Packer};
+use crate::errors;
 use bytes::Bytes;
 use serde::{Deserialize, Serialize};
 
