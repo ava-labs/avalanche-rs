@@ -13,14 +13,17 @@ use serde::{Deserialize, Serialize};
 ///
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/avm#UnsignedTx>
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone, Default)]
+#[serde(rename_all = "camelCase")]
 pub struct Tx {
     /// The transaction ID is empty for unsigned tx
     /// as long as "avax.BaseTx.Metadata" is "None".
     /// Once Metadata is updated with signing and "Tx.Initialize",
     /// Tx.ID() is non-empty.
+    #[serde(flatten)]
     pub base_tx: txs::Tx,
-    pub destination_chain_id: ids::Id,
-    pub destination_chain_transferable_outputs: Option<Vec<txs::transferable::Output>>,
+    pub destination_chain: ids::Id,
+    pub exported_outputs: Option<Vec<txs::transferable::Output>>,
+    #[serde(default)]
     pub fx_creds: Vec<fx::Credential>,
 }
 
@@ -71,12 +74,12 @@ impl Tx {
         packer.set_bytes(&b);
 
         // pack the second field in the struct
-        packer.pack_bytes(self.destination_chain_id.as_ref())?;
+        packer.pack_bytes(self.destination_chain.as_ref())?;
 
         // pack the third field in the struct
-        if self.destination_chain_transferable_outputs.is_some() {
+        if self.exported_outputs.is_some() {
             let destination_chain_transferable_outputs = self
-                .destination_chain_transferable_outputs
+                .exported_outputs
                 .as_ref()
                 .unwrap();
             packer.pack_u32(destination_chain_transferable_outputs.len() as u32)?;
@@ -255,54 +258,36 @@ impl Tx {
 /// ref. "avalanchego/vms/avm.TestExportTxSerialization"
 #[test]
 fn test_export_tx_serialization_with_two_signers() {
+    use serde_json::json;
     macro_rules! ab {
         ($e:expr) => {
             tokio_test::block_on($e)
         };
     }
 
-    let mut tx = Tx {
-        base_tx: txs::Tx {
-            network_id: 2,
-            blockchain_id: ids::Id::from_slice(&<Vec<u8>>::from([
-                0xff, 0xff, 0xff, 0xff, 0xee, 0xee, 0xee, 0xee, //
-                0xdd, 0xdd, 0xdd, 0xdd, 0xcc, 0xcc, 0xcc, 0xcc, //
-                0xbb, 0xbb, 0xbb, 0xbb, 0xaa, 0xaa, 0xaa, 0xaa, //
-                0x99, 0x99, 0x99, 0x99, 0x88, 0x88, 0x88, 0x88, //
-            ])),
-            transferable_inputs: Some(vec![txs::transferable::Input {
-                utxo_id: txs::utxo::Id {
-                    tx_id: ids::Id::from_slice(&<Vec<u8>>::from([
-                        0x0f, 0x2f, 0x4f, 0x6f, 0x8e, 0xae, 0xce, 0xee, //
-                        0x0d, 0x2d, 0x4d, 0x6d, 0x8c, 0xac, 0xcc, 0xec, //
-                        0x0b, 0x2b, 0x4b, 0x6b, 0x8a, 0xaa, 0xca, 0xea, //
-                        0x09, 0x29, 0x49, 0x69, 0x88, 0xa8, 0xc8, 0xe8, //
-                    ])),
-                    ..txs::utxo::Id::default()
-                },
-                asset_id: ids::Id::from_slice(&<Vec<u8>>::from([
-                    0x1f, 0x3f, 0x5f, 0x7f, 0x9e, 0xbe, 0xde, 0xfe, //
-                    0x1d, 0x3d, 0x5d, 0x7d, 0x9c, 0xbc, 0xdc, 0xfc, //
-                    0x1b, 0x3b, 0x5b, 0x7b, 0x9a, 0xba, 0xda, 0xfa, //
-                    0x19, 0x39, 0x59, 0x79, 0x98, 0xb8, 0xd8, 0xf8, //
-                ])),
-                transfer_input: Some(key::secp256k1::txs::transfer::Input {
-                    amount: 1000,
-                    sig_indices: vec![0],
-                }),
-                ..txs::transferable::Input::default()
-            }]),
-            memo: Some(vec![0x00, 0x01, 0x02, 0x03]),
-            ..txs::Tx::default()
-        },
-        destination_chain_id: ids::Id::from_slice(&<Vec<u8>>::from([
-            0x1f, 0x8f, 0x9f, 0x0f, 0x1e, 0x8e, 0x9e, 0x0e, //
-            0x2d, 0x7d, 0xad, 0xfd, 0x2c, 0x7c, 0xac, 0xfc, //
-            0x3b, 0x6b, 0xbb, 0xeb, 0x3a, 0x6a, 0xba, 0xea, //
-            0x49, 0x59, 0xc9, 0xd9, 0x48, 0x58, 0xc8, 0xd8, //
-        ])),
-        ..Tx::default()
-    };
+    let tx_json = json!({
+        "networkID": 2,
+        "blockchainID": "2wkBET1hoeo1jE9q5Mh3tivX7WF4haVKFNtJh6hYpwsSuwBPDm",
+        "outputs": null,
+        "inputs": [
+        {
+            "txID": "7gsn8emLM1vGPQxSUSA3RG86UGg2STr2ViD8Xm5Y73Kbj8dfV",
+            "outputIndex": 0,
+            "assetID": "EmBFb5SpxgjA3hAqWTyQq3vsU1YcPciewSgQKFb5q9HKtMUFg",
+            "fxID": "11111111111111111111111111111111LpoYY",
+            "input": {
+                "amount": 1000,
+                "signatureIndices": [
+                    0
+                ]
+            }
+        }
+        ],
+        "memo": "0x00010203",
+        "destinationChain": "EuBfhQDfCEzzbopoiJ9pBfeME5RagYpA8SENG8KbCbjzeKtuL",
+        "exportedOutputs": null
+    });
+    let mut tx: Tx = serde_json::from_value(tx_json).expect("parsing tx");
 
     // ref. "avalanchego/vms/avm/vm_test.go"
     let test_key = key::secp256k1::private_key::Key::from_cb58(
