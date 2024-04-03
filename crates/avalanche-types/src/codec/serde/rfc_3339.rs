@@ -25,7 +25,7 @@ where
     }
 }
 
-pub struct DateTimeUtc(DateTime<Utc>);
+pub struct DateTimeUtc;
 
 impl SerializeAs<DateTime<Utc>> for DateTimeUtc {
     fn serialize_as<S>(x: &DateTime<Utc>, serializer: S) -> Result<S::Ok, S::Error>

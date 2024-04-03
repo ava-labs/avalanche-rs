@@ -42,7 +42,7 @@ where
     }
 }
 
-pub struct IpPort(SocketAddr);
+pub struct IpPort;
 
 impl SerializeAs<SocketAddr> for IpPort {
     fn serialize_as<S>(x: &SocketAddr, serializer: S) -> Result<S::Ok, S::Error>

@@ -19,7 +19,7 @@ where
         .map_err(serde::de::Error::custom)
 }
 
-pub struct Base64Bytes(Vec<u8>);
+pub struct Base64Bytes;
 
 impl SerializeAs<Vec<u8>> for Base64Bytes {
     fn serialize_as<S>(x: &Vec<u8>, serializer: S) -> Result<S::Ok, S::Error>

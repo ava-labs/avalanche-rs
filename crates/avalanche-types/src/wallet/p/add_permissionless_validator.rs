@@ -7,7 +7,7 @@ use crate::{
     jsonrpc::client::p as client_p,
     key, platformvm, txs, units,
 };
-use chrono::{DateTime, NaiveDateTime, TimeZone, Utc};
+use chrono::{DateTime, Utc};
 use tokio::time::{sleep, Duration, Instant};
 
 /// Represents P-chain "AddPermissionlessValidator" transaction.
@@ -64,15 +64,13 @@ where
             .as_secs();
 
         let start_time = now_unix + 60;
-        let naive_dt = NaiveDateTime::from_timestamp_opt(start_time as i64, 0).unwrap();
-        let start_time = Utc.from_utc_datetime(&naive_dt);
+        let start_time = DateTime::from_timestamp(start_time as i64, 0).unwrap();
 
         // 100-day
         // must be smaller than the primary network default
         // otherwise "staking period must be a subset of the primary network"
         let end_time = now_unix + 100 * 24 * 60 * 60;
-        let naive_dt = NaiveDateTime::from_timestamp_opt(end_time as i64, 0).unwrap();
-        let end_time = Utc.from_utc_datetime(&naive_dt);
+        let end_time = DateTime::from_timestamp(end_time as i64, 0).unwrap();
 
         Self {
             inner: p.clone(),
@@ -135,14 +133,12 @@ where
             .as_secs();
 
         let start_time = now_unix + offset_seconds;
-        let naive_dt = NaiveDateTime::from_timestamp_opt(start_time as i64, 0).unwrap();
-        let start_time = Utc.from_utc_datetime(&naive_dt);
+        let start_time = DateTime::from_timestamp(start_time as i64, 0).unwrap();
 
         // must be smaller than the primary network default
         // otherwise "staking period must be a subset of the primary network"
         let end_time = now_unix + days * 24 * 60 * 60;
-        let naive_dt = NaiveDateTime::from_timestamp_opt(end_time as i64, 0).unwrap();
-        let end_time = Utc.from_utc_datetime(&naive_dt);
+        let end_time = DateTime::from_timestamp(end_time as i64, 0).unwrap();
 
         self.start_time = start_time;
         self.end_time = end_time;
