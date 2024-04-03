@@ -341,14 +341,14 @@ fn test_sort_output_owners() {
 
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/secp256k1fx#Input>
 #[derive(Debug, Serialize, Deserialize, Eq, Clone, Default)]
+#[serde(rename_all = "camelCase")]
 pub struct Input {
-    #[serde(rename = "signatureIndices")]
-    pub sig_indices: Vec<u32>,
+    pub signature_indices: Vec<u32>,
 }
 
 impl Input {
-    pub fn new(sig_indices: Vec<u32>) -> Self {
-        Self { sig_indices }
+    pub fn new(signature_indices: Vec<u32>) -> Self {
+        Self { signature_indices }
     }
 
     pub fn type_name() -> String {
@@ -362,7 +362,7 @@ impl Input {
 
 impl Ord for Input {
     fn cmp(&self, other: &Input) -> Ordering {
-        SigIndices::new(&self.sig_indices).cmp(&SigIndices::new(&other.sig_indices))
+        SigIndices::new(&self.signature_indices).cmp(&SigIndices::new(&other.signature_indices))
     }
 }
 
@@ -384,13 +384,13 @@ fn test_sort_inputs() {
     let mut inputs: Vec<Input> = Vec::new();
     for i in (0..10).rev() {
         inputs.push(Input {
-            sig_indices: vec![i as u32, 2, 2, 3, 4, 5, 6, 7, 8, 9],
+            signature_indices: vec![i as u32, 2, 2, 3, 4, 5, 6, 7, 8, 9],
         });
         inputs.push(Input {
-            sig_indices: vec![i as u32, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+            signature_indices: vec![i as u32, 1, 2, 3, 4, 5, 6, 7, 8, 9],
         });
         inputs.push(Input {
-            sig_indices: vec![i as u32, 1, 2, 3, 4, 5],
+            signature_indices: vec![i as u32, 1, 2, 3, 4, 5],
         });
     }
     assert!(!cmp_manager::is_sorted_and_unique(&inputs));
@@ -399,15 +399,15 @@ fn test_sort_inputs() {
     let mut sorted_inputs: Vec<Input> = Vec::new();
     for i in 0..10 {
         sorted_inputs.push(Input {
-            sig_indices: vec![i as u32, 1, 2, 3, 4, 5],
+            signature_indices: vec![i as u32, 1, 2, 3, 4, 5],
         });
     }
     for i in 0..10 {
         sorted_inputs.push(Input {
-            sig_indices: vec![i as u32, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+            signature_indices: vec![i as u32, 1, 2, 3, 4, 5, 6, 7, 8, 9],
         });
         sorted_inputs.push(Input {
-            sig_indices: vec![i as u32, 2, 2, 3, 4, 5, 6, 7, 8, 9],
+            signature_indices: vec![i as u32, 2, 2, 3, 4, 5, 6, 7, 8, 9],
         });
     }
     assert!(cmp_manager::is_sorted_and_unique(&sorted_inputs));

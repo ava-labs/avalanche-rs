@@ -21,7 +21,7 @@ pub struct Tx {
     pub shares: u32,
 
     /// To be updated after signing.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     pub creds: Vec<key::secp256k1::txs::Credential>,
 }
 

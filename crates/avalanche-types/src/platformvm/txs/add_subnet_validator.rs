@@ -27,6 +27,7 @@ impl Default for Validator {
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/platformvm/txs#Tx>
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/platformvm/txs#UnsignedTx>
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone, Default)]
+#[serde(rename_all = "camelCase")]
 pub struct Tx {
     /// The transaction ID is empty for unsigned tx
     /// as long as "avax.BaseTx.Metadata" is "None".
@@ -35,11 +36,10 @@ pub struct Tx {
     #[serde(flatten)]
     pub base_tx: txs::Tx,
     pub validator: Validator,
-    #[serde(rename = "subnetAuthorization")]
-    pub subnet_auth: key::secp256k1::txs::Input,
+    pub subnet_authorization: key::secp256k1::txs::Input,
 
     /// To be updated after signing.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     pub creds: Vec<key::secp256k1::txs::Credential>,
 }
 
@@ -71,7 +71,7 @@ impl Tx {
         *(codec::P_TYPES.get(&Self::type_name()).unwrap()) as u32
     }
 
-    pub fn pack(&self) -> Result<packer::Packer> {
+    fn pack(&self) -> Result<packer::Packer> {
         // marshal "unsigned tx" with the codec version
         let type_id = Self::type_id();
         let packer = self.base_tx.pack(codec::VERSION, type_id)?;
@@ -96,8 +96,8 @@ impl Tx {
         // pack the third field "subnet_auth" in the struct
         let subnet_auth_type_id = key::secp256k1::txs::Input::type_id();
         packer.pack_u32(subnet_auth_type_id)?;
-        packer.pack_u32(self.subnet_auth.sig_indices.len() as u32)?;
-        for sig_idx in self.subnet_auth.sig_indices.iter() {
+        packer.pack_u32(self.subnet_authorization.signature_indices.len() as u32)?;
+        for sig_idx in self.subnet_authorization.signature_indices.iter() {
             packer.pack_u32(*sig_idx)?;
         }
 
@@ -246,8 +246,8 @@ fn test_add_subnet_validator_tx_serialization_with_one_signer() {
                 0x59, 0xb9,
             ])),
         },
-        subnet_auth: key::secp256k1::txs::Input {
-            sig_indices: vec![0_u32],
+        subnet_authorization: key::secp256k1::txs::Input {
+            signature_indices: vec![0_u32],
         },
         ..Tx::default()
     };
@@ -422,7 +422,7 @@ fn test_add_subnet_validator_tx_serialization_with_one_signer() {
     ));
 }
 
-/// RUST_LOG=debug cargo test --package avalanche-types --lib -- platformvm::txs::add_subnet_validator::test_json_deserialize --exact --show-output
+// TODO: split up serialization tests
 #[test]
 fn test_json_deserialize() {
     use serde_json::json;
@@ -437,7 +437,7 @@ fn test_json_deserialize() {
           "fxID": "spdxUxVJQbX85MGxMHbKw1sHxMnSqJ3QBzDyDYEP3h6TLuxqQ",
           "output": {
             "addresses": ["P-custom18jma8ppw3nhx5r4ap8clazz0dps7rv5u9xde7p"],
-            "amount": 19999999899000000_u64,
+            "amount": 19999999899000000 as u64,
             "locktime": 0,
             "threshold": 1
           }
@@ -449,7 +449,7 @@ fn test_json_deserialize() {
           "outputIndex": 0,
           "assetID": "28VTWcsTZ55draGkmjdcS9CFFv4zC3PbvVjkyoqxzNC7Y5msRP",
           "fxID": "spdxUxVJQbX85MGxMHbKw1sHxMnSqJ3QBzDyDYEP3h6TLuxqQ",
-          "input": { "amount": 19999999900000000_64, "signatureIndices": [0] }
+          "input": { "amount": 19999999900000000 as u64, "signatureIndices": [0] }
         }
       ],
       "memo": "0x",
