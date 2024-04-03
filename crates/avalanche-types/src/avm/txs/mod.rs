@@ -4,7 +4,12 @@ pub mod fx;
 pub mod import;
 pub mod vertex;
 
-use crate::{codec, errors::Result, hash, ids, key, txs};
+use crate::{
+    codec,
+    errors::Result,
+    hash, ids, key,
+    txs::{self},
+};
 use serde::{Deserialize, Serialize};
 
 /// Base transaction.
@@ -135,7 +140,7 @@ impl Tx {
 /// ref. "avalanchego/vms/avm.TestBaseTxSerialization"
 #[test]
 fn test_tx_serialization_with_two_signers() {
-    use crate::ids::short;
+    use crate::{ids::short, txs::transferable::TransferableOut};
 
     macro_rules! ab {
         ($e:expr) => {
@@ -159,7 +164,7 @@ fn test_tx_serialization_with_two_signers() {
         blockchain_id: ids::Id::from_slice(&<Vec<u8>>::from([5, 4, 3, 2, 1])),
         transferable_outputs: Some(vec![txs::transferable::Output {
             asset_id: ids::Id::from_slice(&<Vec<u8>>::from([1, 2, 3])),
-            transfer_output: Some(key::secp256k1::txs::transfer::Output {
+            out: TransferableOut::TransferOutput(key::secp256k1::txs::transfer::Output {
                 amount: 12345,
                 output_owners: key::secp256k1::txs::OutputOwners {
                     locktime: 0,

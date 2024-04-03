@@ -3,7 +3,12 @@ use std::{
     io::{self, Error, ErrorKind},
 };
 
-use crate::{codec, key};
+use crate::{
+    codec,
+    errors::Result,
+    key,
+    packer::{Packable, Packer},
+};
 use serde::{Deserialize, Serialize};
 
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/components/avax#TransferableOutput>
@@ -33,6 +38,29 @@ impl Output {
 
     pub fn type_id() -> u32 {
         *(codec::X_TYPES.get(&Self::type_name()).unwrap()) as u32
+    }
+}
+
+impl Packable for Output {
+    fn pack(&self, packer: &Packer) -> Result<()> {
+        // marshal type ID for "key::secp256k1::txs::transfer::Output"
+        packer.pack_u32(Self::type_id())?;
+
+        // "key::secp256k1::txs::transfer::Output"
+        // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/secp256k1fx#TransferOutput
+
+        // marshal "secp256k1fx.TransferOutput.Amt" field
+        packer.pack_u64(self.amount)?;
+
+        // "secp256k1fx.TransferOutput.OutputOwners" is struct and serialize:"true"
+        // but embedded inline in the struct "TransferOutput"
+        // so no need to encode type ID
+        // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/secp256k1fx#TransferOutput
+        // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/secp256k1fx#OutputOwners
+        packer.pack_u64(self.output_owners.locktime)?;
+        packer.pack_u32(self.output_owners.threshold)?;
+        packer.pack(&self.output_owners.addresses)?;
+        Ok(())
     }
 }
 

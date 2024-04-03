@@ -60,6 +60,17 @@ impl Packer {
         }
     }
 
+    pub fn new_with_version(codec_version: u16) -> Result<Self> {
+        // ref. "avalanchego/codec.manager.Marshal", "vms/avm.newCustomCodecs"
+        // ref. "math.MaxInt32" and "constants.DefaultByteSliceCap" in Go
+        let packer = Self::new((1 << 31) - 1, 128);
+
+        // codec version
+        // ref. "avalanchego/codec.manager.Marshal"
+        packer.pack_u16(codec_version)?;
+        Ok(packer)
+    }
+
     /// Creates a new Packer with 32-bit message length header.
     pub fn new_with_header(max_size: usize, initial_cap: usize) -> Self {
         let mut b = BytesMut::with_capacity(initial_cap);
@@ -620,6 +631,53 @@ impl Packer {
             }
         };
         Ok(s)
+    }
+
+    /// Packs a packable type
+    pub fn pack<T: Packable>(&self, v: &T) -> Result<()> {
+        v.pack(self)
+    }
+}
+
+/// A trait implemented by types that can be packed using [`Packer`]
+pub trait Packable {
+    fn pack(&self, packer: &Packer) -> Result<()>;
+}
+
+/// [`Packable`] implementation for [`u8`]
+impl Packable for u8 {
+    fn pack(&self, packer: &Packer) -> Result<()> {
+        packer.pack_byte(*self)
+    }
+}
+
+/// [`Packable`] implementation for [`u32`]
+impl Packable for u32 {
+    fn pack(&self, packer: &Packer) -> Result<()> {
+        packer.pack_u32(*self)
+    }
+}
+
+/// Generic [`Packable`] implementation for [`Option<T>`]
+impl<T: Packable> Packable for Option<T> {
+    fn pack(&self, packer: &Packer) -> Result<()> {
+        if let Some(val) = self {
+            packer.pack(val)?;
+        } else {
+            packer.pack_u32(0_u32)?;
+        }
+        Ok(())
+    }
+}
+
+/// Generic [`Packable`] implementation for [`Vec<T>`]
+impl<T: Packable> Packable for Vec<T> {
+    fn pack(&self, packer: &Packer) -> Result<()> {
+        packer.pack_u32(self.len() as u32)?;
+        for val in self {
+            packer.pack(val)?;
+        }
+        Ok(())
     }
 }
 

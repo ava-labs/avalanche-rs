@@ -131,7 +131,9 @@ fn test_utxo_id() {
 /// TODO: implement ordering?
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub struct Utxo {
+    #[serde(flatten)]
     pub utxo_id: Id,
+    #[serde(rename = "assetID")]
     pub asset_id: ids::Id,
 
     /// AvalancheGo loads "avax.UTXO" object from the db and
@@ -206,10 +208,7 @@ impl Utxo {
             packer.pack_u64(out.output_owners.locktime)?;
             packer.pack_u32(out.output_owners.threshold)?;
 
-            packer.pack_u32(out.output_owners.addresses.len() as u32)?;
-            for addr in out.output_owners.addresses.iter() {
-                packer.pack_bytes(addr.as_ref())?;
-            }
+            packer.pack(&out.output_owners.addresses)?;
         } else if let Some(lock_out) = &self.stakeable_lock_out {
             packer.pack_u32(platformvm::txs::StakeableLockOut::type_id())?;
             packer.pack_u64(lock_out.locktime)?;
@@ -220,10 +219,7 @@ impl Utxo {
             packer.pack_u64(lock_out.transfer_output.output_owners.locktime)?;
             packer.pack_u32(lock_out.transfer_output.output_owners.threshold)?;
 
-            packer.pack_u32(lock_out.transfer_output.output_owners.addresses.len() as u32)?;
-            for addr in lock_out.transfer_output.output_owners.addresses.iter() {
-                packer.pack_bytes(addr.as_ref())?;
-            }
+            packer.pack(&lock_out.transfer_output.output_owners.addresses)?;
         }
 
         Ok(packer)

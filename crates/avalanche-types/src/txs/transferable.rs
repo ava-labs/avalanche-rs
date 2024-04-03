@@ -1,7 +1,85 @@
 use std::cmp::Ordering;
 
-use crate::{ids, key, platformvm, txs};
+use crate::{
+    errors::Result,
+    ids, key,
+    packer::{Packable, Packer},
+    platformvm, txs,
+};
 use serde::{Deserialize, Serialize};
+
+/// Implementation of "*components.avax.TransferOut"
+/// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/components/avax#TransferableOut>
+/// which is either:
+///
+/// "*secp256k1fx.TransferOutput"
+/// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/secp256k1fx#TransferOutput>
+///
+/// "*platformvm.StakeableLockOut" which embeds "*secp256k1fx.TransferOutput"
+/// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/platformvm#StakeableLockOut>
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone, PartialOrd)]
+#[serde(untagged)]
+pub enum TransferableOut {
+    TransferOutput(key::secp256k1::txs::transfer::Output),
+    StakeableLockOut(platformvm::txs::StakeableLockOut),
+}
+
+impl TransferableOut {
+    pub fn type_id(&self) -> u32 {
+        match self {
+            TransferableOut::TransferOutput(_out) => {
+                key::secp256k1::txs::transfer::Output::type_id()
+            }
+            TransferableOut::StakeableLockOut(_out) => platformvm::txs::StakeableLockOut::type_id(),
+        }
+    }
+}
+
+impl Packable for TransferableOut {
+    fn pack(&self, packer: &Packer) -> Result<()> {
+        match self {
+            TransferableOut::TransferOutput(transfer_output) => {
+                packer.pack(transfer_output)?;
+            }
+            TransferableOut::StakeableLockOut(stakeable_lock_out) => {
+                // marshal type ID "platformvm::txs::StakeableLockOut"
+                packer.pack_u32(platformvm::txs::StakeableLockOut::type_id())?;
+
+                // "platformvm::txs::StakeableLockOut"
+                // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/platformvm#StakeableLockOut
+
+                // marshal "platformvm::txs::StakeableLockOut.locktime" field
+                packer.pack_u64(stakeable_lock_out.locktime)?;
+                packer.pack(&stakeable_lock_out.transfer_output)?;
+            }
+        }
+        Ok(())
+    }
+}
+
+impl Ord for TransferableOut {
+    fn cmp(&self, other: &TransferableOut) -> Ordering {
+        // unlike "avalanchego", we want ordering without "codec" dependency and marshal-ing
+        // just check type ID header
+        let type_id_ord = self.type_id().cmp(&other.type_id());
+        if type_id_ord != Ordering::Equal {
+            // no need to compare further
+            return type_id_ord;
+        }
+
+        match (self, other) {
+            (
+                TransferableOut::TransferOutput(out_self),
+                TransferableOut::TransferOutput(out_other),
+            ) => out_self.cmp(out_other),
+            (
+                TransferableOut::StakeableLockOut(out_self),
+                TransferableOut::StakeableLockOut(out_other),
+            ) => out_self.cmp(out_other),
+            (_, _) => self.type_id().cmp(&other.type_id()),
+        }
+    }
+}
 
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/components/avax#TransferableOutput>
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/components/avax#TransferableOut>
@@ -15,18 +93,8 @@ pub struct Output {
     #[serde(rename = "fxID", skip_serializing_if = "Option::is_none")]
     pub fx_id: Option<ids::Id>,
 
-    /// The underlying type is one of the following:
-    ///
-    /// "*secp256k1fx.TransferOutput"
-    /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/secp256k1fx#TransferOutput>
-    ///
-    /// "*platformvm.StakeableLockOut" which embeds "*secp256k1fx.TransferOutput"
-    /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/platformvm#StakeableLockOut>
-    ///
-    /// MUST: only one of the following can be "Some".
     #[serde(rename = "output")]
-    pub transfer_output: Option<key::secp256k1::txs::transfer::Output>,
-    pub stakeable_lock_out: Option<platformvm::txs::StakeableLockOut>,
+    pub out: TransferableOut,
 }
 
 impl Default for Output {
@@ -34,8 +102,7 @@ impl Default for Output {
         Self {
             asset_id: ids::Id::empty(),
             fx_id: None,
-            transfer_output: None,
-            stakeable_lock_out: None,
+            out: TransferableOut::TransferOutput(Default::default()),
         }
     }
 }
@@ -48,60 +115,8 @@ impl Ord for Output {
             // no need to compare further
             return asset_id_ord;
         }
-        if self.transfer_output.is_none()
-            && self.stakeable_lock_out.is_none()
-            && other.transfer_output.is_none()
-            && other.stakeable_lock_out.is_none()
-        {
-            // should never happen but sorting/ordering shouldn't worry about this...
-            // can't compare anymore, so thus return here...
-            return Ordering::Equal;
-        }
 
-        // unlike "avalanchego", we want ordering without "codec" dependency and marshal-ing
-        // just check type ID header
-        let type_id_self = {
-            if self.transfer_output.is_some() {
-                key::secp256k1::txs::transfer::Output::type_id()
-            } else {
-                platformvm::txs::StakeableLockOut::type_id()
-            }
-        };
-        let type_id_other = {
-            if other.transfer_output.is_some() {
-                key::secp256k1::txs::transfer::Output::type_id()
-            } else {
-                platformvm::txs::StakeableLockOut::type_id()
-            }
-        };
-        let type_id_ord = type_id_self.cmp(&type_id_other);
-        if type_id_ord != Ordering::Equal {
-            // no need to compare further
-            return type_id_ord;
-        }
-
-        // both instances have the same type!!!
-        // just use the ordering of underlying types
-        match type_id_self {
-            7 => {
-                // "key::secp256k1::txs::transfer::Output"
-                // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/secp256k1fx#TransferOutput
-                let transfer_output_self = self.transfer_output.clone().unwrap();
-                let transfer_output_other = other.transfer_output.clone().unwrap();
-                transfer_output_self.cmp(&transfer_output_other)
-            }
-            22 => {
-                // "platformvm::txs::StakeableLockOut"
-                // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/platformvm#StakeableLockOut
-                let stakeable_lock_out_self = self.stakeable_lock_out.clone().unwrap();
-                let stakeable_lock_out_other = other.stakeable_lock_out.clone().unwrap();
-                stakeable_lock_out_self.cmp(&stakeable_lock_out_other)
-            }
-            _ => {
-                // should never happen
-                panic!("unexpected type ID {} for TransferableOutput", type_id_self);
-            }
-        }
+        self.out.cmp(&other.out)
     }
 }
 
@@ -117,6 +132,19 @@ impl PartialEq for Output {
     }
 }
 
+impl Packable for Output {
+    fn pack(&self, packer: &Packer) -> Result<()> {
+        // "TransferableOutput.Asset" is struct and serialize:"true"
+        // but embedded inline in the struct "TransferableOutput"
+        // so no need to encode type ID
+        // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/components/avax#TransferableOutput
+        // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/components/avax#Asset
+        packer.pack_bytes(self.asset_id.as_ref())?;
+        packer.pack(&self.out)?;
+        Ok(())
+    }
+}
+
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/components/avax#SortTransferableOutputs>
 /// ref. "avalanchego/vms/components/avax.TestTransferableOutputSorting"
 /// RUST_LOG=debug cargo test --package avalanche-types --lib -- txs::transferable::test_sort_transferable_outputs --exact --show-output
@@ -128,7 +156,7 @@ fn test_sort_transferable_outputs() {
     for i in (0..10).rev() {
         outputs.push(Output {
             asset_id: ids::Id::from_slice(&[i as u8, 2, 2, 3, 4, 5, 6, 7, 8, 9]),
-            stakeable_lock_out: Some(platformvm::txs::StakeableLockOut {
+            out: TransferableOut::StakeableLockOut(platformvm::txs::StakeableLockOut {
                 locktime: i as u64,
                 transfer_output: key::secp256k1::txs::transfer::Output {
                     amount: (i + 1) as u64,
@@ -146,7 +174,7 @@ fn test_sort_transferable_outputs() {
         });
         outputs.push(Output {
             asset_id: ids::Id::from_slice(&[i as u8, 2, 2, 3, 4, 5, 6, 7, 8, 9]),
-            stakeable_lock_out: Some(platformvm::txs::StakeableLockOut {
+            out: TransferableOut::StakeableLockOut(platformvm::txs::StakeableLockOut {
                 locktime: i as u64,
                 transfer_output: key::secp256k1::txs::transfer::Output {
                     amount: (i + 1) as u64,
@@ -164,7 +192,7 @@ fn test_sort_transferable_outputs() {
         });
         outputs.push(Output {
             asset_id: ids::Id::from_slice(&[i as u8, 2, 2, 3, 4, 5, 6, 7, 8, 9]),
-            stakeable_lock_out: Some(platformvm::txs::StakeableLockOut {
+            out: TransferableOut::StakeableLockOut(platformvm::txs::StakeableLockOut {
                 locktime: i as u64,
                 transfer_output: key::secp256k1::txs::transfer::Output {
                     amount: (i + 1) as u64,
@@ -179,7 +207,7 @@ fn test_sort_transferable_outputs() {
         });
         outputs.push(Output {
             asset_id: ids::Id::from_slice(&[i as u8, 2, 2, 3, 4, 5, 6, 7, 8, 9]),
-            stakeable_lock_out: Some(platformvm::txs::StakeableLockOut {
+            out: TransferableOut::StakeableLockOut(platformvm::txs::StakeableLockOut {
                 locktime: i as u64,
                 transfer_output: key::secp256k1::txs::transfer::Output {
                     amount: i as u64,
@@ -194,7 +222,7 @@ fn test_sort_transferable_outputs() {
         });
         outputs.push(Output {
             asset_id: ids::Id::from_slice(&[i as u8, 2, 2, 3, 4, 5, 6, 7, 8, 9]),
-            transfer_output: Some(key::secp256k1::txs::transfer::Output {
+            out: TransferableOut::TransferOutput(key::secp256k1::txs::transfer::Output {
                 amount: i as u64,
                 output_owners: key::secp256k1::txs::OutputOwners {
                     locktime: i as u64,
@@ -206,7 +234,7 @@ fn test_sort_transferable_outputs() {
         });
         outputs.push(Output {
             asset_id: ids::Id::from_slice(&[i as u8, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
-            stakeable_lock_out: Some(platformvm::txs::StakeableLockOut {
+            out: TransferableOut::StakeableLockOut(platformvm::txs::StakeableLockOut {
                 locktime: i as u64,
                 transfer_output: key::secp256k1::txs::transfer::Output {
                     amount: (i + 1) as u64,
@@ -221,7 +249,7 @@ fn test_sort_transferable_outputs() {
         });
         outputs.push(Output {
             asset_id: ids::Id::from_slice(&[i as u8, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
-            stakeable_lock_out: Some(platformvm::txs::StakeableLockOut {
+            out: TransferableOut::StakeableLockOut(platformvm::txs::StakeableLockOut {
                 locktime: i as u64,
                 transfer_output: key::secp256k1::txs::transfer::Output {
                     amount: i as u64,
@@ -236,7 +264,7 @@ fn test_sort_transferable_outputs() {
         });
         outputs.push(Output {
             asset_id: ids::Id::from_slice(&[i as u8, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
-            transfer_output: Some(key::secp256k1::txs::transfer::Output {
+            out: TransferableOut::TransferOutput(key::secp256k1::txs::transfer::Output {
                 amount: i as u64,
                 output_owners: key::secp256k1::txs::OutputOwners {
                     locktime: i as u64,
@@ -254,7 +282,7 @@ fn test_sort_transferable_outputs() {
     for i in 0..10 {
         sorted_outputs.push(Output {
             asset_id: ids::Id::from_slice(&[i as u8, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
-            transfer_output: Some(key::secp256k1::txs::transfer::Output {
+            out: TransferableOut::TransferOutput(key::secp256k1::txs::transfer::Output {
                 amount: i as u64,
                 output_owners: key::secp256k1::txs::OutputOwners {
                     locktime: i as u64,
@@ -266,7 +294,7 @@ fn test_sort_transferable_outputs() {
         });
         sorted_outputs.push(Output {
             asset_id: ids::Id::from_slice(&[i as u8, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
-            stakeable_lock_out: Some(platformvm::txs::StakeableLockOut {
+            out: TransferableOut::StakeableLockOut(platformvm::txs::StakeableLockOut {
                 locktime: i as u64,
                 transfer_output: key::secp256k1::txs::transfer::Output {
                     amount: i as u64,
@@ -281,7 +309,7 @@ fn test_sort_transferable_outputs() {
         });
         sorted_outputs.push(Output {
             asset_id: ids::Id::from_slice(&[i as u8, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
-            stakeable_lock_out: Some(platformvm::txs::StakeableLockOut {
+            out: TransferableOut::StakeableLockOut(platformvm::txs::StakeableLockOut {
                 locktime: i as u64,
                 transfer_output: key::secp256k1::txs::transfer::Output {
                     amount: (i + 1) as u64,
@@ -296,7 +324,7 @@ fn test_sort_transferable_outputs() {
         });
         sorted_outputs.push(Output {
             asset_id: ids::Id::from_slice(&[i as u8, 2, 2, 3, 4, 5, 6, 7, 8, 9]),
-            transfer_output: Some(key::secp256k1::txs::transfer::Output {
+            out: TransferableOut::TransferOutput(key::secp256k1::txs::transfer::Output {
                 amount: i as u64,
                 output_owners: key::secp256k1::txs::OutputOwners {
                     locktime: i as u64,
@@ -308,7 +336,7 @@ fn test_sort_transferable_outputs() {
         });
         sorted_outputs.push(Output {
             asset_id: ids::Id::from_slice(&[i as u8, 2, 2, 3, 4, 5, 6, 7, 8, 9]),
-            stakeable_lock_out: Some(platformvm::txs::StakeableLockOut {
+            out: TransferableOut::StakeableLockOut(platformvm::txs::StakeableLockOut {
                 locktime: i as u64,
                 transfer_output: key::secp256k1::txs::transfer::Output {
                     amount: i as u64,
@@ -323,7 +351,7 @@ fn test_sort_transferable_outputs() {
         });
         sorted_outputs.push(Output {
             asset_id: ids::Id::from_slice(&[i as u8, 2, 2, 3, 4, 5, 6, 7, 8, 9]),
-            stakeable_lock_out: Some(platformvm::txs::StakeableLockOut {
+            out: TransferableOut::StakeableLockOut(platformvm::txs::StakeableLockOut {
                 locktime: i as u64,
                 transfer_output: key::secp256k1::txs::transfer::Output {
                     amount: (i + 1) as u64,
@@ -338,7 +366,7 @@ fn test_sort_transferable_outputs() {
         });
         sorted_outputs.push(Output {
             asset_id: ids::Id::from_slice(&[i as u8, 2, 2, 3, 4, 5, 6, 7, 8, 9]),
-            stakeable_lock_out: Some(platformvm::txs::StakeableLockOut {
+            out: TransferableOut::StakeableLockOut(platformvm::txs::StakeableLockOut {
                 locktime: i as u64,
                 transfer_output: key::secp256k1::txs::transfer::Output {
                     amount: (i + 1) as u64,
@@ -356,7 +384,7 @@ fn test_sort_transferable_outputs() {
         });
         sorted_outputs.push(Output {
             asset_id: ids::Id::from_slice(&[i as u8, 2, 2, 3, 4, 5, 6, 7, 8, 9]),
-            stakeable_lock_out: Some(platformvm::txs::StakeableLockOut {
+            out: TransferableOut::StakeableLockOut(platformvm::txs::StakeableLockOut {
                 locktime: i as u64,
                 transfer_output: key::secp256k1::txs::transfer::Output {
                     amount: (i + 1) as u64,

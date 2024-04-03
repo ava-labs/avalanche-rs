@@ -1,4 +1,9 @@
-use crate::{codec, errors::Result, hash, ids, key, txs};
+use crate::{
+    codec,
+    errors::Result,
+    hash, ids, key,
+    txs::{self},
+};
 use serde::{Deserialize, Serialize};
 
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/platformvm/txs#CreateSubnetTx>
@@ -68,10 +73,7 @@ impl Tx {
         packer.pack_u32(output_owners_type_id)?;
         packer.pack_u64(self.owner.locktime)?;
         packer.pack_u32(self.owner.threshold)?;
-        packer.pack_u32(self.owner.addresses.len() as u32)?;
-        for addr in self.owner.addresses.iter() {
-            packer.pack_bytes(addr.as_ref())?;
-        }
+        packer.pack(&self.owner.addresses)?;
 
         // take bytes just for hashing computation
         let tx_bytes_with_no_signature = packer.take_bytes();
@@ -137,7 +139,7 @@ impl Tx {
 /// RUST_LOG=debug cargo test --package avalanche-types --lib -- platformvm::txs::create_subnet::test_create_subnet_tx_serialization_with_one_signer --exact --show-output
 #[test]
 fn test_create_subnet_tx_serialization_with_one_signer() {
-    use crate::ids::short;
+    use crate::{ids::short, txs::transferable::TransferableOut};
 
     macro_rules! ab {
         ($e:expr) => {
@@ -155,7 +157,7 @@ fn test_create_subnet_tx_serialization_with_one_signer() {
                     0xd3, 0x84, 0x9b, 0xb9, 0xdf, 0xab, 0xe3, 0x9f, //
                     0xcb, 0xc3, 0xe7, 0xee, 0x88, 0x11, 0xfe, 0x2f, //
                 ])),
-                transfer_output: Some(key::secp256k1::txs::transfer::Output {
+                out: TransferableOut::TransferOutput(key::secp256k1::txs::transfer::Output {
                     amount: 0x2386f269cb1f00,
                     output_owners: key::secp256k1::txs::OutputOwners {
                         locktime: 0x00,
@@ -340,7 +342,7 @@ fn test_create_subnet_tx_serialization_with_one_signer() {
 /// RUST_LOG=debug cargo test --package avalanche-types --lib -- platformvm::txs::create_subnet::test_create_subnet_tx_serialization_with_custom_network --exact --show-output
 #[test]
 fn test_create_subnet_tx_serialization_with_custom_network() {
-    use crate::ids::short;
+    use crate::{ids::short, txs::transferable::TransferableOut};
 
     macro_rules! ab {
         ($e:expr) => {
@@ -358,7 +360,7 @@ fn test_create_subnet_tx_serialization_with_custom_network() {
                     0xe8, 0x5e, 0xa5, 0x74, 0xc7, 0xa1, 0x5a, 0x79, //
                     0x68, 0x64, 0x4d, 0x14, 0xd5, 0x47, 0x80, 0x14, //
                 ])),
-                transfer_output: Some(key::secp256k1::txs::transfer::Output {
+                out: TransferableOut::TransferOutput(key::secp256k1::txs::transfer::Output {
                     amount: 0x2c6874d5c663740,
                     output_owners: key::secp256k1::txs::OutputOwners {
                         locktime: 0x00,
