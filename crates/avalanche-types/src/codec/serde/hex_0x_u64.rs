@@ -18,7 +18,7 @@ where
     u64::from_str_radix(s, 16).map_err(serde::de::Error::custom)
 }
 
-pub struct Hex0xU64(u64);
+pub struct Hex0xU64;
 
 impl SerializeAs<u64> for Hex0xU64 {
     fn serialize_as<S>(x: &u64, serializer: S) -> Result<S::Ok, S::Error>
