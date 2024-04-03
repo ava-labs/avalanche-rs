@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/avm#UnsignedTx>
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone, Default)]
+#[serde(rename_all = "camelCase")]
 pub struct Tx {
     /// The transaction ID is empty for unsigned tx
     /// as long as "avax.BaseTx.Metadata" is "None".
@@ -20,11 +21,9 @@ pub struct Tx {
     /// Tx.ID() is non-empty.
     #[serde(flatten)]
     pub base_tx: txs::Tx,
-    #[serde(rename = "destinationChain")]
-    pub destination_chain_id: ids::Id,
-    #[serde(rename = "exportedOutputs")]
-    pub destination_chain_transferable_outputs: Option<Vec<txs::transferable::Output>>,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub destination_chain: ids::Id,
+    pub exported_outputs: Option<Vec<txs::transferable::Output>>,
+    #[serde(default)]
     pub fx_creds: Vec<fx::Credential>,
 }
 
@@ -75,12 +74,12 @@ impl Tx {
         packer.set_bytes(&b);
 
         // pack the second field in the struct
-        packer.pack_bytes(self.destination_chain_id.as_ref())?;
+        packer.pack_bytes(self.destination_chain.as_ref())?;
 
         // pack the third field in the struct
-        if self.destination_chain_transferable_outputs.is_some() {
+        if self.exported_outputs.is_some() {
             let destination_chain_transferable_outputs = self
-                .destination_chain_transferable_outputs
+                .exported_outputs
                 .as_ref()
                 .unwrap();
             packer.pack_u32(destination_chain_transferable_outputs.len() as u32)?;
