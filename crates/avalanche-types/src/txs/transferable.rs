@@ -39,7 +39,7 @@ impl Packable for TransferableOut {
     fn pack(&self, packer: &Packer) -> Result<()> {
         match self {
             TransferableOut::TransferOutput(transfer_output) => {
-                packer.pack(transfer_output)?;
+                transfer_output.pack(&packer)?;
             }
             TransferableOut::StakeableLockOut(stakeable_lock_out) => {
                 // marshal type ID "platformvm::txs::StakeableLockOut"
@@ -50,7 +50,7 @@ impl Packable for TransferableOut {
 
                 // marshal "platformvm::txs::StakeableLockOut.locktime" field
                 packer.pack_u64(stakeable_lock_out.locktime)?;
-                packer.pack(&stakeable_lock_out.transfer_output)?;
+                stakeable_lock_out.transfer_output.pack(&packer)?;
             }
         }
         Ok(())
@@ -146,7 +146,7 @@ impl Packable for Output {
         // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/components/avax#TransferableOutput
         // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/components/avax#Asset
         packer.pack_bytes(self.asset_id.as_ref())?;
-        packer.pack(&self.out)?;
+        self.out.pack(&packer)?;
         Ok(())
     }
 }

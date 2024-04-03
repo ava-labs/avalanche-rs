@@ -1,9 +1,4 @@
-use crate::{
-    codec,
-    errors::Result,
-    hash, ids, key,
-    txs::{self},
-};
+use crate::{codec, errors::Result, hash, ids, key, packer::Packable, txs};
 use serde::{Deserialize, Serialize};
 
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/platformvm/txs#CreateChainTx>
@@ -116,7 +111,7 @@ impl Tx {
         // pack the seventh field "subnet_auth" in the struct
         let subnet_auth_type_id = key::secp256k1::txs::Input::type_id();
         packer.pack_u32(subnet_auth_type_id)?;
-        packer.pack(&self.subnet_auth.sig_indices)?;
+        self.subnet_auth.sig_indices.pack(&packer)?;
 
         // take bytes just for hashing computation
         let tx_bytes_with_no_signature = packer.take_bytes();

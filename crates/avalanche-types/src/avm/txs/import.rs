@@ -3,7 +3,9 @@ use crate::{
     avm::txs::fx,
     codec,
     errors::{Error, Result},
-    hash, ids, key, platformvm, txs,
+    hash, ids, key,
+    packer::Packable,
+    platformvm, txs,
 };
 use serde::{Deserialize, Serialize};
 
@@ -128,7 +130,7 @@ impl Tx {
                         // so no need to encode type ID
                         // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/secp256k1fx#TransferInput
                         // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/secp256k1fx#Input
-                        packer.pack(&transfer_input.sig_indices)?;
+                        transfer_input.sig_indices.pack(&packer)?;
                     }
                     21 => {
                         // "platformvm::txs::StakeableLockIn"
@@ -154,7 +156,7 @@ impl Tx {
                         // so no need to encode type ID
                         // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/secp256k1fx#TransferInput
                         // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/secp256k1fx#Input
-                        packer.pack(&stakeable_lock_in.transfer_input.sig_indices)?;
+                        stakeable_lock_in.transfer_input.sig_indices.pack(&packer)?;
                     }
                     _ => {
                         return Err(Error::Other {

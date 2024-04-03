@@ -1,9 +1,4 @@
-use crate::{
-    codec,
-    errors::Result,
-    hash, ids, key, platformvm,
-    txs::{self},
-};
+use crate::{codec, errors::Result, hash, ids, key, packer::Packable, platformvm, txs};
 use serde::{Deserialize, Serialize};
 
 /// ref. <https://github.com/ava-labs/avalanchego/blob/master/vms/platformvm/txs/add_permissionless_validator_tx.go>
@@ -129,7 +124,7 @@ impl Tx {
         }
 
         // pack the third field "stake" in the struct
-        packer.pack(&self.stake_transferable_outputs)?;
+        self.stake_transferable_outputs.pack(&packer)?;
 
         // pack the fourth field "reward_owner" in the struct
         // not embedded thus encode struct type id
@@ -137,12 +132,12 @@ impl Tx {
         packer.pack_u32(output_owners_type_id)?;
         packer.pack_u64(self.validator_rewards_owner.locktime)?;
         packer.pack_u32(self.validator_rewards_owner.threshold)?;
-        packer.pack(&self.validator_rewards_owner.addresses)?;
+        self.validator_rewards_owner.addresses.pack(&packer)?;
 
         packer.pack_u32(output_owners_type_id)?;
         packer.pack_u64(self.delegator_rewards_owner.locktime)?;
         packer.pack_u32(self.delegator_rewards_owner.threshold)?;
-        packer.pack(&self.delegator_rewards_owner.addresses)?;
+        self.delegator_rewards_owner.addresses.pack(&packer)?;
 
         // pack the fifth field "shares" in the struct
         packer.pack_u32(self.delegation_shares)?;

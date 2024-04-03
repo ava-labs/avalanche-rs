@@ -5,7 +5,7 @@ use crate::{
     formatting,
     ids::{self, short},
     key,
-    packer::Packer,
+    packer::{Packable, Packer},
     platformvm,
 };
 use serde::{Deserialize, Serialize};
@@ -205,7 +205,7 @@ impl Utxo {
             packer.pack_u64(out.output_owners.locktime)?;
             packer.pack_u32(out.output_owners.threshold)?;
 
-            packer.pack(&out.output_owners.addresses)?;
+            out.output_owners.addresses.pack(&packer)?;
         } else if let Some(lock_out) = &self.stakeable_lock_out {
             packer.pack_u32(platformvm::txs::StakeableLockOut::type_id())?;
             packer.pack_u64(lock_out.locktime)?;
@@ -216,7 +216,11 @@ impl Utxo {
             packer.pack_u64(lock_out.transfer_output.output_owners.locktime)?;
             packer.pack_u32(lock_out.transfer_output.output_owners.threshold)?;
 
-            packer.pack(&lock_out.transfer_output.output_owners.addresses)?;
+            lock_out
+                .transfer_output
+                .output_owners
+                .addresses
+                .pack(&packer)?;
         }
 
         Ok(packer)

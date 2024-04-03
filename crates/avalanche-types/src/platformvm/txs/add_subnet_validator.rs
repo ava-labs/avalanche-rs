@@ -1,4 +1,4 @@
-use crate::{codec, errors::Result, hash, ids, key, platformvm, txs};
+use crate::{codec, errors::Result, hash, ids, key, packer::Packable, platformvm, txs};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone)]
@@ -88,7 +88,7 @@ impl Tx {
         // pack the third field "subnet_auth" in the struct
         let subnet_auth_type_id = key::secp256k1::txs::Input::type_id();
         packer.pack_u32(subnet_auth_type_id)?;
-        packer.pack(&self.subnet_auth.sig_indices)?;
+        self.subnet_auth.sig_indices.pack(&packer)?;
 
         // take bytes just for hashing computation
         let tx_bytes_with_no_signature = packer.take_bytes();

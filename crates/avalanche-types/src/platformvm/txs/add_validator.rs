@@ -2,7 +2,7 @@ use crate::{
     codec,
     errors::Result,
     hash, ids, key,
-    packer::{self, Packer},
+    packer::{self, Packable, Packer},
     platformvm, txs,
 };
 use serde::{Deserialize, Serialize};
@@ -65,7 +65,7 @@ impl Tx {
         signers: Vec<Vec<T>>,
     ) -> Result<()> {
         let packer = Packer::new();
-        packer.pack(self)?;
+        self.pack(&packer)?;
 
         // take bytes just for hashing computation
         let tx_bytes_with_no_signature = packer.take_bytes();
@@ -133,7 +133,7 @@ impl packer::Packable for Tx {
         let type_id = Self::type_id();
 
         packer.pack_u32(type_id)?;
-        packer.pack(&self.base_tx)?;
+        Packable::pack(&self.base_tx, packer)?;
 
         // pack the second field "validator" in the struct
         packer.pack_bytes(self.validator.node_id.as_ref())?;
@@ -142,7 +142,7 @@ impl packer::Packable for Tx {
         packer.pack_u64(self.validator.weight)?;
 
         // pack the third field "stake" in the struct
-        packer.pack(&self.stake_transferable_outputs)?;
+        self.stake_transferable_outputs.pack(&packer)?;
 
         // pack the fourth field "reward_owner" in the struct
         // not embedded thus encode struct type id
@@ -150,7 +150,7 @@ impl packer::Packable for Tx {
         packer.pack_u32(output_owners_type_id)?;
         packer.pack_u64(self.rewards_owner.locktime)?;
         packer.pack_u32(self.rewards_owner.threshold)?;
-        packer.pack(&self.rewards_owner.addresses)?;
+        self.rewards_owner.addresses.pack(&packer)?;
 
         // pack the fifth field "shares" in the struct
         packer.pack_u32(self.shares)?;
@@ -514,7 +514,7 @@ fn test_json_deserialize() {
 
     let tx: Tx = serde_json::from_value(tx_json).expect("parsing tx");
     let packer = Packer::new();
-    packer.pack(&tx).expect("packing tx");
+    tx.pack(&packer).expect("packing tx");
 
     let expected_bytes: &[u8] = &[
         // codec version

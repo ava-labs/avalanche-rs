@@ -3,6 +3,8 @@ pub mod raw;
 pub mod transferable;
 pub mod utxo;
 
+use crate::packer::Packable;
+
 use super::{
     codec::{self, serde::hex_0x_bytes::Hex0xBytes},
     errors::{Error, Result},
@@ -80,7 +82,7 @@ impl Tx {
         let packer = packer::Packer::new();
 
         packer.pack_u32(type_id)?;
-        packer.pack(self)?;
+        Packable::pack(self, &packer)?;
         Ok(packer)
     }
 }
@@ -93,7 +95,7 @@ impl packer::Packable for Tx {
         // ref. "avalanchego/codec/reflectcodec.structFielder"
         packer.pack_u32(self.network_id)?;
         packer.pack_bytes(self.blockchain_id.as_ref())?;
-        packer.pack(&self.transferable_outputs)?;
+        self.transferable_outputs.pack(&packer)?;
 
         // "transferable_inputs" field; pack the number of slice elements
         if self.transferable_inputs.is_some() {
@@ -152,7 +154,7 @@ impl packer::Packable for Tx {
                         // so no need to encode type ID
                         // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/secp256k1fx#TransferInput
                         // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/secp256k1fx#Input
-                        packer.pack(&transfer_input.sig_indices)?;
+                        transfer_input.sig_indices.pack(&packer)?;
                     }
                     21 => {
                         // "platformvm::txs::StakeableLockIn"
@@ -178,7 +180,7 @@ impl packer::Packable for Tx {
                         // so no need to encode type ID
                         // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/secp256k1fx#TransferInput
                         // ref. https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/secp256k1fx#Input
-                        packer.pack(&stakeable_lock_in.transfer_input.sig_indices)?;
+                        stakeable_lock_in.transfer_input.sig_indices.pack(&packer)?;
                     }
                     _ => {
                         return Err(Error::Other {
@@ -195,7 +197,7 @@ impl packer::Packable for Tx {
             packer.pack_u32(0_u32)?;
         }
 
-        packer.pack(&self.memo)?;
+        self.memo.pack(&packer)?;
         Ok(())
     }
 }

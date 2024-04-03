@@ -647,11 +647,6 @@ impl Packer {
         };
         Ok(s)
     }
-
-    /// Packs a packable type
-    pub fn pack<T: Packable>(&self, v: &T) -> Result<()> {
-        v.pack(self)
-    }
 }
 
 /// A trait implemented by types that can be packed using [`Packer`]
@@ -677,7 +672,7 @@ impl Packable for u32 {
 impl<T: Packable> Packable for Option<T> {
     fn pack(&self, packer: &Packer) -> Result<()> {
         if let Some(val) = self {
-            packer.pack(val)?;
+            val.pack(&packer)?;
         } else {
             packer.pack_u32(0_u32)?;
         }
@@ -690,7 +685,7 @@ impl<T: Packable> Packable for Vec<T> {
     fn pack(&self, packer: &Packer) -> Result<()> {
         packer.pack_u32(self.len() as u32)?;
         for val in self {
-            packer.pack(val)?;
+            val.pack(&packer)?;
         }
         Ok(())
     }

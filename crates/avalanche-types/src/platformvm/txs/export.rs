@@ -1,9 +1,4 @@
-use crate::{
-    codec,
-    errors::Result,
-    hash, ids, key,
-    txs::{self},
-};
+use crate::{codec, errors::Result, hash, ids, key, packer::Packable, txs};
 use serde::{Deserialize, Serialize};
 
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/platformvm/txs#ExportTx>
@@ -89,7 +84,7 @@ impl Tx {
 
                 // fx_id is serialize:"false" thus skipping serialization
 
-                packer.pack(&transferable_output.out)?;
+                transferable_output.out.pack(&packer)?;
             }
         } else {
             packer.pack_u32(0_u32)?;

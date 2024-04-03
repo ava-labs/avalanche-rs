@@ -1,5 +1,5 @@
 //! Base export transaction type.
-use crate::{avm::txs::fx, codec, errors::Result, hash, ids, key, txs};
+use crate::{avm::txs::fx, codec, errors::Result, hash, ids, key, packer::Packable, txs};
 use serde::{Deserialize, Serialize};
 
 /// ref. <https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/avm#Tx>
@@ -69,7 +69,7 @@ impl Tx {
         packer.pack_bytes(self.destination_chain_id.as_ref())?;
 
         // pack the third field in the struct
-        packer.pack(&self.destination_chain_transferable_outputs)?;
+        self.destination_chain_transferable_outputs.pack(&packer)?;
 
         // take bytes just for hashing computation
         let tx_bytes_with_no_signature = packer.take_bytes();
