@@ -21,7 +21,7 @@ where
     H160::from_str(s).map_err(serde::de::Error::custom)
 }
 
-pub struct Hex0xH160(H160);
+pub struct Hex0xH160;
 
 impl SerializeAs<H160> for Hex0xH160 {
     fn serialize_as<S>(x: &H160, serializer: S) -> Result<S::Ok, S::Error>
