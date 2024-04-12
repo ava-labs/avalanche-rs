@@ -393,12 +393,12 @@ where
                     retryable: false,
                 });
             }
-            let (sig_indices, keys) = res.unwrap();
+            let (signature_indices, keys) = res.unwrap();
 
             return Ok((
                 key::secp256k1::txs::Input {
                     // if empty, it errors with "unauthorized subnet modification: input has less signers than expected"
-                    sig_indices,
+                    signature_indices,
                 },
                 vec![keys],
             ));

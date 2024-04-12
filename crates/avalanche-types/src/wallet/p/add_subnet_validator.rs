@@ -207,7 +207,7 @@ where
         );
 
         let (ins, unstaked_outs, _, signers) = self.inner.spend(0, self.inner.inner.tx_fee).await?;
-        let (subnet_auth, subnet_signers) = self.inner.authorize(self.subnet_id).await?;
+        let (subnet_authorization, subnet_signers) = self.inner.authorize(self.subnet_id).await?;
 
         let mut tx = platformvm::txs::add_subnet_validator::Tx {
             base_tx: txs::Tx {
@@ -227,7 +227,7 @@ where
                 subnet_id: self.subnet_id,
             },
             // if "sig_indices" empty, it errors with "unauthorized subnet modification: input has less signers than expected"
-            subnet_auth,
+            subnet_authorization,
             ..Default::default()
         };
         tx.sign([signers, subnet_signers].concat()).await?;
