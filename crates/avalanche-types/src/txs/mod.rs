@@ -464,7 +464,7 @@ fn test_base_tx_serialization() {
         // memo
         0x00, 0x01, 0x02, 0x03, //
     ];
-    // for c in &unsigned_bytes {
+    // for c in &unsigned_tx_bytes {
     //     print!("{:#02x},", *c);
     // }
     assert!(cmp_manager::eq_vectors(

@@ -111,8 +111,8 @@ impl Tx {
         // pack the seventh field "subnet_auth" in the struct
         let subnet_auth_type_id = key::secp256k1::txs::Input::type_id();
         packer.pack_u32(subnet_auth_type_id)?;
-        packer.pack_u32(self.subnet_auth.sig_indices.len() as u32)?;
-        for sig_idx in self.subnet_auth.sig_indices.iter() {
+        packer.pack_u32(self.subnet_auth.signature_indices.len() as u32)?;
+        for sig_idx in self.subnet_auth.signature_indices.iter() {
             packer.pack_u32(*sig_idx)?;
         }
 
@@ -364,7 +364,7 @@ fn test_create_chain_tx_serialization_with_one_signer() {
             0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x22, 0x7d,
         ]),
         subnet_auth: key::secp256k1::txs::Input {
-            sig_indices: vec![0],
+            signature_indices: vec![0],
         },
         ..Tx::default()
     };
