@@ -1,7 +1,11 @@
+**This repository is no longer maintained. If you are interested in maintaining it, please reach out in the discussion tab.**
+
 # avalanche-rs
 ![Github Actions](https://github.com/ava-labs/avalanche-rs/actions/workflows/e2e.yml/badge.svg)
 [![Latest](https://img.shields.io/badge/avalanche-types?color=orange)](https://crates.io/crates/avalanche-types)
 [![Ecosystem license](https://img.shields.io/badge/License-Ecosystem-blue.svg)](./LICENSE.md)
+
+### **Disclosure:**
 
 > :warning: avalanche-rs is alpha-level software and is not ready for production
 > use. Do not use avalanche-rs to run production workloads. See the
