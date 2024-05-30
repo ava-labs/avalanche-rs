@@ -1,4 +1,4 @@
-**This repository is no longer maintained. If you are interested in maintaining it, please reach out in the discussion tab.**
+**This repository is not currently maintained. If you are interested in maintaining it, please reach out in the discussion tab.**
 
 # avalanche-rs
 ![Github Actions](https://github.com/ava-labs/avalanche-rs/actions/workflows/e2e.yml/badge.svg)
