@@ -1,7 +1,7 @@
 //! Low-level byte-packing utilities.
 pub mod ip;
 
-use std::{cell::Cell, u16};
+use std::cell::Cell;
 
 use crate::errors::{Error, Result};
 use bytes::{Buf, BufMut, Bytes, BytesMut};

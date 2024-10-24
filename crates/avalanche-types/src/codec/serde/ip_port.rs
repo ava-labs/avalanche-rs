@@ -32,11 +32,7 @@ where
                 return Err(serde::de::Error::custom("no host found"));
             };
             let ip: IpAddr = host.parse().map_err(serde::de::Error::custom)?;
-            let port = if let Some(port) = url.port() {
-                port
-            } else {
-                0 // e.g., DNS
-            };
+            let port = url.port().unwrap_or(0);
             Ok(SocketAddr::new(ip, port))
         }
     }
@@ -72,11 +68,7 @@ impl<'de> DeserializeAs<'de, SocketAddr> for IpPort {
                     return Err(serde::de::Error::custom("no host found"));
                 };
                 let ip: IpAddr = host.parse().map_err(serde::de::Error::custom)?;
-                let port = if let Some(port) = url.port() {
-                    port
-                } else {
-                    0 // e.g., DNS
-                };
+                let port = url.port().unwrap_or(0);
                 Ok(SocketAddr::new(ip, port))
             }
         }

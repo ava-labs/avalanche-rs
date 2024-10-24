@@ -731,7 +731,7 @@ pub struct ApiPrimaryValidator {
     #[serde_as(as = "Option<DisplayFromStr>")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub uptime: Option<f32>,
-    pub connected: bool,
+    pub connected: Option<bool>,
 
     /// None for permissioned Subnet validator
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -765,7 +765,7 @@ impl Default for ApiPrimaryValidator {
             potential_reward: None,
             delegation_fee: None,
             uptime: None,
-            connected: false,
+            connected: None,
             signer: None,
             delegator_count: None,
             delegator_weight: None,
@@ -935,7 +935,7 @@ fn test_get_current_validators() {
                     potential_reward: Some(79984390135364555),
                     delegation_fee: Some(6.25),
                     uptime: Some(100.0),
-                    connected: true,
+                    connected: Some(true),
                     delegator_count: Some(0),
                     delegator_weight: Some(0),
                     ..ApiPrimaryValidator::default()
@@ -966,7 +966,7 @@ fn test_get_current_validators() {
                     potential_reward: Some(77148186230865960),
                     delegation_fee: Some(6.25),
                     uptime: Some(100.0),
-                    connected: true,
+                    connected: Some(true),
                     delegator_count: Some(0),
                     delegator_weight: Some(0),
                     ..ApiPrimaryValidator::default()
@@ -1029,7 +1029,7 @@ fn test_get_pending_validators() {
                 stake_amount: Some(200000000000),
                 node_id: node::Id::from_str("NodeID-5mb46qkSBj81k9g9e4VFjGGSbaaSLFRzD").unwrap(),
                 delegation_fee: Some(10.0),
-                connected: false,
+                connected: Some(false),
                 ..ApiPrimaryValidator::default()
             }]),
             delegators: <Vec<ApiPrimaryDelegator>>::from([ApiPrimaryDelegator {

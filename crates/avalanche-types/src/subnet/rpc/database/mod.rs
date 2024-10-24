@@ -41,6 +41,7 @@ pub trait KeyValueReaderWriterDeleter {
 // Trait that specifies that something may be
 // committed.
 #[tonic::async_trait]
+#[allow(dead_code)]
 trait Commitable {
     /// Writes all the operations of this database to the underlying database.
     async fn commit(&mut self) -> Result<()>;

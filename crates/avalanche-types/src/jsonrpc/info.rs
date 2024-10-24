@@ -645,8 +645,6 @@ pub struct Peer {
     pub last_received: DateTime<Utc>,
     #[serde_as(as = "DisplayFromStr")]
     pub observed_uptime: u32,
-    #[serde_as(as = "HashMap<_, DisplayFromStr>")]
-    pub observed_subnet_uptimes: HashMap<ids::Id, u32>,
     pub tracked_subnets: Vec<ids::Id>,
 }
 
@@ -660,7 +658,6 @@ impl Default for Peer {
             last_sent: DateTime::<Utc>::MIN_UTC,
             last_received: DateTime::<Utc>::MIN_UTC,
             observed_uptime: 0,
-            observed_subnet_uptimes: HashMap::new(),
             tracked_subnets: Vec::new(),
         }
     }
@@ -691,7 +688,6 @@ fn test_peers() {
                 \"lastReceived\": \"2020-06-01T15:22:57Z\",
                 \"benched\": [],
                 \"observedUptime\": \"99\",
-                \"observedSubnetUptimes\": {},
                 \"trackedSubnets\": [],
                 \"benched\": []
             },
@@ -704,9 +700,6 @@ fn test_peers() {
                 \"lastReceived\": \"2020-06-01T15:22:34Z\",
                 \"benched\": [],
                 \"observedUptime\": \"75\",
-                \"observedSubnetUptimes\": {
-                    \"29uVeLPJB1eQJkzRemU8g8wZDw5uJRqpab5U2mX9euieVwiEbL\": \"100\"
-                },
                 \"trackedSubnets\": [
                     \"29uVeLPJB1eQJkzRemU8g8wZDw5uJRqpab5U2mX9euieVwiEbL\"
                 ],
@@ -721,13 +714,6 @@ fn test_peers() {
     )
     .unwrap();
 
-    let uptimes: HashMap<ids::Id, u32> = [(
-        ids::Id::from_str("29uVeLPJB1eQJkzRemU8g8wZDw5uJRqpab5U2mX9euieVwiEbL").unwrap(),
-        100,
-    )]
-    .iter()
-    .cloned()
-    .collect();
     let expected = PeersResponse {
         jsonrpc: "2.0".to_string(),
         id: 1,
@@ -770,7 +756,6 @@ fn test_peers() {
                             .naive_utc(),
                     ),
                     observed_uptime: 75,
-                    observed_subnet_uptimes: uptimes,
                     tracked_subnets: vec![ids::Id::from_str(
                         "29uVeLPJB1eQJkzRemU8g8wZDw5uJRqpab5U2mX9euieVwiEbL",
                     )

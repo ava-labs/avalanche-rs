@@ -332,7 +332,7 @@ fn test_keys_address() {
             log::info!("checking the key info at {}", pos);
 
             let sk = crate::key::secp256k1::private_key::Key::from_cb58(
-                &ki.private_key_cb58.clone().unwrap(),
+                ki.private_key_cb58.clone().unwrap(),
             )
             .unwrap();
             assert_eq!(

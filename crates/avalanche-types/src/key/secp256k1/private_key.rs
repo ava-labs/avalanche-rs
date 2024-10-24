@@ -369,7 +369,7 @@ pub fn load_cb58_keys(d: &[u8], permute_keys: bool) -> Result<Vec<Key>> {
     let mut added = HashMap::new();
     loop {
         if let Some(s) = lines.next() {
-            if added.get(s).is_some() {
+            if added.contains_key(s) {
                 return Err(Error::Other {
                     message: format!("key at line {} already added before", line_cnt),
                     retryable: false,

@@ -321,26 +321,23 @@ async fn make_single_transfer(
             }
         };
         let matched = prometheus_manager::find_all(&s.metrics, |s| {
-            s.metric
-                .contains("avalanche_X_vm_avalanche_base_txs_accepted")
+            s.metric.contains("avalanche_avm_txs_accepted")
+                && s.labels.as_ref().unwrap().get("chain") == Some("X")
+                && s.labels.as_ref().unwrap().get("tx") == Some("base")
         });
+        log::info!("matched {:?}", matched);
         let mut cur: HashMap<String, f64> = HashMap::new();
         for m in matched {
             cur.insert(m.metric.clone(), m.value.to_f64());
         }
 
-        if *cur
-            .get("avalanche_X_vm_avalanche_base_txs_accepted")
-            .unwrap()
-            == 0_f64
-        {
+        if *cur.get("avalanche_avm_txs_accepted").unwrap() == 0_f64 {
             return Err(Error::new(
                 ErrorKind::InvalidData,
                 format!(
-                    "{} unexpected 'avalanche_X_vm_avalanche_base_txs_accepted' {}, expected >0",
+                    "{} unexpected 'avalanche_avm_txs_accepted{{chain=\"X\",tx=\"base\"}}' {}, expected >0",
                     ep.as_str(),
-                    *cur.get("avalanche_X_vm_avalanche_base_txs_accepted")
-                        .unwrap(),
+                    *cur.get("avalanche_avm_txs_accepted").unwrap(),
                 ),
             ));
         }

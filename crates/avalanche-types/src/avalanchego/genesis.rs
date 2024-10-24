@@ -5,7 +5,6 @@ use std::{
     io::{self, Error, ErrorKind, Write},
     path::Path,
     time::SystemTime,
-    u64,
 };
 
 use crate::{constants, coreth::genesis as coreth_genesis, key};
