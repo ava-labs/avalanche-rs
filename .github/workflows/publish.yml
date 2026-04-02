@@ -11,8 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     if: "startsWith(github.event.release.tag_name, 'avalanche-types-v')"
     steps:
-      - uses: actions/checkout@v1
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/checkout@50fbc622fc4ef5163becd7fab6573eac35f8462e # v1
+      - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # stable
       - name: publish avalanche-types crate
         shell: bash
         run: |
@@ -23,8 +23,8 @@ jobs:
     runs-on: ubuntu-latest
     if: "startsWith(github.event.release.tag_name, 'avalanche-consensus-v')"
     steps:
-      - uses: actions/checkout@v1
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/checkout@50fbc622fc4ef5163becd7fab6573eac35f8462e # v1
+      - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # stable
       - name: publish avalanche-consensus crate
         shell: bash
         run: |
